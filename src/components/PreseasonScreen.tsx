@@ -5,6 +5,7 @@ import { ATTRIBUTE_KEYS, type AttributeKey, type GameState } from '@/game/types'
 import { getTeam } from '@/data/teams'
 import { getLeague } from '@/data/leagues'
 import { ATTRIBUTE_HELP_KEY, ATTRIBUTE_KEY } from './display'
+import { TeamCrest } from './TeamCrest'
 
 interface Props {
   state: GameState
@@ -30,16 +31,14 @@ export function PreseasonScreen({ state, onSpend, onPlay }: Props) {
         </div>
 
         <div className="mt-3 flex items-center gap-3">
-          <span
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-base font-black"
-            style={{ background: team.colors[0], color: team.colors[1] }}
-          >
-            {player.number}
-          </span>
+          <TeamCrest teamId={team.id} size={46} />
           <div className="min-w-0">
             <p className="truncate font-bold text-slate-100">{L(team.name)}</p>
             <p className="truncate text-xs text-slate-400">{L(league.name)}</p>
           </div>
+          <span className="tnum ml-auto shrink-0 text-2xl font-black text-slate-600">
+            {player.number}
+          </span>
         </div>
 
         {state.pendingPlacementNote && (

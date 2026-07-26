@@ -78,7 +78,7 @@ export const NATIONAL_EVENTS: GameEvent[] = [
           ),
       },
       {
-        label: loc('Buscar al que está libre', 'Find the open man'),
+        label: loc('Buscar al que está libre', 'Find the open teammate'),
         resolve: (ctx) =>
           gamble(
             ctx,
@@ -91,7 +91,7 @@ export const NATIONAL_EVENTS: GameEvent[] = [
             ),
             outcome(
               'Falló. Todos dijeron que tendrías que haber tirado vos.',
-              'He missed. Everyone said you should have taken it.',
+              'They missed. Everyone said you should have taken it.',
               'bad',
               { attributes: { iq: 2 }, hidden: { morale: -14, hype: -4 } },
             ),
@@ -197,17 +197,17 @@ export const NATIONAL_EVENTS: GameEvent[] = [
       ),
     choices: [
       {
-        label: loc('Cederle el lugar y enseñarle todo', 'Give him the spot and teach him everything'),
+        label: loc('Cederle el lugar y enseñarle todo', 'Give them the spot and teach them everything'),
         resolve: () =>
           outcome(
             'Diez años después, ese chico dijo en su discurso de retiro que vos le enseñaste a ser profesional.',
-            'Ten years later, that kid said in his retirement speech that you taught him how to be a professional.',
+            'Ten years later, that kid said in their retirement speech that you taught them how to be a professional.',
             'epic',
             { attributes: { leadership: 8, iq: 3 }, hidden: { morale: 14 } },
           ),
       },
       {
-        label: loc('Pelearle el puesto hasta el final', 'Fight him for the spot to the end'),
+        label: loc('Pelearle el puesto hasta el final', 'Fight them for the spot to the end'),
         resolve: (ctx) =>
           gamble(
             ctx,

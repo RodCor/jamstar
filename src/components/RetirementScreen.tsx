@@ -9,6 +9,7 @@ import { flagFor } from '@/data/countries'
 import { AWARD_INFO } from '@/game/awards'
 import { formatMoney, teamTextColor } from './display'
 import { buildShareText, drawShareCard } from './shareCard'
+import { TeamCrest } from './TeamCrest'
 
 interface Props {
   state: GameState
@@ -26,6 +27,7 @@ export function RetirementScreen({ state, onPlayAgain }: Props) {
     [totals, state.seasons, state.rival],
   )
 
+  const lastSeason = state.seasons[state.seasons.length - 1]
   const shareData = {
     player: state.player,
     totals,
@@ -33,6 +35,7 @@ export function RetirementScreen({ state, onPlayAgain }: Props) {
     rival: state.rival,
     seed: state.seed,
     locale,
+    lastTeam: lastSeason ? getTeam(lastSeason.teamId) : null,
   }
 
   // Every award won across the career, tallied.
@@ -167,9 +170,11 @@ export function RetirementScreen({ state, onPlayAgain }: Props) {
               return (
                 <span
                   key={id}
-                  className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-bold"
+                  className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5
+                             py-1 pl-1 pr-2 text-[11px] font-bold"
                   style={{ color: teamTextColor(team.colors) }}
                 >
+                  <TeamCrest teamId={id} size={18} />
                   {L(team.name)}
                 </span>
               )

@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest'
 
 import { Rng, hashSeed } from '../rng'
 import { createGame, dailyChoices, type CreationChoices } from '../create'
-import { advanceYear, beginSeason, continueAfterEvent, resolveChoice } from '../engine'
+import {
+  advanceYear,
+  beginSeason,
+  continueAfterEvent,
+  resolveChoice,
+  resolveMinigame,
+} from '../engine'
 import { computeLegacy, computeTotals } from '../legacy'
 import { ALL_EVENTS } from '../events'
 import type { GameState, Position, PlayStyleId } from '../types'
@@ -19,6 +25,12 @@ function playCareer(
   choices: CreationChoices,
   seed: string,
   choicePolicy: (optionCount: number, rng: Rng) => number = () => 0,
+  /**
+   * How many attempts the player converts in a final. Minigame results are
+   * inputs, not RNG draws, so a deterministic policy here keeps the whole
+   * career reproducible.
+   */
+  minigamePolicy: (required: number, rounds: number, rng: Rng) => number = (required) => required,
 ): GameState {
   let state = createGame(choices, seed, 'career')
   const policyRng = new Rng(`${seed}::policy`)
@@ -33,6 +45,11 @@ function playCareer(
       const pick = options[choicePolicy(options.length, policyRng) % options.length]
       state = resolveChoice(state, pick.index)
       state = continueAfterEvent(state)
+    }
+
+    if (state.phase === 'minigame' && state.pendingMinigame) {
+      const { required, rounds } = state.pendingMinigame
+      state = resolveMinigame(state, minigamePolicy(required, rounds, policyRng))
     }
 
     state = advanceYear(state)

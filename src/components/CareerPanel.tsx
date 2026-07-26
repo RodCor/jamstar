@@ -9,6 +9,7 @@ import { computeTotals } from '@/game/legacy'
 import { rivalAverages } from '@/game/rival'
 import { AWARD_INFO } from '@/game/awards'
 import { PLAYOFF_KEY, formatMoney } from './display'
+import { TeamCrest } from './TeamCrest'
 
 /** Collapsible career/rival record, shown alongside the active season. */
 export function CareerPanel({ state }: { state: GameState }) {
@@ -69,12 +70,7 @@ export function CareerPanel({ state }: { state: GameState }) {
                     className="flex items-center gap-2 rounded-lg bg-white/5 px-2.5 py-1.5 text-xs"
                   >
                     <span className="tnum w-9 shrink-0 text-slate-500">{season.year}</span>
-                    <span
-                      className="w-11 shrink-0 rounded px-1 py-0.5 text-center text-[10px] font-black"
-                      style={{ background: team.colors[0], color: team.colors[1] }}
-                    >
-                      {team.abbr}
-                    </span>
+                    <TeamCrest teamId={team.id} size={22} />
                     <span className="tnum shrink-0 font-semibold text-slate-200">
                       {season.points.toFixed(1)}/{season.rebounds.toFixed(1)}/{season.assists.toFixed(1)}
                     </span>

@@ -6,9 +6,10 @@
  * the layout at a fixed export size.
  */
 
-import type { CareerTotals, Legacy, Locale, Player, Rival } from '@/game/types'
+import type { CareerTotals, Legacy, Locale, Player, Rival, Team } from '@/game/types'
 import { flagFor } from '@/data/countries'
 import { formatMoney } from './display'
+import { drawCrest } from './TeamCrest'
 
 const WIDTH = 1080
 const HEIGHT = 1350
@@ -20,6 +21,8 @@ export interface ShareData {
   rival: Rival
   seed: string
   locale: Locale
+  /** The club they retired at, drawn as a crest. Null for a career that never began. */
+  lastTeam: Team | null
 }
 
 const COPY = {
@@ -50,7 +53,7 @@ const COPY = {
     hof: 'HALL OF FAME',
     vs: 'vs',
     beat: 'You came out on top',
-    lost: 'He finished ahead of you',
+    lost: 'They finished ahead of you',
     seed: 'Seed',
   },
 } as const
@@ -86,14 +89,17 @@ export function drawShareCard(canvas: HTMLCanvasElement, data: ShareData): void 
   ctx.font = `500 26px ${sans}`
   ctx.fillText(c.tagline, center, 134)
 
-  // Jersey number
+  // Final club crest, with the jersey number beside it.
+  if (data.lastTeam) {
+    drawCrest(ctx, data.lastTeam, center - 96, 276, 152)
+  }
   ctx.fillStyle = 'rgba(255,255,255,0.06)'
-  roundRect(ctx, center - 90, 186, 180, 180, 28)
+  roundRect(ctx, center + 12, 206, 152, 140, 26)
   ctx.fill()
   ctx.fillStyle = '#f97316'
-  ctx.font = `900 116px ${sans}`
+  ctx.font = `900 96px ${sans}`
   ctx.textBaseline = 'middle'
-  ctx.fillText(String(player.number), center, 280)
+  ctx.fillText(String(player.number), center + 88, 278)
   ctx.textBaseline = 'alphabetic'
 
   // Name and identity

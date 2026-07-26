@@ -312,30 +312,30 @@ export const LIFE_EVENTS: GameEvent[] = [
       ),
     choices: [
       {
-        label: loc('Enseñarle todo lo que sé', 'Teach him everything I know'),
+        label: loc('Enseñarle todo lo que sé', 'Teach them everything I know'),
         resolve: () =>
           outcome(
             'Le acortaste tres años de aprendizaje. Te sacó el puesto antes, y aun así fue lo correcto.',
-            'You cut three years off his learning curve. He took your spot sooner, and it was still the right thing.',
+            'You cut three years off their learning curve. They took your spot sooner, and it was still the right thing.',
             'good',
             { attributes: { leadership: 7, iq: 3 }, hidden: { coachTrust: 14, morale: 8 } },
           ),
       },
       {
-        label: loc('No regalarle nada', 'Give him nothing'),
+        label: loc('No regalarle nada', 'Give them nothing'),
         resolve: (ctx) =>
           gamble(
             ctx,
             0.45,
             outcome(
               'Le ganaste el puesto dos años más. La competencia te mantuvo joven.',
-              'You held him off for two more years. The competition kept you young.',
+              'You held them off for two more years. The competition kept you young.',
               'good',
               { attributes: { athleticism: 2, defense: 3 }, hidden: { coachTrust: 6 } },
             ),
             outcome(
               'Te pasó por encima igual, y encima quedaste como el veterano amargado.',
-              'He passed you anyway, and you came off as the bitter veteran.',
+              'They passed you anyway, and you came off as the bitter veteran.',
               'bad',
               { hidden: { coachTrust: -14, morale: -12 } },
             ),

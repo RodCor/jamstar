@@ -21,20 +21,20 @@ export const RIVAL_EVENTS: GameEvent[] = [
       ),
     choices: [
       {
-        label: loc('Pedir la marca personal', 'Ask to guard him myself'),
+        label: loc('Pedir la marca personal', 'Ask to guard them myself'),
         resolve: (ctx) =>
           gamble(
             ctx,
             0.4 + ctx.player.attributes.defense / 320,
             outcome(
               `Lo dejaste en ocho puntos con catorce tiros. La prensa habló de vos toda la semana.`,
-              `You held him to eight points on fourteen shots. The press talked about you all week.`,
+              `You held them to eight points on fourteen shots. The press talked about you all week.`,
               'epic',
               { attributes: { defense: 4 }, hidden: { hype: 18, coachTrust: 12, morale: 12 } },
             ),
             outcome(
               `Te pasó por arriba: treinta y ocho puntos. Ese video lo van a usar en tu contra durante años.`,
-              `He went straight through you: thirty-eight points. They will use that tape against you for years.`,
+              `They went straight through you: thirty-eight points. They will use that tape against you for years.`,
               'bad',
               { hidden: { hype: -6, morale: -14, coachTrust: -8 } },
             ),
@@ -75,7 +75,7 @@ export const RIVAL_EVENTS: GameEvent[] = [
             0.38 + ctx.player.attributes.shooting / 380,
             outcome(
               'Cuarenta y un puntos en el séptimo. Le ganaste el mano a mano cuando más pesaba.',
-              'Forty-one points in game seven. You beat him head to head when it counted most.',
+              'Forty-one points in game seven. You beat them head to head when it counted most.',
               'epic',
               { attributes: { leadership: 5 }, hidden: { hype: 24, morale: 20, coachTrust: 14 } },
             ),
@@ -95,13 +95,13 @@ export const RIVAL_EVENTS: GameEvent[] = [
             0.5,
             outcome(
               'Ganaron por equipo. Él metió más puntos y volvió a casa de vacaciones.',
-              'You won as a team. He scored more and went home on holiday.',
+              'You won as a team. They scored more and went home on holiday.',
               'good',
               { attributes: { iq: 4, leadership: 3 }, hidden: { morale: 16, coachTrust: 12 } },
             ),
             outcome(
               'Perdieron ajustado. Nadie te culpa, pero él pasó de ronda y vos no.',
-              'You lost narrowly. Nobody blames you, but he advanced and you did not.',
+              'You lost narrowly. Nobody blames you, but they advanced and you did not.',
               'neutral',
               { hidden: { morale: -10 } },
             ),
@@ -117,28 +117,28 @@ export const RIVAL_EVENTS: GameEvent[] = [
     once: false,
     category: 'rival',
     requires: gate.hasPlayed(3),
-    title: loc('Lo que dijo de vos', 'What He Said About You'),
+    title: loc('Lo que dijo de vos', 'What They Said About You'),
     body: (ctx) =>
       loc(
         `${ctx.rival.name} dio una entrevista larga. Le preguntaron por vos y contestó que "nunca lo consideré una competencia real".`,
-        `${ctx.rival.name} gave a long interview. They asked about you, and he said he "never considered him real competition".`,
+        `${ctx.rival.name} gave a long interview. They asked about you, and said they "never considered this one real competition".`,
       ),
     choices: [
       {
-        label: loc('Contestarle públicamente', 'Answer him publicly'),
+        label: loc('Contestarle públicamente', 'Answer them publicly'),
         resolve: (ctx) =>
           gamble(
             ctx,
             0.45,
             outcome(
               'Tu respuesta fue mejor que su ataque. Le diste vuelta la narrativa en una frase.',
-              'Your answer was better than his attack. You flipped the narrative in one sentence.',
+              'Your answer was better than their attack. You flipped the narrative in one sentence.',
               'good',
               { hidden: { hype: 16, morale: 10 } },
             ),
             outcome(
               'Sonaste dolido. Le diste exactamente lo que estaba buscando.',
-              'You sounded hurt. You gave him exactly what he was fishing for.',
+              'You sounded hurt. You gave them exactly what they were fishing for.',
               'bad',
               { hidden: { hype: 4, morale: -14 } },
             ),
@@ -167,11 +167,11 @@ export const RIVAL_EVENTS: GameEvent[] = [
     body: (ctx) =>
       loc(
         `Después de una década de enfrentarse, el club quiere ficharlo a él y te pide opinión. ${ctx.rival.name} en tu vestuario.`,
-        `After a decade of facing each other, the club wants to sign him and asks your opinion. ${ctx.rival.name} in your locker room.`,
+        `After a decade of facing each other, the club wants to sign them and asks your opinion. ${ctx.rival.name} in your locker room.`,
       ),
     choices: [
       {
-        label: loc('Que venga. Quiero ganar', 'Bring him in. I want to win'),
+        label: loc('Que venga. Quiero ganar', 'Bring them in. I want to win'),
         resolve: (ctx) =>
           gamble(
             ctx,
@@ -191,7 +191,7 @@ export const RIVAL_EVENTS: GameEvent[] = [
           ),
       },
       {
-        label: loc('Vetarlo. Es él o yo', 'Veto it. Him or me'),
+        label: loc('Vetarlo. Es él o yo', 'Veto it. Them or me'),
         resolve: () =>
           outcome(
             'El club te eligió a vos. Seguís siendo el dueño del vestuario, y también el que cargó con la culpa.',
@@ -209,19 +209,19 @@ export const RIVAL_EVENTS: GameEvent[] = [
     stages: ['veteran', 'twilight'],
     category: 'rival',
     requires: (ctx) => ctx.rival.retired,
-    title: loc('Él se retiró primero', 'He Retired First'),
+    title: loc('Él se retiró primero', 'They Retired First'),
     body: (ctx) =>
       loc(
         `${ctx.rival.name} anunció el retiro. Te llaman de todos lados para que digas algo sobre el tipo que te persiguió toda la carrera.`,
-        `${ctx.rival.name} announced his retirement. Everyone is calling, asking you to say something about the man who shadowed your entire career.`,
+        `${ctx.rival.name} announced his retirement. Everyone is calling, asking you to say something about the player who shadowed your entire career.`,
       ),
     choices: [
       {
-        label: loc('Reconocer que me hizo mejor', 'Admit he made me better'),
+        label: loc('Reconocer que me hizo mejor', 'Admit they made me better'),
         resolve: () =>
           outcome(
             'Fue el mejor discurso que diste en tu vida. Él lo compartió sin decir nada.',
-            'It was the best thing you ever said publicly. He shared it without adding a word.',
+            'It was the best thing you ever said publicly. They shared it without adding a word.',
             'good',
             { attributes: { leadership: 5, iq: 3 }, hidden: { morale: 16, hype: 10 } },
           ),
@@ -231,7 +231,7 @@ export const RIVAL_EVENTS: GameEvent[] = [
         resolve: () =>
           outcome(
             'Sobrevivirlo también es un título. Lo dijiste y sonó a lo que era: verdad.',
-            'Outlasting him is its own trophy. You said it, and it landed as what it was: true.',
+            'Outlasting them is its own trophy. You said it, and it landed as what it was: true.',
             'neutral',
             { hidden: { morale: 10, hype: 8 } },
           ),

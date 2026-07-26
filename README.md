@@ -43,6 +43,20 @@ position-matched, simulated in parallel on their own stream. You are measured
 against them in points, rings and MVPs for your entire career, with event beats at
 the first meeting, playoff series and retirement.
 
+**Finals you have to actually win.** Reaching the last round is simulated;
+winning it is not. Get to a final and you play for it — free throws with the
+arena screaming, the last shot with the ring collapsing on you, or reading the
+inbound pass with six seconds left. Which challenge you get depends on who you
+built: a lockdown centre defends the last possession, a sharpshooter takes the
+shot. The target shrinks with the opponent's strength and the level you are at,
+and grows with the attribute the challenge tests. A title is never one lucky tap
+— you need 2 of 3 domestically, 3 of 5 in the EuroLeague or the NBA.
+
+**Club crests everywhere.** Every club, academy and college wears a badge built
+from its real colours, in one of six silhouettes, on the preseason screen, the
+season card, the career timeline, the final, and the shareable PNG. Real logo
+files drop in without touching code — see *Club badges* below.
+
 **Two modes.** *Mi Carrera / My Career* is a fresh run every time. *Carrera del
 Día / Daily Career* gives everyone on earth the same country, club, events and
 injuries for that date — so the only variable is how well you decide.
@@ -86,13 +100,16 @@ src/game/          the simulation — no React, no DOM, fully testable
   stats.ts         attributes + role + league → box score
   progression.ts   ageing, growth, decline, wear
   awards.ts        MVP, DPOY, All-League, international medals
+  minigame.ts      the playable finals: challenge selection, difficulty, tuning
   rival.ts         the parallel rival career
   legacy.ts        career totals and the final verdict
   save.ts          localStorage
   events/          the event decks, one file per career stage
-src/data/          leagues, clubs, countries, people, play styles
+src/data/          leagues, clubs, countries, people, play styles, logo overrides
 src/i18n/          UI dictionary + locale provider
 src/components/    screens and widgets
+  TeamCrest.tsx    club badges (SVG for the app, canvas twin for the share card)
+  minigames/       the three finals challenges
 ```
 
 ### Determinism is load-bearing
@@ -106,6 +123,22 @@ This is what makes the daily mode fair, makes a shared seed replay exactly, and
 makes the whole engine testable. Replaying a seed with the same decisions
 reproduces a career byte for byte, and a test asserts it.
 
+Minigame results are **inputs**, not RNG draws — the engine is handed how many
+attempts you converted, exactly the way it is handed which choice you picked on
+an event card. So determinism holds as *same seed + same decisions + same
+minigame results → same career*, and skill decides titles without ever making
+the simulation unreproducible.
+
+### Playable finals
+
+`simulatePlayoffRun` stops at the final and reports whether you reached it. If
+you did — and you were actually on the floor, not injured out of the season — the
+season is parked as a draft in `draftSeason`, the phase switches to `minigame`,
+and awards, salary and knock-on effects are all computed afterwards in
+`finalizeSeason`. Finals you cannot contest fall back to `rollFinal`, so a player
+who missed the whole year can still collect a ring from the bench, and both paths
+share one finalisation routine so they can never drift apart.
+
 ### Balance
 
 Calibrated across hundreds of simulated careers so the population looks like real
@@ -116,6 +149,31 @@ weighted by the tier they were earned at — a title in the LEB Oro counts, but 
 is not an NBA ring, and the legacy score says so.
 
 ---
+
+## Club badges
+
+Every club, academy and college gets a generated crest: one of six silhouettes
+(shield, disc, roundel, hexagon, diamond, pennant) picked deterministically from
+the team id, filled with that club's real colours and stamped with its
+abbreviation. Nothing is fetched at runtime — the badges are inline SVG, which
+also means they survive a strict CSP. The share card draws a canvas twin of the
+same crest so the PNG matches what you saw in the app.
+
+**To use real logos instead**, for the clubs you have the rights to:
+
+```bash
+mkdir -p public/logos
+# name each file after its team id — lal.svg, el_rma.png, lnb_boc.webp
+npm run logos          # regenerates src/data/logos.ts from that folder
+```
+
+Anything without a file keeps its generated crest, so a partial set is fine. The
+script reports how many it mapped and warns about filenames that match no team
+id, which catches typos before they become a missing badge.
+
+> Club logos are copyrighted artwork on top of being trademarks — a stricter
+> position than club *names*. That is why none ship here. Get permission before
+> publishing a build that includes them.
 
 ## Swapping the name data
 
@@ -143,7 +201,7 @@ The test suite will confirm nothing broke.
 npm test
 ```
 
-37 tests covering the things that actually break:
+47 tests covering the things that actually break:
 
 - **Determinism** — same seed produces a byte-identical career; different seeds
   do not; `fork()` streams are independent and reproducible.
@@ -160,6 +218,12 @@ npm test
   leaving it to the engine; elite outcomes stay rare for casual play; the legacy
   score scales with the level played at; the Hall of Fame flag can never
   contradict the legacy tier.
+- **Playable finals** — a career where every final is won collects more titles
+  than the same seeds losing every final; losing a contested final can never
+  produce a title; no minigame is offered for a season the player sat out; the
+  challenge is never against your own club; every difficulty and tuning value
+  lands inside a playable range across 200 generated challenges; and no draft
+  season is ever left dangling or committed twice.
 
 ---
 

@@ -6,6 +6,7 @@ import { getTeam } from '@/data/teams'
 import { getLeague } from '@/data/leagues'
 import { AWARD_INFO } from '@/game/awards'
 import { PLAYOFF_KEY, ROLE_KEY, TONE_CLASS, formatMoney, formatPct } from './display'
+import { TeamCrest } from './TeamCrest'
 
 interface Props {
   state: GameState
@@ -40,12 +41,7 @@ export function SeasonCard({ season }: { season: Season }) {
         className="flex items-center gap-3 px-4 py-3"
         style={{ background: `linear-gradient(100deg, ${team.colors[0]}33, transparent)` }}
       >
-        <span
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-black"
-          style={{ background: team.colors[0], color: team.colors[1] }}
-        >
-          {team.abbr}
-        </span>
+        <TeamCrest teamId={team.id} size={46} />
         <div className="min-w-0 flex-1">
           <p className="truncate font-bold text-slate-100">{L(team.name)}</p>
           <p className="truncate text-xs text-slate-400">{L(league.name)}</p>

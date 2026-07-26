@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "logos": "node scripts/build-logo-map.mjs"
   },
   "dependencies": {
     "next": "^15.5.22",

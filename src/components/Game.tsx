@@ -8,6 +8,7 @@ import {
   beginSeason,
   continueAfterEvent,
   resolveChoice,
+  resolveMinigame,
 } from '@/game/engine'
 import { spendGrowthPoint } from '@/game/progression'
 import { computeLegacy, computeTotals } from '@/game/legacy'
@@ -29,6 +30,7 @@ import { CreationScreen } from './CreationScreen'
 import { PreseasonScreen } from './PreseasonScreen'
 import { EventScreen } from './EventScreen'
 import { SeasonResultScreen } from './SeasonResultScreen'
+import { MinigameScreen } from './MinigameScreen'
 import { CareerPanel } from './CareerPanel'
 import { RetirementScreen } from './RetirementScreen'
 
@@ -124,6 +126,10 @@ export function Game() {
     setState((current) => (current ? continueAfterEvent(current) : current))
   }, [])
 
+  const handleMinigameFinish = useCallback((successes: number) => {
+    setState((current) => (current ? resolveMinigame(current, successes) : current))
+  }, [])
+
   const handleNextYear = useCallback(() => {
     setState((current) => (current ? advanceYear(current) : current))
   }, [])
@@ -180,6 +186,9 @@ export function Game() {
         )}
         {state.phase === 'event' && (
           <EventScreen state={state} onChoose={handleChoose} onContinue={handleAfterEvent} />
+        )}
+        {state.phase === 'minigame' && (
+          <MinigameScreen state={state} onFinish={handleMinigameFinish} />
         )}
         {state.phase === 'season_result' && (
           <SeasonResultScreen state={state} onContinue={handleNextYear} />

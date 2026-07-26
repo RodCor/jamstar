@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest'
 
 import { Rng } from '../rng'
 import { createGame, type CreationChoices } from '../create'
-import { advanceYear, beginSeason, continueAfterEvent, resolveChoice } from '../engine'
+import {
+  advanceYear,
+  beginSeason,
+  continueAfterEvent,
+  resolveChoice,
+  resolveMinigame,
+} from '../engine'
 import { spendGrowthPoint } from '../progression'
 import { computeLegacy, computeTotals } from '../legacy'
 import type { AttributeKey, GameState, LegacyTier, Position } from '../types'
@@ -25,8 +31,11 @@ const FOCUS: Record<Position, AttributeKey[]> = {
   C: ['strength', 'defense', 'athleticism'],
 }
 
-/** Play a career, optionally specialising growth points like an engaged player. */
-function play(seed: string, specialise: boolean): GameState {
+/**
+ * Play a career, optionally specialising growth points like an engaged player.
+ * `finalsWon` models how good the player is at the minigames that decide titles.
+ */
+function play(seed: string, specialise: boolean, winsFinals = true): GameState {
   const rng = new Rng(seed)
   const choices: CreationChoices = {
     name: seed,
@@ -55,6 +64,10 @@ function play(seed: string, specialise: boolean): GameState {
       const options = state.pendingEvent.choices
       state = resolveChoice(state, options[policy.int(0, options.length - 1)].index)
       state = continueAfterEvent(state)
+    }
+    if (state.phase === 'minigame' && state.pendingMinigame) {
+      const { required } = state.pendingMinigame
+      state = resolveMinigame(state, winsFinals ? required : Math.max(0, required - 1))
     }
     state = advanceYear(state)
   }

@@ -216,29 +216,43 @@ export function simulateTeamRecord(
   return { wins, losses: games - wins }
 }
 
-/** Playoff run, given how good the team turned out to be. */
-export function simulatePlayoffs(
+/**
+ * Playoff run, given how good the team turned out to be.
+ *
+ * Stops at the final and reports whether it was reached — winning it is decided
+ * separately, by the player, in a minigame. Seasons with no eligible player
+ * (youth, a lost season to injury) fall back to a roll.
+ */
+export function simulatePlayoffRun(
   wins: number,
   games: number,
   team: Team,
   league: League,
   rng: Rng,
-): PlayoffResult {
-  if (league.id === 'youth') return 'none'
+): { result: PlayoffResult; reachedFinal: boolean } {
+  if (league.id === 'youth') return { result: 'none', reachedFinal: false }
   const winPct = wins / Math.max(1, games)
-  if (winPct < 0.5) return rng.chance(0.1) ? 'first_round' : 'missed'
+  if (winPct < 0.5) {
+    return { result: rng.chance(0.1) ? 'first_round' : 'missed', reachedFinal: false }
+  }
 
   // Each round is its own coin flip, weighted by how strong the team is. The
-  // base is deliberately below even: surviving four rounds should be rare, so
-  // that a title is worth telling people about.
+  // base is deliberately below even: reaching the final should be an event.
   const edge = clamp((winPct - 0.55) * 1.8 + (team.strength - 74) / 240, -0.3, 0.3)
   let round: PlayoffResult = 'first_round'
-  const ladder: PlayoffResult[] = ['semifinals', 'conference_finals', 'finals', 'champion']
+  const ladder: PlayoffResult[] = ['semifinals', 'conference_finals', 'finals']
   for (const next of ladder) {
-    if (!rng.chance(clamp(0.42 + edge, 0.08, 0.74))) return round
+    if (!rng.chance(clamp(0.42 + edge, 0.08, 0.74))) {
+      return { result: round, reachedFinal: false }
+    }
     round = next
   }
-  return round
+  return { result: 'finals', reachedFinal: true }
+}
+
+/** The final, rolled rather than played — used when the player cannot contest it. */
+export function rollFinal(team: Team, rng: Rng): PlayoffResult {
+  return rng.chance(clamp(0.36 + (team.strength - 74) / 300, 0.15, 0.6)) ? 'champion' : 'finals'
 }
 
 /**

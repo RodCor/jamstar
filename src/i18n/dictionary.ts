@@ -118,6 +118,13 @@ export const es = {
   eventDecision: 'Tenés que decidir',
   eventOutcome: 'Lo que pasó',
 
+  // Minigames
+  minigameStart: 'Salir a la cancha',
+  minigameGoal: 'Necesitás acertar {required} de {rounds}',
+  minigameFreeThrowHelp: 'Tocá para frenar la barra en la zona verde',
+  minigameClutchHelp: 'Tocá cuando el aro naranja coincida con el punteado',
+  minigameStopHelp: 'Tocá el carril del pase real, no las fintas',
+
   // Career panel
   careerTab: 'Carrera',
   rivalTab: 'Rival',
@@ -260,6 +267,12 @@ export const en: Dictionary = {
 
   eventDecision: 'You have to decide',
   eventOutcome: 'What happened',
+
+  minigameStart: 'Take the floor',
+  minigameGoal: 'You need {required} of {rounds}',
+  minigameFreeThrowHelp: 'Tap to stop the bar inside the green zone',
+  minigameClutchHelp: 'Tap when the orange ring meets the dashed one',
+  minigameStopHelp: 'Tap the lane the real pass goes to, not the fakes',
 
   careerTab: 'Career',
   rivalTab: 'Rival',

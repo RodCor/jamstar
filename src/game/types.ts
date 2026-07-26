@@ -402,6 +402,13 @@ export interface GameState {
    * `beginSeason` and folded into the season's headlines once it is simulated.
    */
   pendingPlacementNote: Localized | null
+  /**
+   * A season that is fully simulated except for its final, held back while the
+   * player plays for the title. Never present outside the `minigame` phase.
+   */
+  draftSeason: Season | null
+  /** The final awaiting the player, if any. */
+  pendingMinigame: MinigameChallenge | null
   /** Phase within the season loop, so the UI knows what to render. */
   phase: GamePhase
   /** Version tag so old saves can be discarded rather than crash the app. */
@@ -411,8 +418,33 @@ export interface GameState {
 export type GamePhase =
   | 'preseason'
   | 'event'
+  /** A final has been reached and is waiting on the player to actually win it. */
+  | 'minigame'
   | 'season_result'
   | 'retirement'
+
+export type MinigameType = 'free_throw' | 'clutch_three' | 'defensive_stop'
+
+/**
+ * A playable final. The outcome is an *input* to the simulation, not an RNG
+ * draw — which is what keeps a seed reproducible (same seed + same decisions +
+ * same minigame results → same career) while still letting skill decide titles.
+ */
+export interface MinigameChallenge {
+  type: MinigameType
+  /** How many attempts the player gets. */
+  rounds: number
+  /** How many of those attempts must succeed to win the title. */
+  required: number
+  /** 0 (trivial) to 1 (brutal). Drives target sizes and speeds. */
+  difficulty: number
+  title: Localized
+  intro: Localized
+  /** What is on the line, named explicitly. */
+  stake: Localized
+  /** Opponent club, for flavour on the minigame screen. */
+  opponentTeamId: string
+}
 
 export interface PendingEvent {
   eventId: string

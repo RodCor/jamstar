@@ -62,11 +62,11 @@ export const PRO_EVENTS: GameEvent[] = [
     body: (ctx) =>
       loc(
         `El entrenador de ${ctx.team.name.es} te sacó a los seis minutos del primer cuarto y no te miró en todo el partido. En el vestuario hay silencio.`,
-        `The coach at ${ctx.team.name.en} pulled you six minutes into the first quarter and did not look at you again. The locker room is silent.`,
+        `The coach at ${ctx.team.name.en} pulled you six minutes into the first quarter and never looked your way again. The locker room is silent.`,
       ),
     choices: [
       {
-        label: loc('Encararlo de frente', 'Confront him directly'),
+        label: loc('Encararlo de frente', 'Confront them directly'),
         resolve: (ctx) =>
           gamble(
             ctx,
@@ -431,7 +431,7 @@ export const PRO_EVENTS: GameEvent[] = [
           ),
       },
       {
-        label: loc('Buscarlo en privado y arreglarlo', 'Find him in private and fix it'),
+        label: loc('Buscarlo en privado y arreglarlo', 'Find them in private and fix it'),
         resolve: () =>
           outcome(
             'Comieron juntos, hablaron dos horas y salieron siendo un equipo de verdad.',
@@ -489,7 +489,7 @@ export const PRO_EVENTS: GameEvent[] = [
     body: () =>
       loc(
         'Un excompañero te propone meter una parte importante de tus ahorros en su negocio. Promete el doble en tres años.',
-        'A former teammate proposes putting a serious chunk of your savings into his business. He promises double in three years.',
+        'A former teammate proposes putting a serious chunk of your savings into their business. They promise double in three years.',
       ),
     choices: [
       {

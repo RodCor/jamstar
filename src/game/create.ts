@@ -116,6 +116,8 @@ export function createGame(choices: CreationChoices, seed: string, mode: GameMod
     seasons: [],
     pendingEvent: null,
     pendingPlacementNote: null,
+    draftSeason: null,
+    pendingMinigame: null,
     phase: 'preseason',
     version: SAVE_VERSION,
   }

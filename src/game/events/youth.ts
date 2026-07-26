@@ -428,7 +428,7 @@ export const YOUTH_EVENTS: GameEvent[] = [
     body: () =>
       loc(
         'Un jugador de treinta y ocho años, que jugó dos mundiales, entrena en el mismo gimnasio. Te ofrece quedarse una hora extra con vos, todos los días.',
-        'A thirty-eight-year-old who played two World Cups trains in the same gym. He offers to stay an extra hour with you, every day.',
+        'A thirty-eight-year-old who played two World Cups trains in the same gym. They offer to stay an extra hour with you, every day.',
       ),
     choices: [
       {

@@ -12,23 +12,27 @@ import type {
   EventContext,
   EventOutcome,
   GameState,
+  League,
   LocalizedHeadline,
   PendingEvent,
   Season,
+  Team,
 } from './types'
 import { ATTRIBUTE_KEYS } from './types'
 import { Rng, clamp, round } from './rng'
 import { getCountry } from '@/data/countries'
 import { getLeague } from '@/data/leagues'
-import { getTeam } from '@/data/teams'
+import { getTeam, teamsInLeague } from '@/data/teams'
 import { ageOneYear, autoSpendGrowth, overallRating, retirementPressure } from './progression'
 import { placeForSeason, stageForAge } from './ladder'
+import { buildChallenge, isWin, resultHeadline } from './minigame'
 import {
   computeSalary,
   determineRole,
   generateStats,
+  rollFinal,
   simulateAvailability,
-  simulatePlayoffs,
+  simulatePlayoffRun,
   simulateTeamRecord,
   wearFromSeason,
 } from './stats'
@@ -75,6 +79,8 @@ export function startPreseason(state: GameState): GameState {
   // Stash the move note so the season screen can show it.
   next.pendingPlacementNote = placement.note ?? null
   next.pendingEvent = null
+  next.pendingMinigame = null
+  next.draftSeason = null
   next.phase = 'preseason'
   return next
 }
@@ -157,7 +163,13 @@ export function continueAfterEvent(state: GameState): GameState {
   return simulateSeason(next)
 }
 
-/** Run the season and append it to the career log. */
+/**
+ * Run the season.
+ *
+ * If the player reaches a final they can actually contest, the season is parked
+ * as a draft and the phase hands over to the minigame; otherwise it is finalised
+ * straight away.
+ */
 function simulateSeason(state: GameState): GameState {
   const player = state.player
   // Anything the player did not allocate on the preseason screen still gets
@@ -166,36 +178,15 @@ function simulateSeason(state: GameState): GameState {
 
   const team = getTeam(player.currentTeamId)
   const league = getLeague(player.currentLeagueId)
-  const country = getCountry(player.countryCode)
   const rng = yearRng(state, 'season')
 
   const { gamesPlayed, gamesMissed } = simulateAvailability(player, league, rng)
   const role = gamesPlayed === 0 ? 'injured' : determineRole(player, team, league, rng)
   const stats = generateStats({ player, team, league, role, gamesPlayed, rng })
   const { wins, losses } = simulateTeamRecord(team, league, stats.rating, role, rng)
-  const playoffResult = simulatePlayoffs(wins, league.gamesPerSeason, team, league, rng)
+  const { result, reachedFinal } = simulatePlayoffRun(wins, league.gamesPerSeason, team, league, rng)
 
-  const awards = determineAwards({
-    player,
-    league,
-    role,
-    stats: { ...stats, gamesPlayed },
-    playoffResult,
-    teamWins: wins,
-    seasonsPlayed: state.seasons.length,
-    rng,
-  })
-
-  // National team, for anyone good enough to be called up.
-  if (league.tier <= 3) {
-    awards.push(
-      ...determineInternationalAwards(state.year, player, country.strength, stats.rating, rng),
-    )
-  }
-
-  const salary = computeSalary(league, role, player.hidden.hype, rng)
-
-  const season: Season = {
+  const draft: Season = {
     year: state.year,
     age: player.age,
     stage: player.stage,
@@ -207,28 +198,128 @@ function simulateSeason(state: GameState): GameState {
     ...stats,
     teamWins: wins,
     teamLosses: losses,
-    playoffResult,
-    awards,
-    salary,
+    playoffResult: result,
+    awards: [],
+    salary: 0,
     injuries: [],
-    headlines: buildHeadlines(state, season0(stats, awards, playoffResult, gamesMissed, league.gamesPerSeason)),
+    headlines: [],
   }
 
+  // You only get to play for it if you were actually on the floor.
+  const canContest = reachedFinal && role !== 'injured' && gamesPlayed > 0 && league.tier <= 3
+
+  if (canContest) {
+    const opponent = pickFinalOpponent(team, league, yearRng(state, 'final-opponent'))
+    state.draftSeason = draft
+    state.pendingMinigame = buildChallenge({
+      player,
+      team,
+      league,
+      opponent,
+      rng: yearRng(state, 'final-challenge'),
+      stake: {
+        es: `Final de ${league.name.es}`,
+        en: `${league.name.en} final`,
+      },
+    })
+    state.phase = 'minigame'
+    return state
+  }
+
+  if (reachedFinal) {
+    draft.playoffResult = rollFinal(team, yearRng(state, 'final-roll'))
+  }
+
+  return finalizeSeason(state, draft, null)
+}
+
+/** An opponent for the final: a strong side from the same league. */
+function pickFinalOpponent(team: Team, league: League, rng: Rng): Team {
+  const others = teamsInLeague(league.id).filter((t) => t.id !== team.id)
+  if (others.length === 0) return team
+  return rng.weighted(others, (t) => Math.max(1, t.strength - 40))
+}
+
+/** Apply the result of a played final and finish the season. */
+export function resolveMinigame(state: GameState, successes: number): GameState {
+  const next = structuredClone(state)
+  const challenge = next.pendingMinigame
+  const draft = next.draftSeason
+  if (!challenge || !draft) return next
+
+  const won = isWin(challenge, successes)
+  draft.playoffResult = won ? 'champion' : 'finals'
+
+  const opponent = getTeam(challenge.opponentTeamId)
+  const headline: LocalizedHeadline = {
+    text: resultHeadline(challenge, won, opponent.name),
+    tone: won ? 'epic' : 'bad',
+  }
+
+  next.pendingMinigame = null
+  next.draftSeason = null
+  return finalizeSeason(next, draft, headline)
+}
+
+/**
+ * Awards, money and the knock-on effects of a season, then commit it to the
+ * career log. Shared by both the played-final and rolled-final paths so the two
+ * can never drift apart.
+ */
+function finalizeSeason(
+  state: GameState,
+  season: Season,
+  finalHeadline: LocalizedHeadline | null,
+): GameState {
+  const player = state.player
+  const league = getLeague(season.leagueId)
+  const country = getCountry(player.countryCode)
+  const rng = yearRng(state, 'awards')
+
+  season.awards = determineAwards({
+    player,
+    league,
+    role: season.role,
+    stats: { ...season, gamesPlayed: season.gamesPlayed },
+    playoffResult: season.playoffResult,
+    teamWins: season.teamWins,
+    seasonsPlayed: state.seasons.length,
+    rng,
+  })
+
+  // National team, for anyone good enough to be called up.
+  if (league.tier <= 3) {
+    season.awards.push(
+      ...determineInternationalAwards(state.year, player, country.strength, season.rating, rng),
+    )
+  }
+
+  season.salary = computeSalary(league, season.role, player.hidden.hype, rng)
+  season.headlines = buildHeadlines(state, season, finalHeadline)
+
   // Consequences of the season feed back into the player.
-  player.earnings += salary
+  player.earnings += season.salary
   player.hidden.wear = clamp(player.hidden.wear + wearFromSeason(season, player), 0, 100)
   player.hidden.hype = clamp(
-    player.hidden.hype + (stats.rating - 55) * 0.28 + awards.length * 4 - (gamesMissed > gamesPlayed ? 8 : 0),
+    player.hidden.hype +
+      (season.rating - 55) * 0.28 +
+      season.awards.length * 4 -
+      (season.gamesMissed > season.gamesPlayed ? 8 : 0),
     0,
     100,
   )
   player.hidden.coachTrust = clamp(
-    player.hidden.coachTrust + (stats.rating - 58) * 0.2 + (playoffResult === 'champion' ? 6 : 0),
+    player.hidden.coachTrust +
+      (season.rating - 58) * 0.2 +
+      (season.playoffResult === 'champion' ? 6 : 0),
     0,
     100,
   )
   player.hidden.morale = clamp(
-    player.hidden.morale + (stats.rating - 55) * 0.16 + awards.length * 3 + (wins > losses ? 3 : -3),
+    player.hidden.morale +
+      (season.rating - 55) * 0.16 +
+      season.awards.length * 3 +
+      (season.teamWins > season.teamLosses ? 3 : -3),
     0,
     100,
   )
@@ -242,47 +333,52 @@ function simulateSeason(state: GameState): GameState {
   return state
 }
 
-/** Small helper so headline-building has a tidy shape to read from. */
-function season0(
-  stats: ReturnType<typeof generateStats>,
-  awards: Season['awards'],
-  playoffResult: Season['playoffResult'],
-  gamesMissed: number,
-  totalGames: number,
-) {
-  return { stats, awards, playoffResult, gamesMissed, totalGames }
-}
-
 function buildHeadlines(
   state: GameState,
-  info: ReturnType<typeof season0>,
+  season: Season,
+  finalHeadline: LocalizedHeadline | null,
 ): LocalizedHeadline[] {
   const out: LocalizedHeadline[] = []
   const note = state.pendingPlacementNote
   if (note) out.push({ text: note, tone: 'neutral' })
 
-  if (info.playoffResult === 'champion') {
+  // A played final tells its own story; only narrate generically otherwise.
+  if (finalHeadline) {
+    out.push(finalHeadline)
+  } else if (season.playoffResult === 'champion') {
     out.push({
-      text: { es: '¡Campeones! Vuelta olímpica y la ciudad en la calle.', en: 'Champions! The city pours into the streets.' },
+      text: {
+        es: '¡Campeones! Vuelta olímpica y la ciudad en la calle.',
+        en: 'Champions! The city pours into the streets.',
+      },
       tone: 'epic',
     })
-  } else if (info.playoffResult === 'finals') {
+  } else if (season.playoffResult === 'finals') {
     out.push({
-      text: { es: 'Llegaron a la final y se quedaron en la puerta.', en: 'You reached the final and fell at the last step.' },
+      text: {
+        es: 'Llegaron a la final y se quedaron en la puerta.',
+        en: 'You reached the final and fell at the last step.',
+      },
       tone: 'bad',
     })
   }
 
-  if (info.gamesMissed > info.totalGames * 0.5) {
+  if (season.gamesMissed > (season.gamesPlayed + season.gamesMissed) * 0.5) {
     out.push({
-      text: { es: 'Una lesión te robó la mayor parte de la temporada.', en: 'An injury stole most of the season from you.' },
+      text: {
+        es: 'Una lesión te robó la mayor parte de la temporada.',
+        en: 'An injury stole most of the season from you.',
+      },
       tone: 'bad',
     })
   }
 
-  if (info.stats.rating > 85) {
+  if (season.rating > 85) {
     out.push({
-      text: { es: 'Temporada monstruosa. Todo el mundo habla de vos.', en: 'A monster season. Everyone is talking about you.' },
+      text: {
+        es: 'Temporada monstruosa. Todo el mundo habla de vos.',
+        en: 'A monster season. Everyone is talking about you.',
+      },
       tone: 'epic',
     })
   }
