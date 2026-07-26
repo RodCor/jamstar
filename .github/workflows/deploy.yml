@@ -1,0 +1,97 @@
+name: CI and Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Allow the deploy job to publish to Pages via OIDC.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; queue instead of cancelling so a merge always
+# ends up published.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+      # The ordinary (non-exported) build, to prove the app still builds as a
+      # normal Next app and the export flag really is opt-in.
+      - run: npm run build
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # `enablement: true` turns Pages on the first time this runs. If the token
+      # lacks the scope, this step fails loudly — the fix is one manual toggle at
+      # Settings -> Pages -> Source: GitHub Actions.
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      # A project page gives base_path "/jamstar"; a user page gives "/", which
+      # Next rejects as a basePath. Normalise the root case to empty.
+      - name: Resolve base path
+        id: basepath
+        run: |
+          RAW='${{ steps.pages.outputs.base_path }}'
+          if [ "$RAW" = "/" ]; then RAW=''; fi
+          echo "value=${RAW%/}" >> "$GITHUB_OUTPUT"
+          echo "Building for base path: '${RAW%/}'"
+
+      - name: Build static export
+        env:
+          STATIC_EXPORT: 'true'
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.basepath.outputs.value }}
+        run: npm run build
+
+      # Pages' Actions-based deploys do not run Jekyll, but this costs nothing
+      # and guarantees the _next directory is never treated as private.
+      - name: Disable Jekyll processing
+        run: touch out/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
