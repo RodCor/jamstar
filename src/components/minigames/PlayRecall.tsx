@@ -29,6 +29,8 @@ export function PlayRecall({
   const [highlight, setHighlight] = useState<number | null>(null)
   const [entered, setEntered] = useState<number[]>([])
   const [wrong, setWrong] = useState(false)
+  /** The spot currently flashing from a tap. */
+  const [pressed, setPressed] = useState<number | null>(null)
   const sequence = useRef<number[]>([])
   const settled = useRef(false)
   const timers = useRef<number[]>([])
@@ -38,6 +40,7 @@ export function PlayRecall({
     setHighlight(null)
     setEntered([])
     setWrong(false)
+    setPressed(null)
     settled.current = false
 
     // Deterministic per (seed, round) so a replay of the same career shows the
@@ -67,6 +70,11 @@ export function PlayRecall({
   function press(spot: number) {
     if (stage !== 'input' || settled.current) return
 
+    // Flash the spot that was tapped. Without it the grid gave no sign a press
+    // registered, which made a correct sequence feel identical to a dead one.
+    setPressed(spot)
+    window.setTimeout(() => setPressed((current) => (current === spot ? null : current)), 220)
+
     const index = entered.length
     const next = [...entered, spot]
     setEntered(next)
@@ -91,22 +99,37 @@ export function PlayRecall({
       <div className="grid grid-cols-2 gap-2">
         {Array.from({ length: SPOTS }, (_, spot) => {
           const lit = highlight === spot
+          const tapped = pressed === spot
+          const wrongTap = tapped && wrong
           return (
             <button
               key={spot}
               type="button"
               onClick={() => press(spot)}
               disabled={stage !== 'input'}
-              className={`aspect-[4/3] select-none rounded-xl border-2 text-2xl transition active:scale-[0.97]
+              className={`relative aspect-[4/3] select-none overflow-hidden rounded-xl border-2 text-2xl
+                transition-all duration-150 active:scale-[0.94]
                 ${
-                  lit
-                    ? 'border-flame-400 bg-flame-400/30'
-                    : stage === 'input'
-                      ? 'border-white/20 bg-court-950 hover:border-flame-500/60'
-                      : 'border-white/10 bg-court-950'
+                  wrongTap
+                    ? 'scale-[0.96] border-rose-400 bg-rose-400/30'
+                    : tapped
+                      ? 'scale-[0.96] border-emerald-300 bg-emerald-400/30'
+                      : lit
+                        ? 'border-flame-400 bg-flame-400/30'
+                        : stage === 'input'
+                          ? 'border-white/20 bg-court-950 hover:border-flame-500/60'
+                          : 'border-white/10 bg-court-950'
                 }`}
             >
-              {lit ? '🏀' : ''}
+              {/* Ripple from the tap, so a press is unmistakably registered. */}
+              {tapped && (
+                <span
+                  className={`pointer-events-none absolute inset-0 animate-ripple rounded-xl ${
+                    wrongTap ? 'bg-rose-300/40' : 'bg-emerald-200/40'
+                  }`}
+                />
+              )}
+              <span className="relative">{lit ? '🏀' : tapped ? (wrongTap ? '✗' : '●') : ''}</span>
             </button>
           )
         })}

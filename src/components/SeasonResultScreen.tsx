@@ -4,8 +4,8 @@ import { useT } from '@/i18n/LocaleProvider'
 import type { GameState, Season } from '@/game/types'
 import { getTeam } from '@/data/teams'
 import { getLeague } from '@/data/leagues'
-import { AWARD_INFO } from '@/game/awards'
 import { PLAYOFF_KEY, ROLE_KEY, TONE_CLASS, formatMoney, formatPct } from './display'
+import { AwardReveal } from './AwardReveal'
 import { TeamCrest } from './TeamCrest'
 
 interface Props {
@@ -19,8 +19,8 @@ export function SeasonResultScreen({ state, onContinue }: Props) {
   if (!season) return null
 
   return (
-    <div className="space-y-4 animate-fade-up">
-      <h2 className="label text-flame-400">{t('seasonResult')}</h2>
+    <div className="space-y-3 animate-fade-up">
+      <AwardReveal awards={season.awards} />
       <SeasonCard season={season} />
       <button type="button" onClick={onContinue} className="btn-primary w-full py-3.5 text-base">
         {t('continue')}
@@ -104,23 +104,6 @@ export function SeasonCard({ season }: { season: Season }) {
             </span>
           )}
         </div>
-
-        {season.awards.length > 0 && (
-          <div>
-            <span className="label">{t('awards')}</span>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {season.awards.map((award, i) => (
-                <span
-                  key={`${award}-${i}`}
-                  className="rounded-lg border border-flame-400/30 bg-flame-400/10 px-2 py-1 text-xs
-                             font-semibold text-flame-400"
-                >
-                  {AWARD_INFO[award].icon} {AWARD_INFO[award][locale]}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
 
         {season.headlines.length > 0 && (
           <ul className="space-y-1.5">

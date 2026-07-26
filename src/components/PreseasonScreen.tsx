@@ -2,11 +2,8 @@
 
 import { useT } from '@/i18n/LocaleProvider'
 import { ATTRIBUTE_KEYS, type GameState } from '@/game/types'
-import { getTeam } from '@/data/teams'
-import { getLeague } from '@/data/leagues'
 import { getPerk } from '@/data/perks'
 import { ATTRIBUTE_KEY } from './display'
-import { TeamCrest } from './TeamCrest'
 
 interface Props {
   state: GameState
@@ -17,38 +14,10 @@ interface Props {
 export function PreseasonScreen({ state, onChoosePerk, onPlay }: Props) {
   const { t, L } = useT()
   const { player } = state
-  const team = getTeam(player.currentTeamId)
-  const league = getLeague(player.currentLeagueId)
   const choices = player.perkChoices
 
   return (
     <div className="space-y-4 animate-fade-up">
-      <div className="panel p-4">
-        <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-lg font-bold text-slate-50">{t('preseasonTitle')}</h2>
-          <span className="tnum text-sm text-slate-400">
-            {t('season')} {state.year} · {t('age')} {player.age}
-          </span>
-        </div>
-
-        <div className="mt-3 flex items-center gap-3">
-          <TeamCrest teamId={team.id} size={46} />
-          <div className="min-w-0">
-            <p className="truncate font-bold text-slate-100">{L(team.name)}</p>
-            <p className="truncate text-xs text-slate-400">{L(league.name)}</p>
-          </div>
-          <span className="tnum ml-auto shrink-0 text-2xl font-black text-slate-600">
-            {player.number}
-          </span>
-        </div>
-
-        {state.pendingPlacementNote && (
-          <p className="mt-3 rounded-xl border border-flame-400/25 bg-flame-400/10 px-3 py-2 text-sm text-flame-400">
-            {L(state.pendingPlacementNote)}
-          </p>
-        )}
-      </div>
-
       {choices.length > 0 && (
         <div className="panel p-4">
           <h3 className="font-bold text-slate-100">{t('perkTitle')}</h3>
@@ -98,22 +67,6 @@ export function PreseasonScreen({ state, onChoosePerk, onPlay }: Props) {
 
       <AttributePanel state={state} />
 
-      {player.perks.length > 0 && (
-        <div className="panel p-4">
-          <span className="label">{t('perksOwned')}</span>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {player.perks.map((id) => (
-              <span
-                key={id}
-                className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[11px]
-                           font-semibold text-slate-300"
-              >
-                {L(getPerk(id).name)}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
 
       <button type="button" onClick={onPlay} className="btn-primary w-full py-3.5 text-base">
         {t('playSeason')}
