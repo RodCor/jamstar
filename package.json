@@ -2,7 +2,7 @@
   "name": "hoop-glory",
   "version": "1.0.0",
   "private": true,
-  "description": "Basketball career simulator \u2014 from a youth academy to the Hall of Fame. Spanish / English.",
+  "description": "Basketball career simulator — from a youth academy to the Hall of Fame. Spanish / English.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -371,8 +371,14 @@ export interface Player {
   hidden: HiddenStats
   currentTeamId: string
   currentLeagueId: string
-  /** Unspent preseason growth points. */
+  /** Unspent preseason growth points, spent for the player by whichever perk they pick. */
   growthPoints: number
+  /** Whether draft night has already happened. It only comes around once. */
+  draftDone: boolean
+  /** Perks acquired, in the order they were chosen. */
+  perks: string[]
+  /** The three on offer this preseason. Empty once one has been taken. */
+  perkChoices: string[]
   /** Career earnings, USD. */
   earnings: number
   /** Ids of events already fired, so `once` cards stay once. */
@@ -409,6 +415,12 @@ export interface GameState {
   draftSeason: Season | null
   /** The final awaiting the player, if any. */
   pendingMinigame: MinigameChallenge | null
+  /** Contracts on the table, when the player is choosing a club. */
+  pendingOffers: ContractOffer[] | null
+  /** Draft night, the one year it happens. */
+  pendingDraft: DraftResult | null
+  /** This summer's national team campaign. */
+  pendingTournament: NationalTournament | null
   /** Phase within the season loop, so the UI knows what to render. */
   phase: GamePhase
   /** Version tag so old saves can be discarded rather than crash the app. */
@@ -416,14 +428,73 @@ export interface GameState {
 }
 
 export type GamePhase =
+  /** Draft night, for the one year it happens. */
+  | 'draft'
+  /** Choosing which club to sign for. */
+  | 'offers'
+  /** Picking this year's perk. */
   | 'preseason'
   | 'event'
   /** A final has been reached and is waiting on the player to actually win it. */
   | 'minigame'
   | 'season_result'
+  /** Summer with the national team. */
+  | 'national'
   | 'retirement'
 
-export type MinigameType = 'free_throw' | 'clutch_three' | 'defensive_stop'
+export type MinigameType =
+  | 'free_throw'
+  | 'clutch_three'
+  | 'defensive_stop'
+  | 'fast_break'
+  | 'play_recall'
+
+/** What is being decided, which changes the stakes and the framing. */
+export type CompetitionKind = 'league' | 'world_cup' | 'olympics' | 'continental'
+
+/** A contract on the table during free agency. */
+export interface ContractOffer {
+  teamId: string
+  leagueId: string
+  /** The role the club is selling you. Not a guarantee — you still have to earn minutes. */
+  role: PlayerRole
+  /** Annual salary in USD. */
+  salary: number
+  years: number
+  /** The club's pitch, in their words. */
+  pitch: Localized
+  /** Whether this is a renewal at your current club. */
+  isCurrentClub: boolean
+}
+
+/** Draft night. */
+export interface DraftResult {
+  /** Where scouts had you going, shown before the picks start. */
+  projectedRange: [number, number]
+  /** Where you actually went, or null if nobody called. */
+  pick: number | null
+  teamId: string | null
+  /** Names off the board before you, purely for the theatre of it. */
+  precedingPicks: { pick: number; name: string; teamAbbr: string }[]
+  /** Where you land instead when undrafted. */
+  fallbackTeamId: string
+  fallbackLeagueId: string
+}
+
+/** A summer with the national team. */
+export interface NationalTournament {
+  kind: Exclude<CompetitionKind, 'league'>
+  name: Localized
+  year: number
+  /** How far the run got before the final. */
+  outcome: 'group' | 'quarterfinal' | 'semifinal' | 'bronze' | 'final'
+  /** Who is waiting in the final, if you got there. */
+  opponent: Localized | null
+  /** Medals earned. Resolved after the final if one is played. */
+  awards: AwardId[]
+  /** Narrative line for the run so far. */
+  summary: Localized
+}
 
 /**
  * A playable final. The outcome is an *input* to the simulation, not an RNG
@@ -442,8 +513,12 @@ export interface MinigameChallenge {
   intro: Localized
   /** What is on the line, named explicitly. */
   stake: Localized
-  /** Opponent club, for flavour on the minigame screen. */
-  opponentTeamId: string
+  /** Which competition this decides. Drives the framing and the reward. */
+  competition: CompetitionKind
+  /** Opponent club, for flavour on the minigame screen. Null for national teams. */
+  opponentTeamId: string | null
+  /** Opponent name when there is no club crest to show. */
+  opponentName: Localized
 }
 
 export interface PendingEvent {

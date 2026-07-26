@@ -3,18 +3,23 @@ import { describe, expect, it } from 'vitest'
 import { Rng } from '../rng'
 import { createGame, type CreationChoices } from '../create'
 import {
-  advanceYear,
+  acceptOffer,
   beginSeason,
+  choosePerk,
+  confirmDraft,
   continueAfterEvent,
+  continueFromNational,
+  continueFromSeason,
   resolveChoice,
   resolveMinigame,
+  resolveNationalFinal,
 } from '../engine'
-import { spendGrowthPoint } from '../progression'
 import { computeLegacy, computeTotals } from '../legacy'
 import type { AttributeKey, GameState, LegacyTier, Position } from '../types'
 import { COUNTRIES } from '@/data/countries'
 import { PLAY_STYLES } from '@/data/styles'
 import { getLeague } from '@/data/leagues'
+import { getPerk } from '@/data/perks'
 
 const POSITIONS: Position[] = ['PG', 'SG', 'SF', 'PF', 'C']
 
@@ -31,11 +36,83 @@ const FOCUS: Record<Position, AttributeKey[]> = {
   C: ['strength', 'defense', 'athleticism'],
 }
 
+
 /**
- * Play a career, optionally specialising growth points like an engaged player.
- * `finalsWon` models how good the player is at the minigames that decide titles.
+ * Drive a career through every phase. Minigame results and perk picks are
+ * inputs, exactly like event choices, so a seed plus these decisions still
+ * reproduces a career byte for byte.
  */
-function play(seed: string, specialise: boolean, winsFinals = true): GameState {
+function drive(
+  state: GameState,
+  opts: {
+    choice?: (count: number, rng: Rng) => number
+    minigame?: (required: number, rounds: number, rng: Rng) => number
+    offer?: (count: number, rng: Rng) => number
+    perk?: (choices: string[], rng: Rng) => string
+    rng: Rng
+  },
+): GameState {
+  let s = state
+  let guard = 0
+  while (!s.player.retired && guard < 220) {
+    guard++
+    switch (s.phase) {
+      case 'draft':
+        s = confirmDraft(s)
+        break
+      case 'offers': {
+        const offers = s.pendingOffers ?? []
+        const index = opts.offer ? opts.offer(offers.length, opts.rng) % Math.max(1, offers.length) : 0
+        s = acceptOffer(s, index)
+        break
+      }
+      case 'preseason': {
+        const choices = s.player.perkChoices
+        if (choices.length > 0 && opts.perk) s = choosePerk(s, opts.perk(choices, opts.rng))
+        s = beginSeason(s)
+        break
+      }
+      case 'event': {
+        const options = s.pendingEvent?.choices ?? []
+        const index = opts.choice ? opts.choice(options.length, opts.rng) % Math.max(1, options.length) : 0
+        s = resolveChoice(s, options[index]?.index ?? 0)
+        s = continueAfterEvent(s)
+        break
+      }
+      case 'minigame': {
+        const mg = s.pendingMinigame!
+        const successes = opts.minigame
+          ? opts.minigame(mg.required, mg.rounds, opts.rng)
+          : mg.required
+        s = s.pendingTournament ? resolveNationalFinal(s, successes) : resolveMinigame(s, successes)
+        break
+      }
+      case 'season_result':
+        s = continueFromSeason(s)
+        break
+      case 'national':
+        if (s.pendingMinigame) {
+          const mg = s.pendingMinigame
+          const successes = opts.minigame
+            ? opts.minigame(mg.required, mg.rounds, opts.rng)
+            : mg.required
+          s = resolveNationalFinal(s, successes)
+        } else {
+          s = continueFromNational(s)
+        }
+        break
+      case 'retirement':
+        return s
+    }
+  }
+  return s
+}
+
+/**
+ * Play a career. `focused` models a player who picks perks matching their
+ * position; the alternative takes whatever is listed first.
+ */
+function play(seed: string, focused: boolean, winsFinals = true): GameState {
   const rng = new Rng(seed)
   const choices: CreationChoices = {
     name: seed,
@@ -45,33 +122,25 @@ function play(seed: string, specialise: boolean, winsFinals = true): GameState {
     hand: 'right',
     styleId: rng.pick(PLAY_STYLES).id,
   }
-  let state = createGame(choices, seed, 'career')
+  const state = createGame(choices, seed, 'career')
   const policy = new Rng(`${seed}::policy`)
-  let guard = 0
-
-  while (!state.player.retired && guard < 100) {
-    guard++
-    if (specialise) {
-      const focus = FOCUS[state.player.position]
-      let spent = 0
-      while (state.player.growthPoints > 0 && spent < 40) {
-        if (!spendGrowthPoint(state.player, focus[spent % focus.length])) break
-        spent++
-      }
-    }
-    state = beginSeason(state)
-    if (state.phase === 'event' && state.pendingEvent) {
-      const options = state.pendingEvent.choices
-      state = resolveChoice(state, options[policy.int(0, options.length - 1)].index)
-      state = continueAfterEvent(state)
-    }
-    if (state.phase === 'minigame' && state.pendingMinigame) {
-      const { required } = state.pendingMinigame
-      state = resolveMinigame(state, winsFinals ? required : Math.max(0, required - 1))
-    }
-    state = advanceYear(state)
-  }
-  return state
+  return drive(state, {
+    rng: policy,
+    choice: (count, r) => (count > 0 ? r.int(0, count - 1) : 0),
+    minigame: (required) => (winsFinals ? required : Math.max(0, required - 1)),
+    // A focused player signs with the strongest league offered; a casual one
+    // takes whatever is on top of the pile.
+    offer: () => 0,
+    perk: (list, r) => {
+      if (!focused) return list[0]
+      const wanted = FOCUS[state.player.position]
+      const match = list.find((id) => {
+        const bonus = getPerk(id).bonus
+        return wanted.some((key) => (bonus[key] ?? 0) > 0)
+      })
+      return match ?? r.pick(list)
+    },
+  })
 }
 
 function verdicts(count: number, specialise: boolean) {
@@ -98,22 +167,24 @@ describe('legacy verdicts', () => {
     }
   })
 
-  it('rewards deliberate growth-point spending with better careers', () => {
+  it('rewards perks chosen to suit the position with better careers', () => {
     const casual = verdicts(90, false)
     const focused = verdicts(90, true)
 
     const avg = (rows: typeof casual) =>
       rows.reduce((sum, r) => sum + r.legacy.score, 0) / rows.length
-    const nbaRate = (rows: typeof casual) =>
-      rows.filter((r) => r.reachedNba).length / rows.length
+    const eliteRate = (rows: typeof casual) =>
+      rows.filter((r) => ['hall_of_famer', 'legend', 'goat'].includes(r.legacy.tier)).length /
+      rows.length
 
     // Player agency has to actually matter — this is the whole point of the
-    // preseason screen.
+    // perk screen. Measured on legacy rather than on reaching the NBA, since
+    // that is now gated on draft night rather than on year-to-year quality.
     expect(avg(focused)).toBeGreaterThan(avg(casual))
-    expect(nbaRate(focused)).toBeGreaterThan(nbaRate(casual))
+    expect(eliteRate(focused)).toBeGreaterThan(eliteRate(casual))
   })
 
-  it('keeps elite outcomes rare for a player who never allocates points', () => {
+  it('keeps elite outcomes rare for a player who never thinks about their perks', () => {
     const casual = verdicts(120, false)
     const eliteRate =
       casual.filter((r) => r.legacy.tier === 'goat' || r.legacy.tier === 'legend').length /

@@ -1,58 +1,14 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useT } from '@/i18n/LocaleProvider'
 import { COUNTRIES } from '@/data/countries'
 import { PLAY_STYLES } from '@/data/styles'
-import { getLeague } from '@/data/leagues'
 import type { CreationChoices } from '@/game/create'
 import type { Hand, PlayStyleId, Position } from '@/game/types'
 import { POSITION_KEY } from './display'
 
 const POSITIONS: Position[] = ['PG', 'SG', 'SF', 'PF', 'C']
-
-/** A human-readable summary of where this country's path actually leads. */
-function pathSummary(countryCode: string, locale: 'es' | 'en'): string {
-  const country = COUNTRIES.find((c) => c.code === countryCode)
-  if (!country) return ''
-  const league = country.domesticLeagueIds[0]
-  const domestic = league ? getLeague(league).name[locale] : null
-
-  const steps: string[] = []
-  switch (country.path) {
-    case 'usa_ncaa':
-      steps.push(locale === 'es' ? 'Secundaria' : 'High school', 'NCAA', locale === 'es' ? 'Draft' : 'Draft', 'NBA')
-      break
-    case 'euro_academy':
-      steps.push(
-        locale === 'es' ? 'Cantera' : 'Academy',
-        domestic ?? (locale === 'es' ? 'Liga local' : 'Domestic league'),
-        'EuroLeague',
-        'NBA',
-      )
-      break
-    case 'latam_club':
-      steps.push(
-        locale === 'es' ? 'Inferiores' : 'Youth club',
-        domestic ?? (locale === 'es' ? 'Liga local' : 'Domestic league'),
-        locale === 'es' ? 'Europa' : 'Europe',
-        'NBA',
-      )
-      break
-    case 'africa_academy':
-      steps.push('NBA Academy', locale === 'es' ? 'Europa' : 'Europe', 'EuroLeague', 'NBA')
-      break
-    case 'oceania_nbl':
-      steps.push('NBL Next Stars', 'NBL', 'NBA')
-      break
-    case 'asia_domestic':
-      steps.push(locale === 'es' ? 'Cantera' : 'Academy', 'CBA', 'NBA')
-      break
-    default:
-      steps.push(locale === 'es' ? 'Club local' : 'Local club', locale === 'es' ? 'Europa' : 'Europe', 'NBA')
-  }
-  return steps.join('  →  ')
-}
 
 interface Props {
   onStart: (choices: CreationChoices) => void
@@ -61,7 +17,7 @@ interface Props {
 }
 
 export function CreationScreen({ onStart, locked }: Props) {
-  const { t, L, locale } = useT()
+  const { t, L } = useT()
 
   const [name, setName] = useState(locked?.name ?? '')
   const [countryCode, setCountryCode] = useState(locked?.countryCode ?? 'AR')
@@ -71,7 +27,6 @@ export function CreationScreen({ onStart, locked }: Props) {
   const [styleId, setStyleId] = useState<PlayStyleId>(locked?.styleId ?? 'scorer')
 
   const isLocked = Boolean(locked)
-  const path = useMemo(() => pathSummary(countryCode, locale), [countryCode, locale])
 
   return (
     <form
@@ -135,10 +90,6 @@ export function CreationScreen({ onStart, locked }: Props) {
           </label>
         </div>
 
-        <p className="rounded-xl border border-white/10 bg-court-800/60 px-3 py-2 text-xs text-slate-400">
-          <span className="font-semibold text-slate-300">{t('pathLabel')}: </span>
-          <span className="tnum">{path}</span>
-        </p>
       </div>
 
       <fieldset className="panel p-4" disabled={isLocked}>

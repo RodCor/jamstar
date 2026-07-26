@@ -147,15 +147,10 @@ const SEARCH_HINTS = {
   gl_scw: 'Santa Cruz Warriors',
   leb_bur: 'San Pablo Burgos',
   leb_ovi: 'Oviedo Club Baloncesto',
-  youth_fr: 'INSEP',
-  youth_af: 'NBA Academy',
-  youth_au: 'NBL Next Stars',
 }
 
-/** Youth entries that are generic placeholders — no real badge exists. */
-const PLACEHOLDER_YOUTH = new Set([
-  'youth_ar', 'youth_es', 'youth_us', 'youth_eu', 'youth_br', 'youth_cn', 'youth_gen',
-])
+/** High school basketball is generic by design — no real badge to fetch. */
+const PLACEHOLDER_YOUTH = new Set(['youth_hs'])
 
 function parseTeams() {
   const source = readFileSync(TEAMS_FILE, 'utf8')

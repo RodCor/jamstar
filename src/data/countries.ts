@@ -8,7 +8,7 @@
  * SWAPPABLE DATA LAYER — see README.
  */
 
-import type { Country, CareerPathId } from '@/game/types'
+import type { Country } from '@/game/types'
 
 export const COUNTRIES: Country[] = [
   {
@@ -272,29 +272,14 @@ export function flagFor(code: string): string {
   return COUNTRY_INDEX.get(code)?.flag ?? EXTRA_FLAGS[code] ?? '🏳️'
 }
 
-/** The youth team a player from this country starts at. */
-export function youthTeamFor(path: CareerPathId, countryCode: string): string {
-  if (countryCode === 'AR') return 'youth_ar'
-  if (countryCode === 'ES') return 'youth_es'
-  if (countryCode === 'FR') return 'youth_fr'
-  if (countryCode === 'BR') return 'youth_br'
-  if (countryCode === 'CN') return 'youth_cn'
-  switch (path) {
-    case 'usa_ncaa':
-      return 'youth_us'
-    case 'euro_academy':
-      return 'youth_eu'
-    case 'africa_academy':
-      return 'youth_af'
-    case 'oceania_nbl':
-      return 'youth_au'
-    case 'latam_club':
-      return 'youth_ar'
-    case 'asia_domestic':
-      return 'youth_cn'
-    default:
-      return 'youth_gen'
-  }
+/**
+ * Where a player starts, before the country's ladder takes over.
+ *
+ * Everyone begins in high school basketball regardless of origin — the country
+ * shapes what comes *after*, which is where the interesting divergence is.
+ */
+export function youthTeamFor(): string {
+  return 'youth_hs'
 }
 
 /**

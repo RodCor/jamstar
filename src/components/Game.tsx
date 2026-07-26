@@ -1,16 +1,20 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { ArchivedCareer, AttributeKey, GameMode, GameState } from '@/game/types'
+import type { ArchivedCareer, GameMode, GameState } from '@/game/types'
 import { createGame, dailyChoices, type CreationChoices } from '@/game/create'
 import {
-  advanceYear,
+  acceptOffer,
   beginSeason,
+  choosePerk,
+  confirmDraft,
   continueAfterEvent,
+  continueFromNational,
+  continueFromSeason,
   resolveChoice,
   resolveMinigame,
+  resolveNationalFinal,
 } from '@/game/engine'
-import { spendGrowthPoint } from '@/game/progression'
 import { computeLegacy, computeTotals } from '@/game/legacy'
 import { dailySeedKey, randomSeed } from '@/game/rng'
 import {
@@ -31,6 +35,9 @@ import { PreseasonScreen } from './PreseasonScreen'
 import { EventScreen } from './EventScreen'
 import { SeasonResultScreen } from './SeasonResultScreen'
 import { MinigameScreen } from './MinigameScreen'
+import { OffersScreen } from './OffersScreen'
+import { DraftScreen } from './DraftScreen'
+import { NationalScreen } from './NationalScreen'
 import { CareerPanel } from './CareerPanel'
 import { RetirementScreen } from './RetirementScreen'
 
@@ -105,13 +112,24 @@ export function Game() {
     setScreen('play')
   }, [savedRun])
 
-  const handleSpend = useCallback((key: AttributeKey) => {
-    setState((current) => {
-      if (!current) return current
-      const next = structuredClone(current)
-      if (!spendGrowthPoint(next.player, key)) return current
-      return next
-    })
+  const handleChoosePerk = useCallback((perkId: string) => {
+    setState((current) => (current ? choosePerk(current, perkId) : current))
+  }, [])
+
+  const handleAcceptOffer = useCallback((index: number) => {
+    setState((current) => (current ? acceptOffer(current, index) : current))
+  }, [])
+
+  const handleConfirmDraft = useCallback(() => {
+    setState((current) => (current ? confirmDraft(current) : current))
+  }, [])
+
+  const handleNationalFinal = useCallback((successes: number) => {
+    setState((current) => (current ? resolveNationalFinal(current, successes) : current))
+  }, [])
+
+  const handleAfterNational = useCallback(() => {
+    setState((current) => (current ? continueFromNational(current) : current))
   }, [])
 
   const handlePlaySeason = useCallback(() => {
@@ -130,8 +148,8 @@ export function Game() {
     setState((current) => (current ? resolveMinigame(current, successes) : current))
   }, [])
 
-  const handleNextYear = useCallback(() => {
-    setState((current) => (current ? advanceYear(current) : current))
+  const handleAfterSeason = useCallback(() => {
+    setState((current) => (current ? continueFromSeason(current) : current))
   }, [])
 
   const handlePlayAgain = useCallback(() => {
@@ -181,8 +199,18 @@ export function Game() {
   return (
     <Shell>
       <div className="space-y-4">
+        {state.phase === 'draft' && (
+          <DraftScreen state={state} onContinue={handleConfirmDraft} />
+        )}
+        {state.phase === 'offers' && (
+          <OffersScreen state={state} onAccept={handleAcceptOffer} />
+        )}
         {state.phase === 'preseason' && (
-          <PreseasonScreen state={state} onSpend={handleSpend} onPlay={handlePlaySeason} />
+          <PreseasonScreen
+            state={state}
+            onChoosePerk={handleChoosePerk}
+            onPlay={handlePlaySeason}
+          />
         )}
         {state.phase === 'event' && (
           <EventScreen state={state} onChoose={handleChoose} onContinue={handleAfterEvent} />
@@ -191,13 +219,20 @@ export function Game() {
           <MinigameScreen state={state} onFinish={handleMinigameFinish} />
         )}
         {state.phase === 'season_result' && (
-          <SeasonResultScreen state={state} onContinue={handleNextYear} />
+          <SeasonResultScreen state={state} onContinue={handleAfterSeason} />
+        )}
+        {state.phase === 'national' && (
+          <NationalScreen
+            state={state}
+            onFinishFinal={handleNationalFinal}
+            onContinue={handleAfterNational}
+          />
         )}
         {state.phase === 'retirement' && (
           <RetirementScreen state={state} onPlayAgain={handlePlayAgain} />
         )}
 
-        {state.phase !== 'retirement' && <CareerPanel state={state} />}
+        {state.phase !== 'retirement' && state.phase !== 'draft' && <CareerPanel state={state} />}
       </div>
     </Shell>
   )

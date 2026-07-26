@@ -68,10 +68,6 @@ export const es = {
 
   // Preseason
   preseasonTitle: 'Pretemporada',
-  preseasonPoints: 'Puntos de mejora',
-  preseasonPointsLeft: '{n} sin asignar',
-  preseasonSpend: 'Repartí tus puntos entre tus atributos.',
-  preseasonAuto: 'Lo que no repartas se asigna solo, pero sin foco.',
   playSeason: 'Jugar la temporada',
   season: 'Temporada',
   age: 'Edad',
@@ -124,6 +120,44 @@ export const es = {
   minigameFreeThrowHelp: 'Tocá para frenar la barra en la zona verde',
   minigameClutchHelp: 'Tocá cuando el aro naranja coincida con el punteado',
   minigameStopHelp: 'Tocá el carril del pase real, no las fintas',
+
+  // Perks
+  perkTitle: 'Elegí una mejora',
+  perkHelp: 'Una de las tres. Las otras dos no vuelven.',
+  perksOwned: 'Tus mejoras',
+  attributes: 'Atributos',
+  perkFxInjury: 'Menos lesiones',
+  perkFxLongevity: 'Carrera más larga',
+  perkFxClutch: 'Mejor en finales',
+  perkFxContracts: 'Mejores contratos',
+  perkFxFame: 'Más fama',
+  perkFxScoring: 'Más puntos',
+  perkFxPlaymaking: 'Más asistencias',
+  perkFxDefense: 'Mejor defensa',
+  perkFxRebounding: 'Más rebotes',
+  perkFxAwards: 'Más premios',
+
+  // Free agency
+  offersTitle: 'Ofertas de contrato',
+  offersSubtitle: 'Elegí dónde jugar. Cuanto mejor estés, mejor lo que llega.',
+  offerRole: 'Rol',
+  offerSalary: 'Salario',
+  offerYears: '{n} año(s)',
+  offerRenewal: 'Renovación',
+
+  // Draft
+  draftNight: 'Noche del Draft',
+  draftProjected: 'Los mocks te tenían en',
+  draftOnTheBoard: 'Se van eligiendo',
+  draftPicked: '¡Estás en la NBA!',
+  draftUndrafted: 'Nadie te eligió',
+  draftUndraftedBody: 'Las 58 selecciones pasaron sin tu nombre. Hay otros caminos, y algunos terminan igual de arriba.',
+
+  // National team
+  nationalSummer: 'Verano con la selección',
+  minigameBreakHelp: 'Tocá rápido para terminar la corrida antes de que te alcancen',
+  minigameRecallHelp: 'Mirá la jugada y repetila en el mismo orden',
+
 
   // Career panel
   careerTab: 'Carrera',
@@ -222,10 +256,6 @@ export const en: Dictionary = {
   attrLeadershipHelp: 'Runs the locker room and makes the team win.',
 
   preseasonTitle: 'Preseason',
-  preseasonPoints: 'Growth points',
-  preseasonPointsLeft: '{n} unspent',
-  preseasonSpend: 'Spread your points across your attributes.',
-  preseasonAuto: 'Anything you leave is spent for you, but without focus.',
   playSeason: 'Play the season',
   season: 'Season',
   age: 'Age',
@@ -273,6 +303,40 @@ export const en: Dictionary = {
   minigameFreeThrowHelp: 'Tap to stop the bar inside the green zone',
   minigameClutchHelp: 'Tap when the orange ring meets the dashed one',
   minigameStopHelp: 'Tap the lane the real pass goes to, not the fakes',
+
+  perkTitle: 'Choose an upgrade',
+  perkHelp: 'One of three. The other two do not come back.',
+  perksOwned: 'Your upgrades',
+  attributes: 'Attributes',
+  perkFxInjury: 'Fewer injuries',
+  perkFxLongevity: 'Longer career',
+  perkFxClutch: 'Better in finals',
+  perkFxContracts: 'Better contracts',
+  perkFxFame: 'More fame',
+  perkFxScoring: 'More points',
+  perkFxPlaymaking: 'More assists',
+  perkFxDefense: 'Better defense',
+  perkFxRebounding: 'More rebounds',
+  perkFxAwards: 'More awards',
+
+  offersTitle: 'Contract offers',
+  offersSubtitle: 'Choose where to play. The better you are, the better these get.',
+  offerRole: 'Role',
+  offerSalary: 'Salary',
+  offerYears: '{n} year(s)',
+  offerRenewal: 'Renewal',
+
+  draftNight: 'Draft Night',
+  draftProjected: 'Mock drafts had you at',
+  draftOnTheBoard: 'Coming off the board',
+  draftPicked: 'You are in the NBA!',
+  draftUndrafted: 'Nobody called your name',
+  draftUndraftedBody: 'All 58 picks went by without you. There are other routes, and some of them end just as high.',
+
+  nationalSummer: 'Summer with the national team',
+  minigameBreakHelp: 'Tap fast to finish the break before they catch you',
+  minigameRecallHelp: 'Watch the play, then repeat it in order',
+
 
   careerTab: 'Career',
   rivalTab: 'Rival',
