@@ -7,7 +7,7 @@
  * twenty years.
  */
 
-import type { Player, Rival } from './types'
+import type { Player, Rival, Season } from './types'
 import { Rng, clamp, round } from './rng'
 import { REAL_STARS, type RealStar } from '@/data/people'
 import { getCountry } from '@/data/countries'
@@ -79,7 +79,14 @@ function originStory(star: RealStar, player: Player, rng: Rng) {
  * Advance the rival one season. Independent of the player's simulation, driven
  * by their own age curve toward their ceiling.
  */
-export function advanceRival(rival: Rival, year: number, playerAge: number, rng: Rng): void {
+export function advanceRival(
+  rival: Rival,
+  year: number,
+  playerAge: number,
+  /** The player's season, which the rival's own is measured against. */
+  playerSeason: Pick<Season, 'rating' | 'points' | 'rebounds' | 'assists'>,
+  rng: Rng,
+): void {
   if (rival.retired) return
 
   const star = REAL_STARS.find((s) => s.name === rival.name)
@@ -92,19 +99,30 @@ export function advanceRival(rival: Rival, year: number, playerAge: number, rng:
     return
   }
 
-  // Rating tracks a standard curve toward the rival's ceiling, peaking ~27.
-  const developmentCurve = clamp((age - 17) / 10, 0, 1)
-  const declineCurve = age > 30 ? clamp((age - 30) / 12, 0, 0.85) : 0
-  const rating = clamp(
-    rng.gauss(ceiling * (0.55 + developmentCurve * 0.45) * (1 - declineCurve), 5),
-    20,
-    99,
-  )
+  /*
+   * The rival tracks *the player*, not a fixed elite ceiling.
+   *
+   * Previously they climbed toward their real-life ceiling — up to 99 — while a
+   * player peaks nearer 75, so by the mid-twenties the rivalry was over and the
+   * head-to-head panel was just a scoreboard of someone else's career. Scaling
+   * to the player's own season keeps it a race for twenty years, with the
+   * rival's pedigree deciding whether they run slightly ahead or slightly
+   * behind rather than out of sight.
+   */
+  const edge = clamp(0.92 + (ceiling - 82) / 220, 0.82, 1.06)
+  const rating = clamp(rng.gauss(playerSeason.rating * edge, 6), 15, 99)
 
-  // Points roughly track rating; the rival's box score exists to be compared.
-  const ppg = round(clamp(rng.gauss(rating * 0.3, 2.2), 2, 36), 1)
-  const rpg = round(clamp(rng.gauss(rating * (positionGroup(rival.position) === 'big' ? 0.13 : 0.06), 1.2), 0.5, 15), 1)
-  const apg = round(clamp(rng.gauss(rating * (positionGroup(rival.position) === 'guard' ? 0.09 : 0.04), 1.1), 0.3, 12), 1)
+  // The box score tracks the player's too, so the comparison is like for like.
+  const group = positionGroup(rival.position)
+  const ppg = round(clamp(rng.gauss(playerSeason.points * edge, 2.4), 1, 36), 1)
+  const rpg = round(
+    clamp(rng.gauss(playerSeason.rebounds * edge * (group === 'big' ? 1.25 : 0.85), 1.2), 0.3, 16),
+    1,
+  )
+  const apg = round(
+    clamp(rng.gauss(playerSeason.assists * edge * (group === 'guard' ? 1.25 : 0.8), 1.1), 0.2, 13),
+    1,
+  )
 
   rival.totals.seasons += 1
   rival.totals.points = round(rival.totals.points + ppg, 1)
@@ -112,9 +130,11 @@ export function advanceRival(rival: Rival, year: number, playerAge: number, rng:
   rival.totals.assists = round(rival.totals.assists + apg, 1)
   rival.totals.peakRating = Math.max(rival.totals.peakRating, round(rating, 1))
 
-  if (rng.chance(clamp((rating - 62) / 40, 0, 0.7))) rival.totals.allStars += 1
-  if (rating > 86 && rng.chance(clamp((rating - 86) / 26, 0, 0.28))) rival.totals.mvps += 1
-  if (rng.chance(clamp((rating - 74) / 100, 0, 0.2))) rival.totals.rings += 1
+  // Kept generous enough that the rival stays a real opponent rather than a
+  // scoreboard the player always beats.
+  if (rng.chance(clamp((rating - 60) / 38, 0, 0.68))) rival.totals.allStars += 1
+  if (rating > 78 && rng.chance(clamp((rating - 78) / 26, 0, 0.26))) rival.totals.mvps += 1
+  if (rng.chance(clamp((rating - 66) / 90, 0, 0.22))) rival.totals.rings += 1
 
   rival.history.push({
     year,

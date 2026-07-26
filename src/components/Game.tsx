@@ -38,7 +38,7 @@ import { MinigameScreen } from './MinigameScreen'
 import { OffersScreen } from './OffersScreen'
 import { DraftScreen } from './DraftScreen'
 import { NationalScreen } from './NationalScreen'
-import { CareerPanel } from './CareerPanel'
+import { CareerStrip } from './CareerStrip'
 import { RetirementScreen } from './RetirementScreen'
 
 type Screen = 'menu' | 'create' | 'play'
@@ -198,7 +198,11 @@ export function Game() {
 
   return (
     <Shell>
-      <div className="space-y-4">
+      <div className="space-y-3">
+        {state.phase !== 'retirement' && state.phase !== 'draft' && (
+          <CareerStrip state={state} />
+        )}
+
         {state.phase === 'draft' && (
           <DraftScreen state={state} onContinue={handleConfirmDraft} />
         )}
@@ -231,8 +235,6 @@ export function Game() {
         {state.phase === 'retirement' && (
           <RetirementScreen state={state} onPlayAgain={handlePlayAgain} />
         )}
-
-        {state.phase !== 'retirement' && state.phase !== 'draft' && <CareerPanel state={state} />}
       </div>
     </Shell>
   )

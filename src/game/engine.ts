@@ -23,7 +23,13 @@ import { Rng, clamp, round } from './rng'
 import { getCountry } from '@/data/countries'
 import { getLeague } from '@/data/leagues'
 import { getTeam, teamsInLeague } from '@/data/teams'
-import { ageOneYear, autoSpendGrowth, overallRating, retirementPressure } from './progression'
+import {
+  ageOneYear,
+  autoSpendGrowth,
+  developFromSeason,
+  overallRating,
+  retirementPressure,
+} from './progression'
 import { stageForAge } from './ladder'
 import { buildChallenge, isWin, resultHeadline } from './minigame'
 import { autoTakePerk, drawPerkChoices, takePerk } from './perks'
@@ -465,6 +471,9 @@ function finalizeSeason(
   season.salary = computeSalary(league, season.role, player.hidden.hype, rng)
   season.headlines = buildHeadlines(state, season, finalHeadline)
 
+  // Development earned on the floor, before the rest of the fallout.
+  developFromSeason(player, season.rating, season.minutesPerGame, yearRng(state, 'in-season-growth'))
+
   // Consequences of the season feed back into the player.
   player.earnings += season.salary
   player.hidden.wear = clamp(player.hidden.wear + wearFromSeason(season, player), 0, 100)
@@ -494,8 +503,8 @@ function finalizeSeason(
 
   state.seasons.push(season)
 
-  // Rival moves in parallel on their own stream.
-  advanceRival(state.rival, state.year, player.age, yearRng(state, 'rival'))
+  // Rival moves in parallel on their own stream, measured against this season.
+  advanceRival(state.rival, state.year, player.age, season, yearRng(state, 'rival'))
 
   state.phase = 'season_result'
   return state

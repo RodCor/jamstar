@@ -124,7 +124,7 @@ export const es = {
   // Perks
   perkTitle: 'Elegí una mejora',
   perkHelp: 'Una de las tres. Las otras dos no vuelven.',
-  perksOwned: 'Tus mejoras',
+  awardWon: 'Lo ganaste',
   attributes: 'Atributos',
   perkFxInjury: 'Menos lesiones',
   perkFxLongevity: 'Carrera más larga',
@@ -306,7 +306,7 @@ export const en: Dictionary = {
 
   perkTitle: 'Choose an upgrade',
   perkHelp: 'One of three. The other two do not come back.',
-  perksOwned: 'Your upgrades',
+  awardWon: 'You won it',
   attributes: 'Attributes',
   perkFxInjury: 'Fewer injuries',
   perkFxLongevity: 'Longer career',

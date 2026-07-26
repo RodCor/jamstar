@@ -13,12 +13,46 @@ import { getStyle } from '@/data/styles'
 
 /** Growth points handed out at each preseason, by age. */
 export function growthPointsFor(age: number, rng: Rng): number {
-  if (age <= 17) return rng.int(4, 6)
-  if (age <= 21) return rng.int(3, 5)
-  if (age <= 25) return rng.int(2, 4)
-  if (age <= 29) return rng.int(1, 3)
+  if (age <= 17) return rng.int(5, 7)
+  if (age <= 21) return rng.int(4, 6)
+  if (age <= 25) return rng.int(3, 5)
+  if (age <= 29) return rng.int(2, 4)
   if (age <= 33) return rng.int(1, 2)
   return rng.int(0, 1)
+}
+
+/**
+ * Development earned on the floor.
+ *
+ * Progression used to come only from the preseason, which made a great season
+ * and a terrible one develop you identically — the year you actually played had
+ * no bearing on who you became. This adds growth proportional to how the season
+ * went, so form compounds and a breakout year genuinely changes your trajectory.
+ * Young players learn fastest from it; a 34-year-old learns almost nothing.
+ */
+export function developFromSeason(
+  player: Player,
+  seasonRating: number,
+  minutesPerGame: number,
+  rng: Rng,
+): void {
+  // Sitting on the bench teaches you very little.
+  if (minutesPerGame < 8) return
+
+  const performance = clamp((seasonRating - 46) / 9, 0, 5)
+  const youth = player.age <= 22 ? 1.35 : player.age <= 27 ? 1 : player.age <= 31 ? 0.55 : 0.2
+  const points = Math.round(performance * youth)
+  if (points <= 0) return
+
+  const weights = POSITION_WEIGHTS[player.position]
+  for (let i = 0; i < points; i++) {
+    player.growthPoints += 1
+    // Weighted toward what the position uses, but not exclusively — you improve
+    // at what the season put in front of you.
+    const key = rng.weighted(ATTRIBUTE_KEYS, (k) => 1 + (weights[k] ?? 0.02) * 6)
+    if (!spendGrowthPoint(player, key)) player.growthPoints -= 1
+  }
+  player.growthPoints = 0
 }
 
 /**

@@ -27,9 +27,14 @@ const config: Config = {
           from: { opacity: '0', transform: 'translateY(10px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        ripple: {
+          from: { opacity: '0.8', transform: 'scale(0.4)' },
+          to: { opacity: '0', transform: 'scale(1.6)' },
+        },
       },
       animation: {
         'fade-up': 'fade-up 260ms ease-out both',
+        ripple: 'ripple 400ms ease-out forwards',
       },
     },
   },
