@@ -198,21 +198,42 @@ abbreviation. Nothing is fetched at runtime — the badges are inline SVG, which
 also means they survive a strict CSP. The share card draws a canvas twin of the
 same crest so the PNG matches what you saw in the app.
 
-**To use real logos instead**, for the clubs you have the rights to:
+**To use real logos instead:**
 
 ```bash
-mkdir -p public/logos
-# name each file after its team id — lal.svg, el_rma.png, lnb_boc.webp
+npm run logos:fetch    # downloads into public/logos/
 npm run logos          # regenerates src/data/logos.ts from that folder
+git add public/logos src/data/logos.ts && git commit && git push
 ```
 
-Anything without a file keeps its generated crest, so a partial set is fine. The
-script reports how many it mapped and warns about filenames that match no team
-id, which catches typos before they become a missing badge.
+The logos have to be **committed** — Pages builds from the repository, so files
+that only exist on your machine will not reach the live site.
 
-> Club logos are copyrighted artwork on top of being trademarks — a stricter
-> position than club *names*. That is why none ship here. Get permission before
-> publishing a build that includes them.
+`logos:fetch` resolves each club in three steps: a manual URL from
+`scripts/logo-sources.json` if one is set, then the NBA's own CDN (clean SVGs,
+keyed by franchise id), then Wikipedia's page image. Wikipedia is the only
+source covering every league here, but plain club names are ambiguous for the
+multi-sport clubs — searching "Real Madrid" or "Flamengo" lands on the football
+side — so ~70 of those are pinned to the right article by a hint table in the
+script.
+
+Useful flags:
+
+```bash
+npm run logos:fetch -- --dry-run              # resolve URLs, download nothing
+npm run logos:fetch -- --league=nba           # one league at a time
+npm run logos:fetch -- --only=lal,el_rma
+npm run logos:fetch -- --force                # re-download existing
+npm run logos:fetch -- --include-youth
+```
+
+It skips anything already downloaded, so re-running only fills gaps. Whatever it
+cannot resolve gets listed in `public/logos/_report.json`; add a direct URL for
+those to `scripts/logo-sources.json` and re-run. Anything still missing simply
+keeps its generated crest, so a partial set is fine.
+
+> Club logos are copyrighted artwork as well as trademarks. Fine for a hobby
+> build; get permission before publishing one commercially.
 
 ## Swapping the name data
 

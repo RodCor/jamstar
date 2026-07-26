@@ -11,3 +11,6 @@ next-env.d.ts
 npm-debug.log*
 coverage/
 .vercel
+
+# Scraper run report; the logos themselves are committed so Pages can serve them.
+public/logos/_report.json

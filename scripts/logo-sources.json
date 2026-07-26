@@ -1,0 +1,3 @@
+{
+  "_comment": "Manual logo URLs, keyed by team id from src/data/teams.ts. Anything listed here wins over the automatic resolvers in fetch-logos.mjs. Use it for clubs the scraper gets wrong or cannot find — check public/logos/_report.json after a run for the list."
+}
