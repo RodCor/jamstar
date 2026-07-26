@@ -44,7 +44,7 @@ export function placeForSeason(player: Player, rng: Rng, seasonsPlayed: number):
 
   // --- Youth ---------------------------------------------------------------
   if (player.age < 17) {
-    const youthId = youthTeamFor(country.path, country.code)
+    const youthId = youthTeamFor()
     return { teamId: youthId, leagueId: 'youth', note: null }
   }
 

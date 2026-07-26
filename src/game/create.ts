@@ -14,7 +14,7 @@ import { Rng, clamp } from './rng'
 import { getCountry, youthTeamFor } from '@/data/countries'
 import { getStyle } from '@/data/styles'
 import { createRival } from './rival'
-import { startPreseason } from './engine'
+import { startOffseason } from './engine'
 
 /**
  * Creation age. `beginSeason` ages the player before simulating, so the first
@@ -23,7 +23,7 @@ import { startPreseason } from './engine'
  */
 export const START_AGE = 13
 export const START_YEAR = 2026
-export const SAVE_VERSION = 1
+export const SAVE_VERSION = 2
 
 export interface CreationChoices {
   name: string
@@ -70,7 +70,7 @@ export function createPlayer(choices: CreationChoices, rng: Rng): Player {
   const [minH, maxH] = HEIGHT_BY_POSITION[choices.position]
   const heightCm = Math.round(rng.float(minH, maxH + 1))
 
-  const youthTeam = youthTeamFor(country.path, country.code)
+  const youthTeam = youthTeamFor()
 
   return {
     name: choices.name.trim() || 'Anónimo',
@@ -93,6 +93,9 @@ export function createPlayer(choices: CreationChoices, rng: Rng): Player {
     currentTeamId: youthTeam,
     currentLeagueId: 'youth',
     growthPoints: 0,
+    draftDone: false,
+    perks: [],
+    perkChoices: [],
     earnings: 0,
     firedEventIds: [],
     teamHistory: [youthTeam],
@@ -118,13 +121,16 @@ export function createGame(choices: CreationChoices, seed: string, mode: GameMod
     pendingPlacementNote: null,
     draftSeason: null,
     pendingMinigame: null,
+    pendingOffers: null,
+    pendingDraft: null,
+    pendingTournament: null,
     phase: 'preseason',
     version: SAVE_VERSION,
   }
 
-  // Open the first preseason immediately so the player lands on an allocation
-  // screen rather than an empty one.
-  return startPreseason(initial)
+  // Open the first offseason immediately so the player lands on their first
+  // perk choice rather than an empty screen.
+  return startOffseason(initial)
 }
 
 /**

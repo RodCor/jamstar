@@ -233,20 +233,24 @@ export const DEV_TEAMS: Team[] = [
 ]
 
 /**
- * Youth basketball. Deliberately generic-by-club — these represent the academy
- * side of a real club, and the engine picks one matching your country.
+ * Where everyone starts, whatever country they are from.
+ *
+ * One entry rather than a per-country academy: the country already decides the
+ * ladder above this, and a single recognisable starting point reads better than
+ * ten differently-named placeholders for the same thing.
  */
 export const YOUTH_TEAMS: Team[] = [
-  t('youth_ar', 'Cantera Argentina', 'CANT', 'youth', 'Buenos Aires', 40, 30, ['#75AADB', '#FFFFFF'], 'Cantera Argentina'),
-  t('youth_es', 'Cantera ACB', 'CANT', 'youth', 'Barcelona', 46, 40, ['#AA151B', '#F1BF00'], 'Cantera ACB'),
-  t('youth_us', 'US High School', 'HS', 'youth', 'Anytown', 44, 34, ['#3C3B6E', '#B22234'], 'Secundaria (EE. UU.)'),
-  t('youth_fr', 'INSEP', 'INSEP', 'youth', 'París', 48, 44, ['#002395', '#ED2939']),
-  t('youth_eu', 'Academia Europea', 'ACAD', 'youth', 'Europa', 45, 36, ['#003399', '#FFCC00'], 'Academia Europea'),
-  t('youth_br', 'Categorias de Base', 'BASE', 'youth', 'São Paulo', 42, 32, ['#009C3B', '#FFDF00'], 'Divisiones de Base'),
-  t('youth_af', 'NBA Academy Africa', 'NBAA', 'youth', 'Saly', 44, 38, ['#000000', '#F1C40F']),
-  t('youth_au', 'NBL Next Stars', 'NEXT', 'youth', 'Melbourne', 46, 40, ['#00843D', '#FFCD00']),
-  t('youth_cn', 'CBA Youth', 'CBAY', 'youth', 'Pekín', 40, 30, ['#DE2910', '#FFDE00'], 'Cantera CBA'),
-  t('youth_gen', 'Club Local', 'LOCAL', 'youth', '—', 36, 24, ['#666666', '#FFFFFF'], 'Club Local'),
+  t(
+    'youth_hs',
+    'High School Basketball',
+    'HS',
+    'youth',
+    '—',
+    42,
+    32,
+    ['#c8873f', '#0a0a0f'],
+    'Básquet de secundaria',
+  ),
 ]
 
 export const ALL_TEAMS: Team[] = [

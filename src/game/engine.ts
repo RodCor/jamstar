@@ -24,8 +24,18 @@ import { getCountry } from '@/data/countries'
 import { getLeague } from '@/data/leagues'
 import { getTeam, teamsInLeague } from '@/data/teams'
 import { ageOneYear, autoSpendGrowth, overallRating, retirementPressure } from './progression'
-import { placeForSeason, stageForAge } from './ladder'
+import { stageForAge } from './ladder'
 import { buildChallenge, isWin, resultHeadline } from './minigame'
+import { autoTakePerk, drawPerkChoices, takePerk } from './perks'
+import { generateFirstOffers, generateOffers } from './offers'
+import { draftHeadline, isDraftEligible, runDraft } from './draft'
+import {
+  finalHeadline,
+  isCalledUp,
+  medalsForFinal,
+  runTournament,
+  tournamentForYear,
+} from './national'
 import {
   computeSalary,
   determineRole,
@@ -36,7 +46,7 @@ import {
   simulateTeamRecord,
   wearFromSeason,
 } from './stats'
-import { determineAwards, determineInternationalAwards } from './awards'
+import { determineAwards } from './awards'
 import { advanceRival } from './rival'
 import { drawEvent, findEvent } from './events'
 
@@ -49,14 +59,14 @@ function yearRng(state: GameState, purpose: string): Rng {
 }
 
 /**
- * Open the preseason: age the player, hand out growth points, and settle where
- * they are playing this year.
+ * Open the offseason: age the player, then work out how they get their next club.
  *
- * This deliberately stops before simulating anything. The player's growth
- * points are their main lever, and they need a window in which to spend them —
- * so the preseason is its own phase, not a step inside `beginSeason`.
+ * Three routes out of here. A schoolkid is simply placed. A draft-eligible
+ * prospect goes to draft night. Everyone else gets a shortlist of contracts and
+ * signs one themselves — being told where you play was the least interesting
+ * part of the year.
  */
-export function startPreseason(state: GameState): GameState {
+export function startOffseason(state: GameState): GameState {
   const next = structuredClone(state)
   const player = next.player
 
@@ -65,23 +75,114 @@ export function startPreseason(state: GameState): GameState {
     return next
   }
 
-  // Age, natural growth/decline, and this year's growth points.
-  ageOneYear(player, yearRng(next, 'ageing'))
-  player.stage = stageForAge(player.age, player.currentLeagueId !== 'youth')
-
-  // Where are we playing this year?
-  const placement = placeForSeason(player, yearRng(next, 'placement'), next.seasons.length)
-  const moved = placement.teamId !== player.currentTeamId
-  player.currentTeamId = placement.teamId
-  player.currentLeagueId = placement.leagueId
-  if (moved) player.teamHistory.push(placement.teamId)
-
-  // Stash the move note so the season screen can show it.
-  next.pendingPlacementNote = placement.note ?? null
   next.pendingEvent = null
   next.pendingMinigame = null
   next.draftSeason = null
-  next.phase = 'preseason'
+  next.pendingOffers = null
+  next.pendingDraft = null
+  next.pendingTournament = null
+  next.pendingPlacementNote = null
+
+  // Age, natural growth/decline, and this year's growth allowance.
+  ageOneYear(player, yearRng(next, 'ageing'))
+  player.stage = stageForAge(player.age, player.currentLeagueId !== 'youth')
+
+  const country = getCountry(player.countryCode)
+
+  // Still at school: no contracts to weigh, just keep developing.
+  if (player.age < 17) {
+    return openPreseason(next)
+  }
+
+  // Draft night, for the one year it happens.
+  if (isDraftEligible(player, next.seasons.length)) {
+    next.pendingDraft = runDraft(player, country, yearRng(next, 'draft'))
+    next.phase = 'draft'
+    return next
+  }
+
+  const offers =
+    player.currentLeagueId === 'youth'
+      ? generateFirstOffers(player, country, yearRng(next, 'first-offers'))
+      : generateOffers(player, country, yearRng(next, 'offers'))
+
+  if (offers.length === 0) {
+    // Nobody called. Stay put rather than stall the career.
+    return openPreseason(next)
+  }
+
+  next.pendingOffers = offers
+  next.phase = 'offers'
+  return next
+}
+
+/** Sign one of the contracts on the table. */
+export function acceptOffer(state: GameState, index: number): GameState {
+  const next = structuredClone(state)
+  const offer = next.pendingOffers?.[index]
+  if (!offer) return next
+
+  const player = next.player
+  const team = getTeam(offer.teamId)
+  const league = getLeague(offer.leagueId)
+  const moved = team.id !== player.currentTeamId
+
+  player.currentTeamId = team.id
+  player.currentLeagueId = league.id
+  if (moved) player.teamHistory.push(team.id)
+
+  next.pendingPlacementNote = offer.isCurrentClub
+    ? {
+        es: `Renovaste con ${team.name.es}. Un año más en casa.`,
+        en: `You re-signed with ${team.name.en}. Another year at home.`,
+      }
+    : {
+        es: `Firmaste con ${team.name.es} (${league.name.es}).`,
+        en: `You signed for ${team.name.en} (${league.name.en}).`,
+      }
+  next.pendingOffers = null
+  return openPreseason(next)
+}
+
+/** Leave draft night and report to whoever took you — or to plan B. */
+export function confirmDraft(state: GameState): GameState {
+  const next = structuredClone(state)
+  const result = next.pendingDraft
+  if (!result) return next
+
+  const player = next.player
+  const teamId = result.pick !== null && result.teamId ? result.teamId : result.fallbackTeamId
+  const leagueId = result.pick !== null && result.teamId ? 'nba' : result.fallbackLeagueId
+
+  player.currentTeamId = teamId
+  player.currentLeagueId = leagueId
+  player.teamHistory.push(teamId)
+  player.draftDone = true
+  // Getting drafted is the single biggest jolt a prospect's stock ever takes.
+  player.hidden.hype = clamp(player.hidden.hype + (result.pick !== null ? 22 : -6), 0, 100)
+
+  next.pendingPlacementNote = draftHeadline(result)
+  next.pendingDraft = null
+  return openPreseason(next)
+}
+
+/** Draw this year's perk options and hand control to the preseason screen. */
+function openPreseason(state: GameState): GameState {
+  const player = state.player
+  if (player.age < 17 && player.currentLeagueId === 'youth') {
+    // Keep schoolkids at their high school without pretending it was a signing.
+    player.currentTeamId = 'youth_hs'
+    player.currentLeagueId = 'youth'
+  }
+  player.perkChoices = drawPerkChoices(player, new Rng(`${state.seed}::${state.year}::perks`))
+  state.phase = 'preseason'
+  return state
+}
+
+/** Take one of this preseason's perks. */
+export function choosePerk(state: GameState, perkId: string): GameState {
+  const next = structuredClone(state)
+  takePerk(next.player, perkId)
   return next
 }
 
@@ -97,6 +198,10 @@ export function beginSeason(state: GameState): GameState {
     next.phase = 'retirement'
     return next
   }
+
+  // Anything left unchosen on the preseason screen gets picked for them, so
+  // clicking past never silently costs a year of development.
+  autoTakePerk(player, yearRng(next, 'auto-perk'))
 
   // Draw an event for this season, if one qualifies.
   const event = drawEvent(buildContext(next, yearRng(next, 'event-draw')))
@@ -213,10 +318,12 @@ function simulateSeason(state: GameState): GameState {
     state.draftSeason = draft
     state.pendingMinigame = buildChallenge({
       player,
-      team,
-      league,
-      opponent,
       rng: yearRng(state, 'final-challenge'),
+      competition: 'league',
+      league,
+      opponentStrength: opponent.strength,
+      opponentName: opponent.name,
+      opponentTeamId: opponent.id,
       stake: {
         es: `Final de ${league.name.es}`,
         en: `${league.name.en} final`,
@@ -250,15 +357,84 @@ export function resolveMinigame(state: GameState, successes: number): GameState 
   const won = isWin(challenge, successes)
   draft.playoffResult = won ? 'champion' : 'finals'
 
-  const opponent = getTeam(challenge.opponentTeamId)
   const headline: LocalizedHeadline = {
-    text: resultHeadline(challenge, won, opponent.name),
+    text: resultHeadline(challenge, won, challenge.opponentName),
     tone: won ? 'epic' : 'bad',
   }
 
   next.pendingMinigame = null
   next.draftSeason = null
   return finalizeSeason(next, draft, headline)
+}
+
+/**
+ * Leave the season screen: into the summer with the national team if there is a
+ * tournament and you were picked, otherwise straight into the next offseason.
+ */
+export function continueFromSeason(state: GameState): GameState {
+  const next = structuredClone(state)
+  const player = next.player
+  const country = getCountry(player.countryCode)
+
+  const kind = tournamentForYear(next.year)
+  if (kind && isCalledUp(player, country, kind, yearRng(next, `callup-${kind}`))) {
+    const tournament = runTournament(player, country, kind, next.year, yearRng(next, `tourney-${kind}`))
+    next.pendingTournament = tournament
+
+    if (tournament.outcome === 'final' && tournament.opponent) {
+      next.pendingMinigame = buildChallenge({
+        player,
+        rng: yearRng(next, `tourney-final-${kind}`),
+        competition: kind,
+        opponentStrength: 78,
+        opponentName: tournament.opponent,
+        stake: tournament.name,
+      })
+    }
+    next.phase = 'national'
+    return next
+  }
+
+  return advanceYear(next)
+}
+
+/** Apply the result of an international final. */
+export function resolveNationalFinal(state: GameState, successes: number): GameState {
+  const next = structuredClone(state)
+  const tournament = next.pendingTournament
+  const challenge = next.pendingMinigame
+  if (!tournament || !challenge) return next
+
+  const won = isWin(challenge, successes)
+  const country = getCountry(next.player.countryCode)
+
+  tournament.awards = medalsForFinal(tournament.kind, won)
+  tournament.summary = finalHeadline(tournament, country, won)
+  next.pendingMinigame = null
+  // Winning something for your country moves the needle more than any club run.
+  next.player.hidden.morale = clamp(next.player.hidden.morale + (won ? 18 : -8), 0, 100)
+  next.player.hidden.hype = clamp(next.player.hidden.hype + (won ? 14 : 4), 0, 100)
+  return next
+}
+
+/** Fold the summer's medals into the season just played, then move on. */
+export function continueFromNational(state: GameState): GameState {
+  const next = structuredClone(state)
+  const tournament = next.pendingTournament
+
+  if (tournament) {
+    const lastSeason = next.seasons[next.seasons.length - 1]
+    if (lastSeason) {
+      lastSeason.awards.push(...tournament.awards)
+      lastSeason.headlines.push({
+        text: tournament.summary,
+        tone: tournament.awards.some((a) => a.endsWith('gold')) ? 'epic' : 'neutral',
+      })
+    }
+  }
+
+  next.pendingTournament = null
+  return advanceYear(next)
 }
 
 /**
@@ -273,7 +449,6 @@ function finalizeSeason(
 ): GameState {
   const player = state.player
   const league = getLeague(season.leagueId)
-  const country = getCountry(player.countryCode)
   const rng = yearRng(state, 'awards')
 
   season.awards = determineAwards({
@@ -286,13 +461,6 @@ function finalizeSeason(
     seasonsPlayed: state.seasons.length,
     rng,
   })
-
-  // National team, for anyone good enough to be called up.
-  if (league.tier <= 3) {
-    season.awards.push(
-      ...determineInternationalAwards(state.year, player, country.strength, season.rating, rng),
-    )
-  }
 
   season.salary = computeSalary(league, season.role, player.hidden.hype, rng)
   season.headlines = buildHeadlines(state, season, finalHeadline)
@@ -453,7 +621,7 @@ export function advanceYear(state: GameState): GameState {
     return next
   }
 
-  return startPreseason(next)
+  return startOffseason(next)
 }
 
 function retirementReasonFor(state: GameState, rng: Rng) {

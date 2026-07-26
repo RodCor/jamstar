@@ -1,24 +1,25 @@
 'use client'
 
 import { useT } from '@/i18n/LocaleProvider'
-import { ATTRIBUTE_KEYS, type AttributeKey, type GameState } from '@/game/types'
+import { ATTRIBUTE_KEYS, type GameState } from '@/game/types'
 import { getTeam } from '@/data/teams'
 import { getLeague } from '@/data/leagues'
-import { ATTRIBUTE_HELP_KEY, ATTRIBUTE_KEY } from './display'
+import { getPerk } from '@/data/perks'
+import { ATTRIBUTE_KEY } from './display'
 import { TeamCrest } from './TeamCrest'
 
 interface Props {
   state: GameState
-  onSpend: (key: AttributeKey) => void
+  onChoosePerk: (perkId: string) => void
   onPlay: () => void
 }
 
-export function PreseasonScreen({ state, onSpend, onPlay }: Props) {
+export function PreseasonScreen({ state, onChoosePerk, onPlay }: Props) {
   const { t, L } = useT()
   const { player } = state
   const team = getTeam(player.currentTeamId)
   const league = getLeague(player.currentLeagueId)
-  const remaining = player.growthPoints
+  const choices = player.perkChoices
 
   return (
     <div className="space-y-4 animate-fade-up">
@@ -48,33 +49,71 @@ export function PreseasonScreen({ state, onSpend, onPlay }: Props) {
         )}
       </div>
 
-      <div className="panel p-4">
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className="font-bold text-slate-100">{t('preseasonPoints')}</h3>
-          <span
-            className={`tnum rounded-lg px-2 py-0.5 text-sm font-bold ${
-              remaining > 0 ? 'bg-flame-500 text-court-950' : 'bg-white/10 text-slate-400'
-            }`}
-          >
-            {t('preseasonPointsLeft', { n: remaining })}
-          </span>
-        </div>
-        <p className="mt-1 text-xs text-slate-500">
-          {remaining > 0 ? t('preseasonSpend') : t('preseasonAuto')}
-        </p>
+      {choices.length > 0 && (
+        <div className="panel p-4">
+          <h3 className="font-bold text-slate-100">{t('perkTitle')}</h3>
+          <p className="mt-1 text-xs text-slate-500">{t('perkHelp')}</p>
 
-        <ul className="mt-3 space-y-2">
-          {ATTRIBUTE_KEYS.map((key) => (
-            <AttributeRow
-              key={key}
-              attrKey={key}
-              value={player.attributes[key]}
-              canSpend={remaining > 0 && player.attributes[key] < 96}
-              onSpend={() => onSpend(key)}
-            />
-          ))}
-        </ul>
-      </div>
+          <div className="mt-3 space-y-2">
+            {choices.map((perkId) => {
+              const perk = getPerk(perkId)
+              return (
+                <button
+                  key={perkId}
+                  type="button"
+                  onClick={() => onChoosePerk(perkId)}
+                  className="w-full rounded-xl border border-white/15 bg-white/5 p-3.5 text-left
+                             transition hover:border-flame-500 hover:bg-flame-500/10 active:scale-[0.99]"
+                >
+                  <span className="block text-sm font-bold text-slate-100">{L(perk.name)}</span>
+                  <span className="mt-1 block text-xs leading-snug text-slate-400">
+                    {L(perk.description)}
+                  </span>
+                  <span className="mt-2 flex flex-wrap gap-1.5">
+                    {Object.entries(perk.bonus).map(([key, points]) => (
+                      <span
+                        key={key}
+                        className="rounded bg-flame-500/15 px-1.5 py-0.5 text-[10px] font-bold text-flame-400"
+                      >
+                        +{points} {t(ATTRIBUTE_KEY[key as keyof typeof ATTRIBUTE_KEY])}
+                      </span>
+                    ))}
+                    {perk.effects &&
+                      Object.keys(perk.effects).length > 0 &&
+                      EFFECT_LABELS(perk.effects).map((label) => (
+                        <span
+                          key={label.key}
+                          className="rounded bg-emerald-400/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-300"
+                        >
+                          {t(label.key)}
+                        </span>
+                      ))}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      <AttributePanel state={state} />
+
+      {player.perks.length > 0 && (
+        <div className="panel p-4">
+          <span className="label">{t('perksOwned')}</span>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {player.perks.map((id) => (
+              <span
+                key={id}
+                className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[11px]
+                           font-semibold text-slate-300"
+              >
+                {L(getPerk(id).name)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <button type="button" onClick={onPlay} className="btn-primary w-full py-3.5 text-base">
         {t('playSeason')}
@@ -83,46 +122,51 @@ export function PreseasonScreen({ state, onSpend, onPlay }: Props) {
   )
 }
 
-function AttributeRow({
-  attrKey,
-  value,
-  canSpend,
-  onSpend,
-}: {
-  attrKey: AttributeKey
-  value: number
-  canSpend: boolean
-  onSpend: () => void
-}) {
+/** Passive effects worth surfacing on the card, as short badges. */
+function EFFECT_LABELS(effects: NonNullable<ReturnType<typeof getPerk>['effects']>) {
+  const out: { key: Parameters<ReturnType<typeof useT>['t']>[0] }[] = []
+  if (effects.injuryFactor && effects.injuryFactor < 1) out.push({ key: 'perkFxInjury' })
+  if (effects.wearFactor && effects.wearFactor < 1) out.push({ key: 'perkFxLongevity' })
+  if (effects.clutch) out.push({ key: 'perkFxClutch' })
+  if (effects.contractPull && effects.contractPull > 1) out.push({ key: 'perkFxContracts' })
+  if (effects.hype) out.push({ key: 'perkFxFame' })
+  if (effects.scoring && effects.scoring > 1) out.push({ key: 'perkFxScoring' })
+  if (effects.playmaking && effects.playmaking > 1) out.push({ key: 'perkFxPlaymaking' })
+  if (effects.defense && effects.defense > 1) out.push({ key: 'perkFxDefense' })
+  if (effects.rebounding && effects.rebounding > 1) out.push({ key: 'perkFxRebounding' })
+  if (effects.awardPull) out.push({ key: 'perkFxAwards' })
+  return out
+}
+
+function AttributePanel({ state }: { state: GameState }) {
   const { t } = useT()
-  const rounded = Math.round(value)
+  const { attributes } = state.player
 
   return (
-    <li className="flex items-center gap-3">
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-2">
-          <span className="text-sm font-semibold text-slate-200">{t(ATTRIBUTE_KEY[attrKey])}</span>
-          <span className="tnum text-sm font-bold text-slate-300">{rounded}</span>
-        </div>
-        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-flame-600 to-flame-400 transition-[width] duration-300"
-            style={{ width: `${Math.min(100, rounded)}%` }}
-          />
-        </div>
-        <p className="mt-1 text-[11px] leading-tight text-slate-500">
-          {t(ATTRIBUTE_HELP_KEY[attrKey])}
-        </p>
-      </div>
-      <button
-        type="button"
-        onClick={onSpend}
-        disabled={!canSpend}
-        aria-label={`+1 ${t(ATTRIBUTE_KEY[attrKey])}`}
-        className="btn-ghost h-9 w-9 shrink-0 rounded-lg p-0 text-lg font-black leading-none"
-      >
-        +
-      </button>
-    </li>
+    <div className="panel p-4">
+      <span className="label">{t('attributes')}</span>
+      <ul className="mt-2 space-y-1.5">
+        {ATTRIBUTE_KEYS.map((key) => {
+          const value = Math.round(attributes[key])
+          return (
+            <li key={key}>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-xs font-semibold text-slate-300">
+                  {t(ATTRIBUTE_KEY[key])}
+                </span>
+                <span className="tnum text-xs font-bold text-slate-300">{value}</span>
+              </div>
+              <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-flame-600 to-flame-400
+                             transition-[width] duration-500"
+                  style={{ width: `${Math.min(100, value)}%` }}
+                />
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }

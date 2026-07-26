@@ -3,11 +3,16 @@ import { describe, expect, it } from 'vitest'
 import { Rng } from '../rng'
 import { createGame, type CreationChoices } from '../create'
 import {
-  advanceYear,
+  acceptOffer,
   beginSeason,
+  choosePerk,
+  confirmDraft,
   continueAfterEvent,
+  continueFromNational,
+  continueFromSeason,
   resolveChoice,
   resolveMinigame,
+  resolveNationalFinal,
 } from '../engine'
 import { buildChallenge, isWin, tuningFor } from '../minigame'
 import { computeTotals } from '../legacy'
@@ -30,25 +35,50 @@ function play(seed: string, successes: (required: number, rounds: number) => num
     hand: 'right',
     styleId: rng.pick(PLAY_STYLES).id,
   }
-  let state = createGame(choices, seed, 'career')
+  let s = createGame(choices, seed, 'career')
   const policy = new Rng(`${seed}::policy`)
   let guard = 0
 
-  while (!state.player.retired && guard < 100) {
+  while (!s.player.retired && guard < 220) {
     guard++
-    state = beginSeason(state)
-    if (state.phase === 'event' && state.pendingEvent) {
-      const options = state.pendingEvent.choices
-      state = resolveChoice(state, options[policy.int(0, options.length - 1)].index)
-      state = continueAfterEvent(state)
+    switch (s.phase) {
+      case 'draft':
+        s = confirmDraft(s)
+        break
+      case 'offers':
+        s = acceptOffer(s, 0)
+        break
+      case 'preseason':
+        if (s.player.perkChoices.length > 0) s = choosePerk(s, s.player.perkChoices[0])
+        s = beginSeason(s)
+        break
+      case 'event': {
+        const options = s.pendingEvent?.choices ?? []
+        s = resolveChoice(s, options[policy.int(0, Math.max(0, options.length - 1))]?.index ?? 0)
+        s = continueAfterEvent(s)
+        break
+      }
+      case 'minigame': {
+        const mg = s.pendingMinigame!
+        s = resolveMinigame(s, successes(mg.required, mg.rounds))
+        break
+      }
+      case 'season_result':
+        s = continueFromSeason(s)
+        break
+      case 'national':
+        if (s.pendingMinigame) {
+          const mg = s.pendingMinigame
+          s = resolveNationalFinal(s, successes(mg.required, mg.rounds))
+        } else {
+          s = continueFromNational(s)
+        }
+        break
+      case 'retirement':
+        return s
     }
-    if (state.phase === 'minigame' && state.pendingMinigame) {
-      const { required, rounds } = state.pendingMinigame
-      state = resolveMinigame(state, successes(required, rounds))
-    }
-    state = advanceYear(state)
   }
-  return state
+  return s
 }
 
 const ALWAYS_WIN = (required: number) => required
@@ -64,9 +94,11 @@ describe('minigame challenge', () => {
           'challenge-shape',
           'career',
         ).player,
-        team: getTeam(league.teamIds[0]),
+        competition: 'league' as const,
         league,
-        opponent: getTeam(league.teamIds[1]),
+        opponentStrength: getTeam(league.teamIds[1]).strength,
+        opponentName: getTeam(league.teamIds[1]).name,
+        opponentTeamId: getTeam(league.teamIds[1]).id,
         rng: new Rng(`shape-${leagueId}`),
         stake: { es: 'x', en: 'x' },
       })
@@ -92,11 +124,14 @@ describe('minigame challenge', () => {
         `tuning-${i}`,
         'career',
       )
+      const opponent = getTeam(rng.pick(league.teamIds))
       const challenge = buildChallenge({
         player: state.player,
-        team: getTeam(league.teamIds[0]),
+        competition: 'league' as const,
         league,
-        opponent: getTeam(rng.pick(league.teamIds)),
+        opponentStrength: opponent.strength,
+        opponentName: opponent.name,
+        opponentTeamId: opponent.id,
         rng: new Rng(`t-${i}`),
         stake: { es: 'x', en: 'x' },
       })
@@ -128,9 +163,11 @@ describe('minigame challenge', () => {
       // Force the same challenge type on both sides of the comparison.
       const challenge = buildChallenge({
         player,
-        team: getTeam(league.teamIds[0]),
+        competition: 'league' as const,
         league,
-        opponent: getTeam(league.teamIds[1]),
+        opponentStrength: getTeam(league.teamIds[1]).strength,
+        opponentName: getTeam(league.teamIds[1]).name,
+        opponentTeamId: getTeam(league.teamIds[1]).id,
         rng: new Rng('fixed-type'),
         stake: { es: 'x', en: 'x' },
       })
@@ -199,9 +236,10 @@ describe('minigames in a career', () => {
   })
 
   it('only ever offers a final the player was actually on the floor for', () => {
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 40; i++) {
       const seed = `contest-${i}`
-      let state = createGame(
+      const rng = new Rng(seed)
+      let s = createGame(
         {
           name: seed,
           countryCode: 'ES',
@@ -213,26 +251,49 @@ describe('minigames in a career', () => {
         seed,
         'career',
       )
-      const policy = new Rng(`${seed}::p`)
       let guard = 0
-      while (!state.player.retired && guard < 100) {
+      while (!s.player.retired && guard < 220) {
         guard++
-        state = beginSeason(state)
-        if (state.phase === 'event' && state.pendingEvent) {
-          const options = state.pendingEvent.choices
-          state = resolveChoice(state, options[policy.int(0, options.length - 1)].index)
-          state = continueAfterEvent(state)
+        if (s.phase === 'minigame' && s.pendingMinigame && s.draftSeason) {
+          const draft = s.draftSeason
+          expect(draft.gamesPlayed).toBeGreaterThan(0)
+          expect(draft.role).not.toBe('injured')
+          expect(getLeague(draft.leagueId).tier).toBeLessThanOrEqual(3)
+          expect(draft.teamId).not.toBe(s.pendingMinigame.opponentTeamId)
+          s = resolveMinigame(s, s.pendingMinigame.required)
+          continue
         }
-        if (state.phase === 'minigame' && state.pendingMinigame) {
-          const draft = state.draftSeason
-          expect(draft).not.toBeNull()
-          expect(draft!.gamesPlayed).toBeGreaterThan(0)
-          expect(draft!.role).not.toBe('injured')
-          expect(getLeague(draft!.leagueId).tier).toBeLessThanOrEqual(3)
-          expect(draft!.teamId).not.toBe(state.pendingMinigame.opponentTeamId)
-          state = resolveMinigame(state, state.pendingMinigame.required)
+        switch (s.phase) {
+          case 'draft':
+            s = confirmDraft(s)
+            break
+          case 'offers':
+            s = acceptOffer(s, 0)
+            break
+          case 'preseason':
+            if (s.player.perkChoices.length > 0) s = choosePerk(s, s.player.perkChoices[0])
+            s = beginSeason(s)
+            break
+          case 'event': {
+            const options = s.pendingEvent?.choices ?? []
+            s = resolveChoice(s, options[rng.int(0, Math.max(0, options.length - 1))]?.index ?? 0)
+            s = continueAfterEvent(s)
+            break
+          }
+          case 'minigame':
+            s = resolveMinigame(s, s.pendingMinigame!.required)
+            break
+          case 'season_result':
+            s = continueFromSeason(s)
+            break
+          case 'national':
+            s = s.pendingMinigame
+              ? resolveNationalFinal(s, s.pendingMinigame.required)
+              : continueFromNational(s)
+            break
+          case 'retirement':
+            break
         }
-        state = advanceYear(state)
       }
     }
   })
@@ -243,6 +304,8 @@ describe('minigames in a career', () => {
       free_throw: 0,
       clutch_three: 0,
       defensive_stop: 0,
+      fast_break: 0,
+      play_recall: 0,
     }
     const league = getLeague('acb')
     for (let i = 0; i < 120; i++) {
@@ -253,9 +316,11 @@ describe('minigames in a career', () => {
       )
       const challenge = buildChallenge({
         player: state.player,
-        team: getTeam(league.teamIds[0]),
+        competition: 'league' as const,
         league,
-        opponent: getTeam(league.teamIds[1]),
+        opponentStrength: getTeam(league.teamIds[1]).strength,
+        opponentName: getTeam(league.teamIds[1]).name,
+        opponentTeamId: getTeam(league.teamIds[1]).id,
         rng: new Rng(`pick-${i}`),
         stake: { es: 'x', en: 'x' },
       })

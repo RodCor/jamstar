@@ -10,6 +10,8 @@ import { TeamCrest } from './TeamCrest'
 import { FreeThrow } from './minigames/FreeThrow'
 import { ClutchThree } from './minigames/ClutchThree'
 import { DefensiveStop } from './minigames/DefensiveStop'
+import { FastBreak } from './minigames/FastBreak'
+import { PlayRecall } from './minigames/PlayRecall'
 
 interface Props {
   state: GameState
@@ -47,7 +49,7 @@ export function MinigameScreen({ state, onFinish }: Props) {
 
   if (!challenge || !tuning) return null
 
-  const opponent = getTeam(challenge.opponentTeamId)
+  const opponentTeam = challenge.opponentTeamId ? getTeam(challenge.opponentTeamId) : null
   const playerTeam = getTeam(state.player.currentTeamId)
   const successes = results.filter(Boolean).length
   const decided =
@@ -61,21 +63,28 @@ export function MinigameScreen({ state, onFinish }: Props) {
           <span className="label text-flame-400">{L(challenge.stake)}</span>
         </div>
 
-        <div className="flex items-center justify-center gap-4 px-4 py-4">
-          <div className="flex flex-col items-center gap-1.5">
-            <TeamCrest teamId={playerTeam.id} size={52} />
-            <span className="max-w-20 truncate text-[11px] font-semibold text-slate-300">
-              {playerTeam.abbr}
-            </span>
+        {opponentTeam && (
+          <div className="flex items-center justify-center gap-4 px-4 py-4">
+            <div className="flex flex-col items-center gap-1.5">
+              <TeamCrest teamId={playerTeam.id} size={52} />
+              <span className="max-w-20 truncate text-[11px] font-semibold text-slate-300">
+                {playerTeam.abbr}
+              </span>
+            </div>
+            <span className="text-sm font-black text-slate-500">VS</span>
+            <div className="flex flex-col items-center gap-1.5">
+              <TeamCrest teamId={opponentTeam.id} size={52} />
+              <span className="max-w-20 truncate text-[11px] font-semibold text-slate-300">
+                {opponentTeam.abbr}
+              </span>
+            </div>
           </div>
-          <span className="text-sm font-black text-slate-500">VS</span>
-          <div className="flex flex-col items-center gap-1.5">
-            <TeamCrest teamId={opponent.id} size={52} />
-            <span className="max-w-20 truncate text-[11px] font-semibold text-slate-300">
-              {opponent.abbr}
-            </span>
-          </div>
-        </div>
+        )}
+        {!opponentTeam && (
+          <p className="px-4 pt-4 text-center text-sm font-bold text-slate-300">
+            vs {L(challenge.opponentName)}
+          </p>
+        )}
 
         <div className="px-4 pb-4 text-center">
           <h2 className="text-lg font-bold text-slate-50">{L(challenge.title)}</h2>
@@ -137,6 +146,8 @@ const INSTRUCTION_KEY = {
   free_throw: 'minigameFreeThrowHelp',
   clutch_three: 'minigameClutchHelp',
   defensive_stop: 'minigameStopHelp',
+  fast_break: 'minigameBreakHelp',
+  play_recall: 'minigameRecallHelp',
 } as const
 
 function MinigameBody({
@@ -159,5 +170,9 @@ function MinigameBody({
       return <ClutchThree tuning={tuning} round={round} onResult={onResult} />
     case 'defensive_stop':
       return <DefensiveStop tuning={tuning} round={round} seed={seed} onResult={onResult} />
+    case 'fast_break':
+      return <FastBreak tuning={tuning} round={round} onResult={onResult} />
+    case 'play_recall':
+      return <PlayRecall tuning={tuning} round={round} seed={seed} onResult={onResult} />
   }
 }

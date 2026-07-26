@@ -9,15 +9,16 @@
  */
 
 import type {
+  CompetitionKind,
   League,
   Localized,
   MinigameChallenge,
   MinigameType,
   Player,
-  Team,
 } from './types'
 import { Rng, clamp } from './rng'
 import { getStyle } from '@/data/styles'
+import { effectsFor } from './perks'
 
 /**
  * Which challenge suits this player. A lockdown centre should not have their
@@ -26,21 +27,30 @@ import { getStyle } from '@/data/styles'
 function chooseType(player: Player, rng: Rng): MinigameType {
   const a = player.attributes
   const style = getStyle(player.styleId)
+  const isBig = player.position === 'C' || player.position === 'PF'
 
   const weights: Record<MinigameType, number> = {
     // Shooters get the shot; everyone can be sent to the line.
     clutch_three: a.shooting * 1.2 * (style.id === 'sharpshooter' ? 2.2 : 1),
     free_throw: 55 + a.shooting * 0.35,
-    defensive_stop:
-      a.defense * 1.1 * (style.id === 'lockdown' ? 2.4 : 1) +
-      (player.position === 'C' || player.position === 'PF' ? 35 : 0),
+    defensive_stop: a.defense * 1.1 * (style.id === 'lockdown' ? 2.4 : 1) + (isBig ? 35 : 0),
+    // Finishing through contact on the break — the athlete's ending.
+    fast_break:
+      a.athleticism * 1.0 * (style.id === 'highlight' ? 2.4 : 1) + a.strength * 0.35,
+    // Executing the set play out of a timeout — the thinker's ending.
+    play_recall: a.iq * 1.1 * (style.id === 'floor_general' ? 2.2 : 1) + a.leadership * 0.4,
   }
 
-  return rng.weighted(
-    ['clutch_three', 'free_throw', 'defensive_stop'] as MinigameType[],
-    (type) => weights[type],
-  )
+  return rng.weighted(MINIGAME_TYPES, (type) => weights[type])
 }
+
+const MINIGAME_TYPES: MinigameType[] = [
+  'clutch_three',
+  'free_throw',
+  'defensive_stop',
+  'fast_break',
+  'play_recall',
+]
 
 /** The attribute each challenge leans on, so your build shapes the difficulty. */
 function relevantAttribute(type: MinigameType, player: Player): number {
@@ -52,6 +62,10 @@ function relevantAttribute(type: MinigameType, player: Player): number {
       return a.shooting * 0.7 + a.iq * 0.3
     case 'defensive_stop':
       return a.defense * 0.6 + a.iq * 0.4
+    case 'fast_break':
+      return a.athleticism * 0.6 + a.strength * 0.4
+    case 'play_recall':
+      return a.iq * 0.7 + a.leadership * 0.3
   }
 }
 
@@ -59,6 +73,8 @@ const TITLES: Record<MinigameType, { es: string; en: string }> = {
   free_throw: { es: 'Tiros libres decisivos', en: 'Free Throws to Win It' },
   clutch_three: { es: 'El triple del partido', en: 'The Shot' },
   defensive_stop: { es: 'La última defensa', en: 'The Last Stop' },
+  fast_break: { es: 'El contraataque', en: 'The Break' },
+  play_recall: { es: 'La jugada del pizarrón', en: 'The Set Play' },
 }
 
 const INTROS: Record<MinigameType, { es: string; en: string }> = {
@@ -74,36 +90,72 @@ const INTROS: Record<MinigameType, { es: string; en: string }> = {
     es: 'Un punto arriba, quedan seis segundos y ellos sacan de banda. Una parada y son campeones.',
     en: 'One point up, six seconds left, and they inbound. One stop and you are champions.',
   },
+  fast_break: {
+    es: 'Robaste la pelota y tenés toda la cancha por delante. Atrás vienen dos y no van a llegar limpio.',
+    en: 'You stripped it and the floor is open. Two defenders are chasing and neither will arrive clean.',
+  },
+  play_recall: {
+    es: 'Pidieron tiempo muerto. El entrenador dibuja cuatro movimientos y espera que salgan exactos.',
+    en: 'Timeout called. The coach draws four movements and expects every one of them exactly.',
+  },
 }
 
 export interface ChallengeInput {
   player: Player
-  team: Team
-  league: League
-  opponent: Team
   rng: Rng
-  /** Localized name of what is being decided, e.g. the league title. */
-  stake: { es: string; en: string }
+  /** What is being decided. */
+  competition: CompetitionKind
+  /** Localized name of the trophy on the line. */
+  stake: Localized
+  /** 0-100 quality of who is on the other side. */
+  opponentStrength: number
+  opponentName: Localized
+  /** The opposing club, when there is one to show a crest for. */
+  opponentTeamId?: string | null
+  /** Club league, when this is a club final. */
+  league?: League | null
+}
+
+/**
+ * How hard the stage is, before the player's own quality is taken into account.
+ * The Olympic final is the hardest thing in the sport; a third-tier league final
+ * is not.
+ */
+function stagePressure(competition: CompetitionKind, league: League | null | undefined): number {
+  switch (competition) {
+    case 'olympics':
+      return 0.16
+    case 'world_cup':
+      return 0.12
+    case 'continental':
+      return 0.04
+    case 'league':
+      return league?.tier === 1 ? 0.1 : league?.tier === 2 ? 0.04 : 0
+  }
 }
 
 export function buildChallenge(input: ChallengeInput): MinigameChallenge {
-  const { player, league, opponent, rng } = input
+  const { player, rng, competition, league } = input
   const type = chooseType(player, rng)
   const attribute = relevantAttribute(type, player)
+  // Perks that steady the nerves make every final measurably easier.
+  const clutch = effectsFor(player).clutch
 
-  // Difficulty rises with the opponent and the level, and falls with the
-  // attribute the challenge tests.
   const difficulty = clamp(
-    0.46 + (opponent.strength - 72) / 130 + (league.tier === 1 ? 0.1 : league.tier === 2 ? 0.04 : 0) -
-      (attribute - 62) / 150,
+    0.46 +
+      (input.opponentStrength - 72) / 130 +
+      stagePressure(competition, league) -
+      (attribute - 62) / 150 -
+      clutch,
     0.14,
     0.9,
   )
 
   // Harder finals give you more attempts but demand more of them, so a title is
-  // never one lucky tap.
-  const rounds = league.tier <= 2 ? 5 : 3
-  const required = league.tier <= 2 ? 3 : 2
+  // never one lucky tap. International finals are the longest series of all.
+  const big = competition !== 'league' || league?.tier === undefined || league.tier <= 2
+  const rounds = big ? 5 : 3
+  const required = big ? 3 : 2
 
   return {
     type,
@@ -113,7 +165,9 @@ export function buildChallenge(input: ChallengeInput): MinigameChallenge {
     title: TITLES[type],
     intro: INTROS[type],
     stake: input.stake,
-    opponentTeamId: opponent.id,
+    competition,
+    opponentTeamId: input.opponentTeamId ?? null,
+    opponentName: input.opponentName,
   }
 }
 
@@ -122,6 +176,14 @@ export function buildChallenge(input: ChallengeInput): MinigameChallenge {
  * simulation rather than being scattered across three React components.
  */
 export interface MinigameTuning {
+  /** Fast break: taps needed to finish. */
+  breakTaps: number
+  /** Fast break: seconds before the defence recovers. */
+  breakSeconds: number
+  /** Play recall: how many steps in the sequence. */
+  recallSteps: number
+  /** Play recall: milliseconds each step is shown. */
+  recallStepMs: number
   /** Free throw: half-width of the make zone, as a fraction of the bar. */
   freeThrowZone: number
   /** Free throw: sweep speed, bar-widths per second. */
@@ -145,6 +207,10 @@ export function tuningFor(challenge: MinigameChallenge): MinigameTuning {
     clutchDuration: lerp(2.5, 1.25, d),
     stopWindowMs: Math.round(lerp(1150, 480, d)),
     stopFeints: d > 0.66 ? 3 : d > 0.36 ? 2 : 1,
+    breakTaps: Math.round(lerp(8, 20, d)),
+    breakSeconds: lerp(4.2, 2.6, d),
+    recallSteps: d > 0.7 ? 5 : d > 0.45 ? 4 : 3,
+    recallStepMs: Math.round(lerp(620, 300, d)),
   }
 }
 
@@ -168,6 +234,26 @@ export function resultHeadline(
   opponent: Localized,
 ): Localized {
   const templates: Record<MinigameType, { won: Localized; lost: Localized }> = {
+    fast_break: {
+      won: {
+        es: `Terminaste la corrida con falta incluida. Campeones ante ${opponent.es}.`,
+        en: `You finished the break through the foul. Champions over ${opponent.en}.`,
+      },
+      lost: {
+        es: `Te alcanzaron y la perdiste en la bandeja. ${opponent.es} se llevó el título.`,
+        en: `They caught you and the layup died on the rim. ${opponent.en} took the title.`,
+      },
+    },
+    play_recall: {
+      won: {
+        es: `Salió exacta, movimiento por movimiento. Le ganaron a ${opponent.es} con la pizarra.`,
+        en: `It came out exactly as drawn. You beat ${opponent.en} on the whiteboard.`,
+      },
+      lost: {
+        es: `Se rompió la jugada a mitad de camino. ${opponent.es} campeón.`,
+        en: `The play broke down halfway through. ${opponent.en} are champions.`,
+      },
+    },
     free_throw: {
       won: {
         es: `Los metiste desde la línea con el estadio encima. Campeones ante ${opponent.es}.`,

@@ -3,11 +3,16 @@ import { describe, expect, it } from 'vitest'
 import { Rng, hashSeed } from '../rng'
 import { createGame, dailyChoices, type CreationChoices } from '../create'
 import {
-  advanceYear,
+  acceptOffer,
   beginSeason,
+  choosePerk,
+  confirmDraft,
   continueAfterEvent,
+  continueFromNational,
+  continueFromSeason,
   resolveChoice,
   resolveMinigame,
+  resolveNationalFinal,
 } from '../engine'
 import { computeLegacy, computeTotals } from '../legacy'
 import { ALL_EVENTS } from '../events'
@@ -21,42 +26,95 @@ import { PLAY_STYLES } from '@/data/styles'
  * Play a whole career start to finish, always taking choice `choicePolicy`.
  * This is the harness every invariant test runs through.
  */
+
+/**
+ * Drive a career through every phase. Minigame results and perk picks are
+ * inputs, exactly like event choices, so a seed plus these decisions still
+ * reproduces a career byte for byte.
+ */
+function drive(
+  state: GameState,
+  opts: {
+    choice?: (count: number, rng: Rng) => number
+    minigame?: (required: number, rounds: number, rng: Rng) => number
+    offer?: (count: number, rng: Rng) => number
+    perk?: (choices: string[], rng: Rng) => string
+    rng: Rng
+  },
+): GameState {
+  let s = state
+  let guard = 0
+  while (!s.player.retired && guard < 220) {
+    guard++
+    switch (s.phase) {
+      case 'draft':
+        s = confirmDraft(s)
+        break
+      case 'offers': {
+        const offers = s.pendingOffers ?? []
+        const index = opts.offer ? opts.offer(offers.length, opts.rng) % Math.max(1, offers.length) : 0
+        s = acceptOffer(s, index)
+        break
+      }
+      case 'preseason': {
+        const choices = s.player.perkChoices
+        if (choices.length > 0 && opts.perk) s = choosePerk(s, opts.perk(choices, opts.rng))
+        s = beginSeason(s)
+        break
+      }
+      case 'event': {
+        const options = s.pendingEvent?.choices ?? []
+        const index = opts.choice ? opts.choice(options.length, opts.rng) % Math.max(1, options.length) : 0
+        s = resolveChoice(s, options[index]?.index ?? 0)
+        s = continueAfterEvent(s)
+        break
+      }
+      case 'minigame': {
+        const mg = s.pendingMinigame!
+        const successes = opts.minigame
+          ? opts.minigame(mg.required, mg.rounds, opts.rng)
+          : mg.required
+        s = s.pendingTournament ? resolveNationalFinal(s, successes) : resolveMinigame(s, successes)
+        break
+      }
+      case 'season_result':
+        s = continueFromSeason(s)
+        break
+      case 'national':
+        if (s.pendingMinigame) {
+          const mg = s.pendingMinigame
+          const successes = opts.minigame
+            ? opts.minigame(mg.required, mg.rounds, opts.rng)
+            : mg.required
+          s = resolveNationalFinal(s, successes)
+        } else {
+          s = continueFromNational(s)
+        }
+        break
+      case 'retirement':
+        return s
+    }
+  }
+  return s
+}
+
 function playCareer(
   choices: CreationChoices,
   seed: string,
   choicePolicy: (optionCount: number, rng: Rng) => number = () => 0,
-  /**
-   * How many attempts the player converts in a final. Minigame results are
-   * inputs, not RNG draws, so a deterministic policy here keeps the whole
-   * career reproducible.
-   */
   minigamePolicy: (required: number, rounds: number, rng: Rng) => number = (required) => required,
 ): GameState {
-  let state = createGame(choices, seed, 'career')
-  const policyRng = new Rng(`${seed}::policy`)
-  let guard = 0
-
-  while (!state.player.retired && guard < 100) {
-    guard++
-    state = beginSeason(state)
-
-    if (state.phase === 'event' && state.pendingEvent) {
-      const options = state.pendingEvent.choices
-      const pick = options[choicePolicy(options.length, policyRng) % options.length]
-      state = resolveChoice(state, pick.index)
-      state = continueAfterEvent(state)
-    }
-
-    if (state.phase === 'minigame' && state.pendingMinigame) {
-      const { required, rounds } = state.pendingMinigame
-      state = resolveMinigame(state, minigamePolicy(required, rounds, policyRng))
-    }
-
-    state = advanceYear(state)
-  }
-
-  expect(guard).toBeLessThan(100)
-  return state
+  const state = createGame(choices, seed, 'career')
+  const rng = new Rng(`${seed}::policy`)
+  const result = drive(state, {
+    rng,
+    choice: choicePolicy,
+    minigame: minigamePolicy,
+    offer: (count, r) => (count > 0 ? r.int(0, count - 1) : 0),
+    perk: (list, r) => r.pick(list),
+  })
+  expect(result.player.retired).toBe(true)
+  return result
 }
 
 const DEFAULT_CHOICES: CreationChoices = {
