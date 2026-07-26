@@ -84,7 +84,46 @@ npm test          # vitest
 npm run lint
 ```
 
-Deploys to Vercel as-is; it is a static Next.js app with no server dependencies.
+---
+
+## Deployment
+
+Live at **https://rodcor.github.io/jamstar/**, published by
+`.github/workflows/deploy.yml` on every push to `main`. The same workflow runs
+lint, typecheck, the test suite and a build on every pull request.
+
+The static export is **opt-in**, not baked in. `output: 'export'` would
+permanently disable `next start`, SSR and API routes — and the daily mode is an
+obvious candidate for a real leaderboard one day, which would need a backend. So
+two env vars switch it on instead:
+
+| Variable | Effect |
+|---|---|
+| `STATIC_EXPORT=true` | emit a fully static site into `out/` |
+| `NEXT_PUBLIC_BASE_PATH=/jamstar` | serve from a subpath (GitHub project pages) |
+
+Plain `npm run build` still produces a normal Next app, so Vercel remains a
+one-command deploy with nothing to undo.
+
+To reproduce the Pages build locally — including the subpath, which is where
+asset bugs actually hide:
+
+```bash
+npm run export                      # or: STATIC_EXPORT=true npm run build
+mkdir -p preview && cp -r out preview/jamstar
+npx serve preview                   # then open http://localhost:3000/jamstar/
+```
+
+Serving `out/` at the root instead would mask exactly the `basePath` problems
+this is meant to catch.
+
+`basePath` covers `_next/*` and metadata automatically, but **not** a plain
+`<img src="/…">`. Public assets referenced directly — the optional club logos —
+go through `withBasePath()` in `src/lib/basePath.ts`.
+
+If the first deploy fails to enable Pages, the workflow's `configure-pages` step
+lacked the permission. Fix it once by hand: **Settings → Pages → Source: GitHub
+Actions**, then re-run the workflow.
 
 ---
 

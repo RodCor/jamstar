@@ -3,6 +3,7 @@
 import { getTeam } from '@/data/teams'
 import { logoPathFor } from '@/data/logos'
 import { hashSeed } from '@/game/rng'
+import { withBasePath } from '@/lib/basePath'
 import type { Team } from '@/game/types'
 
 /**
@@ -31,7 +32,7 @@ export function TeamCrest({
     // the optimiser would only add a server dependency to a static build.
     return (
       <img
-        src={logo}
+        src={withBasePath(logo)}
         alt={team.name.en}
         width={size}
         height={size}

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "export": "STATIC_EXPORT=true next build",
     "start": "next start",
+    "preview": "npx --yes serve@latest out",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
