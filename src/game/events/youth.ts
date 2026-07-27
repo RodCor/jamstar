@@ -453,4 +453,284 @@ export const YOUTH_EVENTS: GameEvent[] = [
       },
     ],
   }),
+
+  /*
+   * The six below are ungated on purpose.
+   *
+   * A career spends three seasons in `youth` and one in `breakout`, and the
+   * origin deck only lends two cards to each of those from any one country, so
+   * the opening act was being dealt from the same eight-card hand every replay.
+   * Anything gated here would thin the general pool rather than thicken it —
+   * these have to be drawable by a kid from anywhere.
+   */
+
+  event({
+    id: 'youth_out_of_position',
+    weight: 22,
+    stages: ['youth', 'breakout'],
+    category: 'coach',
+    title: loc('El más alto que quedó', 'The Tallest One Left'),
+    body: (ctx) =>
+      loc(
+        `Al único cinco de ${ctx.team.name.es} se le partió la mano en octubre. Sos el segundo más alto del plantel y el entrenador te manda al poste hasta junio: de espaldas al aro, codos, y la pelota no te llega nunca más arriba del tiro libre.`,
+        `The only centre at ${ctx.team.name.en} broke his hand in October. You are the second tallest on the roster, so the coach puts you in the post until June: back to the basket, elbows, and the ball never reaching you above the free-throw line.`,
+      ),
+    choices: [
+      {
+        label: loc('Bancar el puesto hasta junio', 'Hold the spot until June'),
+        resolve: (ctx) =>
+          gamble(
+            ctx,
+            0.6,
+            outcome(
+              'Saliste sabiendo aguantar con la cadera y pelear un rebote entre tres cuerpos. La pelota, mientras tanto, estuvo nueve meses en un cajón.',
+              'You came out able to hold a man off with your hips and win a rebound between three bodies. Your handle, meanwhile, spent nine months in a drawer.',
+              'good',
+              { attributes: { physical: 6, defense: 4, playmaking: -2 }, hidden: { coachTrust: 10, wear: 3 } },
+            ),
+            outcome(
+              'Nueve meses de espaldas al aro contra pibes quince kilos más pesados. Volviste a tu puesto sin saber bien qué eras.',
+              'Nine months with your back to the basket against boys fifteen kilos heavier. You came back to your own position not quite sure what you were.',
+              'bad',
+              { attributes: { physical: 2, scoring: -2, playmaking: -3 }, hidden: { coachTrust: 5, morale: -8 } },
+            ),
+          ),
+      },
+      {
+        label: loc('Pedirle que me devuelva a mi puesto', 'Ask him to put me back where I belong'),
+        resolve: () =>
+          outcome(
+            'Te devolvió después de Año Nuevo y algo quedó frío. Terminaste siendo el mejor de tu puesto en la categoría y el cuarto nombre de su lista.',
+            'He moved you back after New Year and something stayed cold. You finished as the best in your position in the age group, and the fourth name on his list.',
+            'neutral',
+            { attributes: { scoring: 5, playmaking: 3, defense: -2 }, hidden: { hype: 7, coachTrust: -12 } },
+          ),
+      },
+    ],
+  }),
+
+  event({
+    id: 'youth_friend_moves',
+    weight: 20,
+    stages: ['youth', 'breakout'],
+    category: 'locker_room',
+    title: loc('Se va el que te pasaba la pelota', 'The One Who Passed You the Ball Is Leaving'),
+    body: () =>
+      loc(
+        'Al padre de tu base lo trasladaron a mil kilómetros. Juegan juntos desde los ocho años y él sabe dónde vas a estar antes de que arranques. En marzo se van todos y no vuelven.',
+        'Your point guard’s father has been transferred a thousand kilometres away. You have played together since you were eight; he knows where you are going before you move. In March the whole family goes, and they are not coming back.',
+      ),
+    choices: [
+      {
+        label: loc('Aprender a crearme el tiro solo', 'Learn to create my own shot'),
+        resolve: (ctx) =>
+          gamble(
+            ctx,
+            0.62,
+            outcome(
+              'Un verano entero botando contra una pared del club. En septiembre ya no necesitabas que nadie te encontrara.',
+              'A whole summer bouncing a ball off the club wall. By September you did not need anybody to find you.',
+              'good',
+              { attributes: { playmaking: 5, scoring: 4, defense: -1 }, hidden: { hype: 6, morale: -2 } },
+            ),
+            outcome(
+              'Te pasaste el año tratando de hacer lo que hacía él y dejaste de hacer bien lo tuyo.',
+              'You spent the year trying to do what he did and stopped doing your own thing well.',
+              'bad',
+              { attributes: { playmaking: 2, scoring: -3 }, hidden: { morale: -6, coachTrust: -4 } },
+            ),
+          ),
+      },
+      {
+        label: loc('Jugar sin pelota y esperar al que venga', 'Play off the ball and wait for whoever comes next'),
+        resolve: () =>
+          outcome(
+            'Un año cortando, saliendo de bloqueos y llegando siempre con los pies listos. El base nuevo tardó seis meses en encontrarte; el entrenador, ni un partido.',
+            'A year of cutting, coming off screens and always arriving with your feet ready. The new point guard took six months to find you; the coach took one game.',
+            'good',
+            { attributes: { defense: 3, mental: 3, scoring: 2, playmaking: -2 }, hidden: { coachTrust: 10 } },
+          ),
+      },
+    ],
+  }),
+
+  event({
+    id: 'youth_first_money',
+    weight: 22,
+    stages: ['youth', 'breakout'],
+    category: 'business',
+    title: loc('El primer partido pago', 'The First Paid Game'),
+    body: () =>
+      loc(
+        'Un pueblo a ochenta kilómetros arma equipo para el torneo de la fiesta y les falta un alto. Plata en la mano, tres domingos. Tenés ficha con tu club y la ficha dice que no podés jugar en ningún otro lado.',
+        'A town eighty kilometres away is putting a side together for the festival tournament and they are short one tall player. Cash in hand, three Sundays. You are registered with your club, and the registration says you may not play anywhere else.',
+      ),
+    choices: [
+      {
+        label: loc('Ir y no decirlo en el club', 'Go, and say nothing at the club'),
+        resolve: (ctx) =>
+          gamble(
+            ctx,
+            0.55,
+            outcome(
+              'Tres domingos contra hombres que juegan por el orgullo del pueblo y por lo que se apuesta atrás del alambrado. Volviste a tu categoría y te pareció lenta.',
+              'Three Sundays against men playing for the pride of the town and for whatever is being bet behind the fence. You went back to your age group and it felt slow.',
+              'good',
+              { attributes: { physical: 4, mental: 3, defense: 1 }, hidden: { hype: 6, wear: 2 }, money: 700 },
+            ),
+            outcome(
+              'Alguien te reconoció y mandó la foto. Dos fechas de suspensión y una reunión con la comisión, con tu vieja sentada al lado.',
+              'Somebody recognised you and sent the photograph in. A two-game ban and a meeting with the committee, with your mother sitting next to you.',
+              'bad',
+              { attributes: { physical: 1, mental: 2 }, hidden: { coachTrust: -14, morale: -6, hype: -2 }, money: 700 },
+            ),
+          ),
+      },
+      {
+        label: loc('Decir que no y jugar el domingo con los míos', 'Say no and play Sunday with my own'),
+        resolve: () =>
+          outcome(
+            'Jugaste tu torneo y ganaron todos los partidos por veinte, que no enseña nada. En el pueblo consiguieron otro alto y el que fue volvió con historias y con zapatillas nuevas.',
+            'You played your own tournament and won every game by twenty, which teaches nothing. The town found another tall kid, and the one who went came back with stories and new shoes.',
+            'neutral',
+            { attributes: { scoring: 3, playmaking: 2 }, hidden: { coachTrust: 8, hype: 2 } },
+          ),
+      },
+    ],
+  }),
+
+  event({
+    id: 'youth_scout_remark',
+    weight: 24,
+    stages: ['youth', 'breakout'],
+    category: 'personal',
+    title: loc('Lo que dijo el de la carpeta', 'What the Man With the Folder Said'),
+    body: (ctx) =>
+      loc(
+        `Terminó el partido y escuchaste, sin querer, lo que el tipo de la carpeta le decía a tu entrenador: que los pies no te van a alcanzar nunca para el nivel de arriba. No sabe que lo escuchaste. Tenés ${ctx.player.age} años.`,
+        `The game ended and you overheard, without meaning to, what the man with the folder said to your coach: that your feet will never be quick enough for the level above. He does not know you heard him. You are ${ctx.player.age}.`,
+      ),
+    choices: [
+      {
+        label: loc('Convertir esa frase en el motivo de todo', 'Make that sentence the reason for everything'),
+        resolve: (ctx) =>
+          gamble(
+            ctx,
+            0.55,
+            outcome(
+              'Dos años de escalera, soga y arena con esa frase adentro de la cabeza cada mañana. Los pies te alcanzaron.',
+              'Two years of ladders, rope and sand with that sentence inside your head every morning. Your feet caught up.',
+              'good',
+              { attributes: { physical: 6, defense: 3 }, hidden: { hype: 6, wear: 2, morale: -4 } },
+            ),
+            outcome(
+              'Entrenaste con bronca, que no es lo mismo que entrenar bien. Ganaste piernas y perdiste las ganas de entrar al gimnasio.',
+              'You trained angry, which is not the same as training well. You gained legs and lost the wish to walk into the gym.',
+              'bad',
+              { attributes: { physical: 2, mental: -2 }, hidden: { wear: 3, morale: -12 } },
+            ),
+          ),
+      },
+      {
+        label: loc('Preguntarle al entrenador qué opina él', 'Ask the coach what he thinks'),
+        resolve: () =>
+          outcome(
+            'Te dijo la verdad, que es peor y sirve más: que el tipo tenía razón en los pies y se equivocaba en todo lo demás. Se pusieron a trabajar todo lo demás.',
+            'He told you the truth, which is worse and more useful: the man was right about your feet and wrong about everything else. The two of you went to work on everything else.',
+            'good',
+            { attributes: { mental: 4, playmaking: 1 }, hidden: { coachTrust: 6, morale: 4, hype: 2 } },
+          ),
+      },
+    ],
+  }),
+
+  event({
+    id: 'youth_plateau',
+    weight: 24,
+    stages: ['youth', 'breakout'],
+    category: 'personal',
+    title: loc('El que dejó de crecer', 'The One Who Stopped Growing'),
+    body: (ctx) =>
+      loc(
+        `Medís lo mismo que hace dos años. Los que te miraban de abajo ahora te sacan una cabeza, y el entrenador empezó a usar la palabra "base" cuando habla de vos. Son ${ctx.player.heightCm} cm y no van a ser más.`,
+        `You are the same height you were two years ago. The boys who used to look up at you are a head taller now, and the coach has started using the word "guard" when he talks about you. It is ${ctx.player.heightCm} cm and that is where it stops.`,
+      ),
+    choices: [
+      {
+        label: loc('Rehacerme entero para el puesto nuevo', 'Rebuild myself for the new position'),
+        resolve: (ctx) =>
+          gamble(
+            ctx,
+            0.65,
+            outcome(
+              'Un año de bote con las dos manos y de leer la cancha desde abajo. Terminaste sabiendo cosas que los altos no aprenden nunca.',
+              'A year of handling with both hands and reading the floor from underneath. You finished knowing things tall players never learn.',
+              'good',
+              { attributes: { playmaking: 6, mental: 3, physical: -1 }, hidden: { coachTrust: 6, hype: 5 } },
+            ),
+            outcome(
+              'A los dieciséis es tarde para aprender a botar. Quedaste entre dos puestos y no fuiste bueno en ninguno.',
+              'Sixteen is late to learn to handle a ball. You ended up between two positions and were good at neither.',
+              'bad',
+              { attributes: { playmaking: 2, scoring: -3 }, hidden: { morale: -10, coachTrust: -4 } },
+            ),
+          ),
+      },
+      {
+        label: loc('Seguir jugando adentro aunque me pasen por arriba', 'Keep playing inside, even with everyone taller'),
+        resolve: () =>
+          outcome(
+            'Dos temporadas peleando cada rebote contra tipos diez centímetros más altos. Ganaste un oficio de bajo que no se enseña y perdiste el tiro de afuera que no practicaste.',
+            'Two seasons fighting every rebound against boys ten centimetres taller. You gained a low-post trade nobody teaches and lost the outside shot you never practised.',
+            'neutral',
+            { attributes: { physical: 4, defense: 3, scoring: -2 }, hidden: { wear: 2, coachTrust: 2, hype: 2 } },
+          ),
+      },
+    ],
+  }),
+
+  event({
+    id: 'youth_first_beating',
+    weight: 20,
+    stages: ['youth', 'breakout'],
+    category: 'rival',
+    title: loc('La primera vez que te pasaron por arriba', 'The First Time Somebody Went Through You'),
+    body: () =>
+      loc(
+        'Nunca te habían ganado de verdad. El sábado un pibe de tu edad, de un club que no conocía nadie, te metió treinta y dos y te dejó plantado tres veces en la misma jugada. Sonó la chicharra y vino a darte la mano.',
+        'Nobody had ever truly beaten you. On Saturday a boy your own age, from a club nobody had heard of, put thirty-two on you and left you standing still three times on the same play. The buzzer went and he came over to shake your hand.',
+      ),
+    choices: [
+      {
+        label: loc('Pedirle el teléfono y entrenar con él todo el verano', 'Ask for his number and train with him all summer'),
+        resolve: (ctx) =>
+          gamble(
+            ctx,
+            0.66,
+            outcome(
+              'Dos meses de uno contra uno con el único de tu edad que te gana. En agosto le ganaste una serie, y esa serie valió por todo el año.',
+              'Two months of one-on-one against the only kid your age who beats you. In August you took a series off him, and that series was worth the whole year.',
+              'good',
+              { attributes: { defense: 4, scoring: 2, mental: 2 }, hidden: { morale: 4, hype: 4 } },
+            ),
+            outcome(
+              'Se hicieron amigos y jugaron todo el verano sin defenderse. Volvieron los dos en septiembre con los mismos vicios y mejor humor.',
+              'You became friends and played the whole summer without guarding each other. You both came back in September with the same bad habits and better moods.',
+              'neutral',
+              { attributes: { scoring: 2, defense: -2 }, hidden: { morale: 8 } },
+            ),
+          ),
+      },
+      {
+        label: loc('Guardármelo y no hablar del tema', 'Swallow it and never mention it'),
+        resolve: () =>
+          outcome(
+            'No dijiste una palabra en el viaje de vuelta ni en los seis meses siguientes. Entrenaste como no habías entrenado nunca, solo, con una cara que en el club no te conocían.',
+            'You did not say a word on the bus home, or for the six months after it. You trained the way you had never trained, alone, with a face nobody at the club had seen on you.',
+            'neutral',
+            { attributes: { defense: 3, physical: 3, mental: -1 }, hidden: { morale: -10, coachTrust: 2, hype: 2 } },
+          ),
+      },
+    ],
+  }),
 ]

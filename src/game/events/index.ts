@@ -13,9 +13,11 @@ import { NATIONAL_EVENTS } from './national'
 import { RIVAL_EVENTS } from './rival'
 import { LIFE_EVENTS } from './life'
 import { ORIGIN_EVENTS } from './origin'
+import { DEVELOPMENT_EVENTS } from './development'
 
 export const ALL_EVENTS: GameEvent[] = [
   ...YOUTH_EVENTS,
+  ...DEVELOPMENT_EVENTS,
   ...PRO_EVENTS,
   ...INJURY_EVENTS,
   ...NATIONAL_EVENTS,
