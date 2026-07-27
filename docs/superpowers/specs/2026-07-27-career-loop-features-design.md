@@ -139,6 +139,12 @@ export function trophiesFor(season: Season): Trophy[]
  * Optional: seasons recorded before this field existed do not have it.
  */
 cupId?: string | null
+/**
+ * How the cup final went: true won, false reached it and lost, null never got
+ * there. Winning already pushes an award id; losing pushes nothing, so without
+ * this a beaten finalist has no record anywhere.
+ */
+cupWon?: boolean | null
 ```
 
 It is set in `finalizeSeason` from `state.cupRun`, which is nulled at the start
@@ -159,8 +165,9 @@ Derivation:
 |---|---|
 | `playoffResult === 'champion'` | league, `champion` |
 | `playoffResult === 'finals'` | league, `finalist` |
-| `cupId` set and `awards` includes `cup_champion` | cup, `champion` |
-| `cupId` set and cup final was lost | cup, `finalist` |
+| `cupId` set and `cupWon === true` | cup, `champion` |
+| `cupId` set and `cupWon === false` | cup, `finalist` |
+| `cupWon === null` (went out before the final) | none — most cup runs end this way |
 
 **Where the names surface.**
 
