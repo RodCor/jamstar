@@ -7,9 +7,17 @@
  * bigger money to the table, and a bad one brings a step down.
  */
 
-import type { ContractOffer, Country, League, Player, PlayerRole, Team } from './types'
+import type {
+  ContractOffer,
+  Country,
+  League,
+  Player,
+  PlayerRole,
+  Season,
+  Team,
+} from './types'
 import { Rng, clamp } from './rng'
-import { getLeague, LEAGUES } from '@/data/leagues'
+import { difficultyOf, getLeague, LEAGUES } from '@/data/leagues'
 import { getTeam, teamsInLeague } from '@/data/teams'
 import { overallRating } from './progression'
 import { effectsFor } from './perks'
@@ -48,15 +56,69 @@ export function tierForPlayer(player: Player): 1 | 2 | 3 | 4 {
   return 4
 }
 
-/** What a club of this strength would offer a player of this quality. */
-function roleFor(player: Player, team: Team, rng: Rng): PlayerRole {
+/**
+ * What a club of this strength would offer a player of this quality.
+ *
+ * `familiarity` is the edge a club that already has you enjoys: they have
+ * watched you every day for a year, so their read on you is their own rather
+ * than a scouting report, and a coach who trusts you offers a bigger role than a
+ * stranger would.
+ */
+function roleFor(player: Player, team: Team, rng: Rng, familiarity = 0): PlayerRole {
   const rating = overallRating(player)
-  const gap = rating - team.strength * 0.92 + rng.gauss(0, 3)
+  const gap = rating - team.strength * 0.92 - levelBar(team.leagueId) + familiarity + rng.gauss(0, 3)
   if (player.age < 20 && gap < 10) return 'prospect'
   if (gap > 12) return 'star'
   if (gap > 2) return 'starter'
   if (gap > -8) return 'rotation'
   return 'bench'
+}
+
+/**
+ * How much higher the bar for minutes sits in a stronger league.
+ *
+ * Club strength is on one 0-100 scale across every league, so a weak NBA roster
+ * and a weak third-division roster read as the same number — and without this, a
+ * modest player was offered a franchise role and a maximum contract by the worst
+ * team in the NBA. Stepping up a level has to mean fighting for minutes again.
+ * Calibrated at zero for the third tier, where the rest of the game is tuned.
+ */
+function levelBar(leagueId: string): number {
+  return (difficultyOf(leagueId) - 0.74) * 60
+}
+
+/**
+ * Whether your club wants you back, and how badly.
+ *
+ * This used to be a flat coin weighted at 3-in-4, which meant a player coming
+ * off the best season of their life could still find no way to stay — the club
+ * simply never called, for no reason the player could see. A renewal should be
+ * the most predictable thing on the table: play well and staying is your choice
+ * to make, play badly and the club moves on.
+ */
+export function renewalOdds(player: Player, lastSeason: Season | null): number {
+  if (player.currentLeagueId === 'youth') return 0
+
+  // No season to judge you on (a transfer year, a lost year): the club leans on
+  // what it already thought of you.
+  if (!lastSeason || lastSeason.gamesPlayed === 0) {
+    return clamp(0.25 + player.hidden.coachTrust / 220, 0.15, 0.7)
+  }
+
+  const performance = (lastSeason.rating - 52) / 26
+  const trust = (player.hidden.coachTrust - 50) / 130
+  // Clubs let old players go, however fondly they remember them.
+  const age = Math.max(0, player.age - 33) * 0.07
+  const odds = clamp(0.62 + performance + trust - age, 0.08, 0.97)
+
+  // Missing most of the year makes a club hesitate over a player it otherwise
+  // rates. Applied as a discount rather than a subtraction, because a great
+  // season is good enough to pin the odds at the ceiling on its own, and there
+  // a penalty worth a fifth of the scale simply vanished — leaving the player
+  // most affected by injury as the one it never touched.
+  const availability = lastSeason.gamesMissed > lastSeason.gamesPlayed ? 0.72 : 1
+
+  return clamp(odds * availability, 0.08, 0.97)
 }
 
 function salaryFor(league: League, role: PlayerRole, player: Player, rng: Rng): number {
@@ -83,11 +145,25 @@ function yearsFor(role: PlayerRole, age: number, rng: Rng): number {
   return rng.int(1, 3)
 }
 
-function pitchFor(team: Team, league: League, role: PlayerRole, isCurrent: boolean) {
+function pitchFor(
+  team: Team,
+  league: League,
+  role: PlayerRole,
+  isCurrent: boolean,
+  isNbaCall = false,
+) {
   if (isCurrent) {
     return {
       es: `Te queremos renovar. Conocés la casa y la casa te conoce.`,
       en: `We want to keep you. You know this place and it knows you.`,
+    }
+  }
+  // An NBA club calling a player who was never drafted is not a routine offer,
+  // and it should not read like one.
+  if (isNbaCall) {
+    return {
+      es: `Te vimos todo el año. Nadie te eligió en el draft: nosotros te elegimos ahora.`,
+      en: `We watched you all year. Nobody called your name at the draft — we are calling it now.`,
     }
   }
   switch (role) {
@@ -149,8 +225,84 @@ function candidateLeagues(player: Player, country: Country, rng: Rng): League[] 
     if (league.id === 'youth') return false
     // The NCAA route runs one way; a professional never goes back to college.
     if (league.id === 'ncaa') return false
+    // NBA interest is handled on its own terms below, never through the tier
+    // pool — left in the pool it becomes an escalator that quietly turns free
+    // agency into the main route to the best league in the world.
+    if (league.tier === 1) return false
     return wanted.has(league.tier)
   })
+}
+
+/**
+ * How closely NBA front offices are watching this league.
+ *
+ * Scouts are not evenly distributed. Every G League game is watched by someone
+ * whose whole job is finding the next call-up, the EuroLeague is on television
+ * in every front office, and a good season in a smaller domestic league can go
+ * almost unseen.
+ */
+const VISIBILITY: Record<string, number> = {
+  g_league: 22,
+  euroleague: 20,
+  ncaa: 16,
+  acb: 12,
+  bsl: 9,
+  gbl: 9,
+  lega_a: 8,
+  betclic: 8,
+  aba: 8,
+  lkl: 6,
+  nbl: 6,
+  cba: 4,
+  lnb_ar: 4,
+  nbb: 4,
+}
+
+/**
+ * An NBA club calling a player who never went through the draft.
+ *
+ * This happens constantly in the real sport — undrafted free agents, G League
+ * call-ups, a EuroLeague star finally taking the offer at 27 — and without it
+ * the only door to the NBA is one night at 22, which makes every career that
+ * missed it a closed story.
+ *
+ * The bar is deliberately high on two separate axes. You have to be good enough
+ * that an NBA roster spot is defensible, *and* you have to have been seen: a
+ * quietly excellent season in a league nobody scouts does not get you a call.
+ */
+function nbaSuitor(player: Player, lastSeason: Season | null, rng: Rng): Team | null {
+  if (player.currentLeagueId === 'nba') return null
+  // Nobody signs a 34-year-old out of another league.
+  if (player.age > 33) return null
+
+  // A season worth a plane ticket. Being quietly adequate for a decade is not
+  // what gets this call — a year someone noticed is.
+  if (!lastSeason || lastSeason.gamesPlayed === 0) return null
+  if (lastSeason.rating < 68 && lastSeason.awards.length === 0) return null
+
+  const stock = stockFor(player)
+  // Below this you are not on an NBA board at all, whatever the highlight reel.
+  if (stock < 74) return null
+
+  const seen = player.hidden.hype + (VISIBILITY[player.currentLeagueId] ?? 0)
+  if (seen < 55) return null
+
+  // A young player is worth a roster spot as a project. An older one has to be
+  // ready to help immediately, and fewer are.
+  const youth = player.age <= 26 ? 1 : player.age <= 30 ? 0.75 : 0.45
+
+  // Still bounded per year rather than per career: the chance compounds over
+  // fifteen offer screens, so what reads here as a modest number is what decides
+  // whether most good careers eventually get a look.
+  const odds = clamp(((stock - 74) / 34 + (seen - 55) / 240) * youth, 0, 0.22)
+  if (!rng.chance(odds)) return null
+
+  // Who calls: the clubs whose level actually matches yours, so an NBA arrival
+  // is a two-way contract at a rebuilding club far more often than a starting
+  // job in a contender's rotation.
+  const rating = overallRating(player)
+  const options = teamsInLeague('nba')
+  return rng.weighted(options, (t) => Math.max(1, 100 - Math.abs(t.strength - (rating + 4))))
 }
 
 /**
@@ -159,37 +311,58 @@ function candidateLeagues(player: Player, country: Country, rng: Rng): League[] 
  * The current club is included when they would plausibly re-sign you, so
  * loyalty is an actual choice rather than something that happens to you.
  */
-export function generateOffers(player: Player, country: Country, rng: Rng): ContractOffer[] {
+export function generateOffers(
+  player: Player,
+  country: Country,
+  rng: Rng,
+  /** Last season, which is what the club is actually deciding on. */
+  lastSeason: Season | null = null,
+): ContractOffer[] {
   const leagues = candidateLeagues(player, country, rng)
-  if (leagues.length === 0) return []
 
   const tier = tierForPlayer(player)
   const currentTeamId = player.currentTeamId
   const offers: ContractOffer[] = []
   const usedTeams = new Set<string>()
 
-  const makeOffer = (team: Team, isCurrentClub: boolean): ContractOffer => {
+  const makeOffer = (
+    team: Team,
+    opts: { isCurrentClub?: boolean; isNbaCall?: boolean } = {},
+  ): ContractOffer => {
     const league = getLeague(team.leagueId)
-    const role = isCurrentClub
-      ? roleFor(player, team, rng)
-      : roleFor(player, team, rng)
+    const isCurrentClub = opts.isCurrentClub ?? false
+    // A club that already has you backs its own eyes: a coach who trusts you
+    // offers a bigger role than a stranger reading a scouting report.
+    const familiarity = isCurrentClub ? (player.hidden.coachTrust - 50) * 0.1 : 0
+    const role = roleFor(player, team, rng, familiarity)
     return {
       teamId: team.id,
       leagueId: league.id,
       role,
       salary: salaryFor(league, role, player, rng),
-      years: yearsFor(role, player.age, rng),
-      pitch: pitchFor(team, league, role, isCurrentClub),
+      // Your own club will commit for longer than one that has never had you.
+      years: yearsFor(role, player.age, rng) + (isCurrentClub && player.age <= 32 ? 1 : 0),
+      pitch: pitchFor(team, league, role, isCurrentClub, opts.isNbaCall),
       isCurrentClub,
     }
   }
 
-  // A renewal, if the club still rates you.
-  if (player.currentLeagueId !== 'youth' && rng.chance(0.75)) {
+  // A renewal, when the club still rates you — which, after a good season, is
+  // very nearly always.
+  if (rng.chance(renewalOdds(player, lastSeason))) {
     const team = getTeam(currentTeamId)
-    offers.push(makeOffer(team, true))
+    offers.push(makeOffer(team, { isCurrentClub: true }))
     usedTeams.add(team.id)
   }
+
+  // The call that does not go through draft night.
+  const nbaTeam = nbaSuitor(player, lastSeason, rng)
+  if (nbaTeam && !usedTeams.has(nbaTeam.id)) {
+    offers.push(makeOffer(nbaTeam, { isNbaCall: true }))
+    usedTeams.add(nbaTeam.id)
+  }
+
+  if (leagues.length === 0) return offers
 
   let guard = 0
   while (offers.length < MAX_OFFERS && guard < 40) {
@@ -208,7 +381,7 @@ export function generateOffers(player: Player, country: Country, rng: Rng): Cont
     const rating = overallRating(player)
     const team = rng.weighted(options, (t) => Math.max(1, 100 - Math.abs(t.strength - (rating + 6))))
     usedTeams.add(team.id)
-    offers.push(makeOffer(team, false))
+    offers.push(makeOffer(team))
   }
 
   // Best first — but "best" is deliberately ambiguous, which is the point.

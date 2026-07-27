@@ -31,6 +31,9 @@ export function OffersScreen({ state, onAccept }: Props) {
           const team = getTeam(offer.teamId)
           const league = getLeague(offer.leagueId)
           const isTop = league.tier === 1
+          // An NBA club calling a player who is not already there is the rarest
+          // thing on this screen, and it should not look like the rest of it.
+          const isCall = isTop && state.player.currentLeagueId !== 'nba'
 
           return (
             <button
@@ -53,6 +56,11 @@ export function OffersScreen({ state, onAccept }: Props) {
                 {offer.isCurrentClub && (
                   <span className="chip shrink-0 border-flame-400/30 text-flame-400">
                     {t('offerRenewal')}
+                  </span>
+                )}
+                {isCall && (
+                  <span className="chip shrink-0 border-flame-400/60 bg-flame-500/20 font-bold text-flame-300">
+                    {t('offerNbaCall')}
                   </span>
                 )}
               </div>

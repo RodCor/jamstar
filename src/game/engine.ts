@@ -115,7 +115,13 @@ export function startOffseason(state: GameState): GameState {
   const offers =
     player.currentLeagueId === 'youth'
       ? generateFirstOffers(player, country, yearRng(next, 'first-offers'))
-      : generateOffers(player, country, yearRng(next, 'offers'))
+      : generateOffers(
+          player,
+          country,
+          yearRng(next, 'offers'),
+          // What the club is actually deciding on: the year you just played.
+          next.seasons[next.seasons.length - 1] ?? null,
+        )
 
   if (offers.length === 0) {
     // Nobody called. Stay put rather than stall the career.
