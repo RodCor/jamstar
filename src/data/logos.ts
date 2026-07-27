@@ -18,9 +18,9 @@
  * publishing a build that includes them.
  */
 
-/** Team id → path under `public/`. Regenerate with `npm run logos`. */
+/** Club, league or cup id → path under `public/`. Regenerate with `npm run logos`. */
 export const LOGO_OVERRIDES: Record<string, string> = {}
 
-export function logoPathFor(teamId: string): string | null {
-  return LOGO_OVERRIDES[teamId] ?? null
+export function logoPathFor(id: string): string | null {
+  return LOGO_OVERRIDES[id] ?? null
 }

@@ -7,6 +7,7 @@ import { getTeam } from '@/data/teams'
 import { getLeague } from '@/data/leagues'
 import { flagFor } from '@/data/countries'
 import { TeamCrest } from './TeamCrest'
+import { LogoBadge } from './LogoBadge'
 
 interface Props {
   state: GameState
@@ -103,7 +104,10 @@ export function DraftScreen({ state, onContinue }: Props) {
                     <TeamCrest teamId={team.id} size={54} />
                     <div className="text-left">
                       <p className="font-black text-slate-50">{L(team.name)}</p>
-                      <p className="text-xs text-slate-400">{L(league.name)}</p>
+                      <p className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <LogoBadge id={league.id} label={L(league.name)} size={14} />
+                        {L(league.name)}
+                      </p>
                     </div>
                   </div>
                   <p className="mt-3 text-sm text-slate-300">{t('draftPicked')}</p>
@@ -118,7 +122,10 @@ export function DraftScreen({ state, onContinue }: Props) {
                     <TeamCrest teamId={team.id} size={48} />
                     <div className="text-left">
                       <p className="font-bold text-slate-100">{L(team.name)}</p>
-                      <p className="text-xs text-slate-400">{L(league.name)}</p>
+                      <p className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <LogoBadge id={league.id} label={L(league.name)} size={14} />
+                        {L(league.name)}
+                      </p>
                     </div>
                   </div>
                 </>

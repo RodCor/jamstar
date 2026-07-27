@@ -11,6 +11,7 @@ import { rivalAverages } from '@/game/rival'
 import { AWARD_INFO } from '@/game/awards'
 import { PLAYOFF_KEY } from './display'
 import { TeamCrest } from './TeamCrest'
+import { LogoBadge } from './LogoBadge'
 
 /**
  * The career at a glance, pinned above whatever decision is on screen.
@@ -41,7 +42,10 @@ export function CareerStrip({ state }: { state: GameState }) {
           <p className="truncate text-sm font-bold leading-tight text-slate-100">
             {flagFor(state.player.countryCode)} {state.player.name || '—'}
           </p>
-          <p className="truncate text-[11px] leading-tight text-slate-500">
+          <p className="flex items-center gap-1 truncate text-[11px] leading-tight text-slate-500">
+            {league.id !== 'youth' && (
+              <LogoBadge id={league.id} label={L(league.name)} size={12} />
+            )}
             {league.id === 'youth' ? L(team.name) : `${team.abbr} · ${league.abbr}`} ·{' '}
             {state.year} · {state.player.age}
           </p>
