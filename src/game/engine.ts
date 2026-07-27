@@ -25,13 +25,7 @@ import { Rng, clamp, round } from './rng'
 import { getCountry } from '@/data/countries'
 import { getLeague } from '@/data/leagues'
 import { getTeam, teamsInLeague } from '@/data/teams'
-import {
-  ageOneYear,
-  autoSpendGrowth,
-  developFromSeason,
-  overallRating,
-  retirementPressure,
-} from './progression'
+import { ageOneYear, developFromSeason, overallRating, retirementPressure } from './progression'
 import { stageForAge } from './ladder'
 import { buildChallenge, isWin, resultHeadline } from './minigame'
 import { cupForLeague, cupHeadline, rollCupFinal, runCup } from './cup'
@@ -95,11 +89,11 @@ export function startOffseason(state: GameState): GameState {
   next.pendingPlacementNote = null
   next.pendingRenewalNote = null
 
-  // Snapshot before ageing and growth, so the preseason screen can show the
-  // year's net movement rather than only what the player chose to spend.
+  // Snapshot before ageing, so the preseason screen can show the year's net
+  // movement from natural growth/decline alone, before perks add anything.
   player.attributesLastYear = { ...player.attributes }
 
-  // Age, natural growth/decline, and this year's growth allowance.
+  // Natural growth and decline for the year.
   ageOneYear(player, yearRng(next, 'ageing'))
   player.stage = stageForAge(player.age, player.currentLeagueId !== 'youth')
 
@@ -316,10 +310,6 @@ export function continueAfterEvent(state: GameState): GameState {
  */
 function simulateSeason(state: GameState): GameState {
   const player = state.player
-  // Anything the player did not allocate on the preseason screen still gets
-  // developed, just without the benefit of a deliberate specialisation.
-  autoSpendGrowth(player, yearRng(state, 'auto-growth'))
-
   const team = getTeam(player.currentTeamId)
   const league = getLeague(player.currentLeagueId)
   const rng = yearRng(state, 'season')

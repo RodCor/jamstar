@@ -144,19 +144,9 @@ export function takePerk(player: Player, perkId: string): boolean {
       spendGrowthPoint(player, key as keyof typeof perk.bonus)
     }
   }
-  // Perks spend exactly what they grant, but this line also wipes anything
-  // still sitting in `player.growthPoints` from other sources — chiefly the
-  // annual preseason allowance `growthPointsFor` adds in `ageOneYear`
-  // (progression.ts). On any career where perks are on offer, that allowance
-  // is granted and then discarded here every single season, before
-  // `autoSpendGrowth` ever runs, so `growthPointsFor`'s output never reaches
-  // an attribute. This is long-standing behaviour — the `= 0` predates this
-  // branch — not an oversight introduced now, and it must not be fixed
-  // incidentally: the 0.675 gain-ladder scale, the 257-point perk pool total,
-  // and every calibrated distribution band in this codebase were measured
-  // with this discard in place. Restoring the annual allowance would add
-  // roughly 60-100 unspent growth points per career and invalidate all of
-  // them at once. Changing this needs its own measured pass.
+  // Perks spend exactly what they grant; reset so nothing can leak between
+  // calls if a bonus ever failed to fully spend (e.g. every relevant
+  // attribute already maxed).
   player.growthPoints = 0
   return true
 }

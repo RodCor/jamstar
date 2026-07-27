@@ -11,16 +11,6 @@ import { ATTRIBUTE_KEYS } from './types'
 import { Rng, clamp } from './rng'
 import { getStyle } from '@/data/styles'
 
-/** Growth points handed out at each preseason, by age. */
-export function growthPointsFor(age: number, rng: Rng): number {
-  if (age <= 17) return rng.int(5, 7)
-  if (age <= 21) return rng.int(4, 6)
-  if (age <= 25) return rng.int(3, 5)
-  if (age <= 29) return rng.int(2, 4)
-  if (age <= 33) return rng.int(1, 2)
-  return rng.int(0, 1)
-}
-
 /**
  * Development earned on the floor.
  *
@@ -79,7 +69,7 @@ const PEAK_AGE: Record<AttributeKey, number> = {
 
 /**
  * Apply one year of natural ageing. Called at the start of each preseason,
- * before the player spends growth points.
+ * before perks are offered.
  */
 export function ageOneYear(player: Player, rng: Rng): void {
   const style = getStyle(player.styleId)
@@ -114,7 +104,6 @@ export function ageOneYear(player: Player, rng: Rng): void {
   }
 
   player.age += 1
-  player.growthPoints += growthPointsFor(player.age, rng)
 }
 
 /**
@@ -144,15 +133,10 @@ export function spendGrowthPoint(player: Player, key: AttributeKey): boolean {
   // measured against `__fixtures__/career-baseline.json`, not derived — that
   // explanation for the gap is inferred rather than tested.
   //
-  // Note: the annual preseason allowance from `growthPointsFor` (added to
-  // `player.growthPoints` at the end of `ageOneYear`, above) is not part of
-  // this budget in practice. On any career where perks are on offer it is
-  // granted and then discarded whole by `takePerk`'s `player.growthPoints = 0`
-  // (see perks.ts) before it is ever spent through this function — long-
-  // standing behaviour, not something this branch introduced or that this
-  // scaling factor assumes away. The points that actually reach
-  // `spendGrowthPoint` come from `developFromSeason` and from perk bonuses,
-  // both of which grant and spend in the same breath.
+  // Every point that reaches this function comes from `developFromSeason` or
+  // from a perk's bonus (perks.ts, `takePerk`) — both grant and spend within
+  // a single call, so `player.growthPoints` is never left holding a balance
+  // between preseasons.
   const gain =
     current >= 90 ? 0.101 : current >= 84 ? 0.27 : current >= 76 ? 0.574 : current >= 64 ? 1.013 : 1.552
 
@@ -162,37 +146,8 @@ export function spendGrowthPoint(player: Player, key: AttributeKey): boolean {
 }
 
 /**
- * Spend any points the player left unallocated, weighted toward what their
- * position actually needs.
- *
- * Growth points are the player's main lever, but a career must not quietly
- * collapse because someone clicked past the preseason screen — an unallocated
- * player should develop like a generically well-coached one, just without the
- * focus that specialisation buys.
- */
-export function autoSpendGrowth(player: Player, rng: Rng): void {
-  let guard = 0
-  while (player.growthPoints > 0 && guard < 60) {
-    guard++
-    const weights = POSITION_WEIGHTS[player.position]
-    // Deliberately near-flat. Auto-spending must produce a well-rounded,
-    // unremarkable player — if it followed positional weights exactly it would
-    // out-optimise the player's own choices and every career would peak elite.
-    const key = rng.weighted(ATTRIBUTE_KEYS, (k) => 1 + (weights[k] ?? 0.02) * 1.4)
-    if (!spendGrowthPoint(player, key)) {
-      // That attribute is maxed. Try the rest before giving up.
-      const spendable = ATTRIBUTE_KEYS.filter((k) => player.attributes[k] < 96)
-      if (spendable.length === 0) {
-        player.growthPoints = 0
-        return
-      }
-      spendGrowthPoint(player, rng.pick(spendable))
-    }
-  }
-}
-
-/**
- * Positional value of each attribute. Drives both rating and auto-spending.
+ * Positional value of each attribute. Drives both rating and how season
+ * development (`developFromSeason`, above) distributes its growth points.
  *
  * Each row sums to 1, though `overallRating` normalises anyway. The old
  * seven-key rows folded in here: handling and part of iq into playmaking,
