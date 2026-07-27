@@ -128,6 +128,16 @@ export function startOffseason(state: GameState): GameState {
 
   if (slate.offers.length === 0) {
     // Nobody called. Stay put rather than stall the career.
+    //
+    // The offers screen is skipped entirely on this path, so a renewal note
+    // set above would otherwise sit unread until the next offseason wipes it.
+    // That is exactly the year a player was dropped by their club and no one
+    // else wanted them — the one year they most need to be told why. Route
+    // it through the placement note instead, which buildHeadlines always
+    // folds into this season's results.
+    if (next.pendingRenewalNote) {
+      next.pendingPlacementNote = next.pendingRenewalNote
+    }
     return openPreseason(next)
   }
 

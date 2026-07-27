@@ -27,6 +27,12 @@ export function OffersScreen({ state, onAccept }: Props) {
         <p className="mt-1 text-sm text-slate-400">{t('offersSubtitle')}</p>
       </div>
 
+      {state.pendingRenewalNote && (
+        <div className="rounded-2xl border border-rose-400/25 bg-rose-500/5 px-4 py-3">
+          <p className="text-sm leading-snug text-rose-200">{L(state.pendingRenewalNote)}</p>
+        </div>
+      )}
+
       <div className="space-y-2">
         {offers.map((offer, index) => {
           const team = getTeam(offer.teamId)
