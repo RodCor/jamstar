@@ -14,3 +14,8 @@ coverage/
 
 # Scraper run report; the logos themselves are committed so Pages can serve them.
 public/logos/_report.json
+
+# Isolated checkouts for in-progress work, and the scratch the agent workflow
+# keeps beside them. Both are working state, not source.
+.claude/worktrees/
+.superpowers/
