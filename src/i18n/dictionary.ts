@@ -134,6 +134,11 @@ export const es = {
   perkFxDefense: 'Mejor defensa',
   perkFxRebounding: 'Más rebotes',
   perkFxAwards: 'Más premios',
+  perkRarityBasic: 'Básica',
+  perkRaritySilver: 'Plata',
+  perkRarityGold: 'Oro',
+  perkRarityLegend: 'Leyenda',
+  perkRarityTop1: 'Top 1%',
 
   // Free agency
   offersTitle: 'Ofertas de contrato',
@@ -317,6 +322,11 @@ export const en: Dictionary = {
   perkFxDefense: 'Better defense',
   perkFxRebounding: 'More rebounds',
   perkFxAwards: 'More awards',
+  perkRarityBasic: 'Basic',
+  perkRaritySilver: 'Silver',
+  perkRarityGold: 'Gold',
+  perkRarityLegend: 'Legend',
+  perkRarityTop1: 'Top 1%',
 
   offersTitle: 'Contract offers',
   offersSubtitle: 'Choose where to play. The better you are, the better these get.',
