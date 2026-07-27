@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import type { Perk, PerkRarity } from '@/data/perks'
+
 /**
  * The two-stage rarity draw is tested against a small fixture that spans
- * every rarity, rather than the real 24-perk pool — none of which carry a
- * rarity yet (a later task tags them). This keeps these tests about the
- * mechanism, not tied to content that has not landed.
+ * every rarity, rather than the real 23-perk pool. Task 2 has since tagged
+ * every real perk with a rarity, but the mechanism tests still want a pool
+ * with a known, exact count per tier — independent of however the real
+ * content happens to be distributed — so the fixture stays.
  */
 const FIXTURE_PERKS = vi.hoisted(() => {
   function tier(rarity: string, count: number) {
@@ -28,7 +31,7 @@ const FIXTURE_PERKS = vi.hoisted(() => {
 
 vi.mock('@/data/perks', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/data/perks')>()
-  return { ...actual, PERKS: FIXTURE_PERKS }
+  return { ...actual, PERKS: FIXTURE_PERKS as unknown as Perk[] }
 })
 
 import { createGame } from '../create'
@@ -129,5 +132,36 @@ describe('drawPerkChoices', () => {
     const choices = drawPerkChoices(p, rng, bestSeason)
     expect(choices).toHaveLength(3)
     expect(choices.some((id) => id.startsWith('top1_'))).toBe(false)
+  })
+})
+
+describe('perk bonus budgets', () => {
+  /**
+   * Everything above this point mocks `@/data/perks` to isolate the draw
+   * mechanism from real content. This guard is the opposite: it exists to
+   * check the real content, so it reaches past the mock with `importActual`
+   * rather than asserting against `FIXTURE_PERKS`.
+   *
+   * This is what stops the pool drifting as it grows from 23 perks toward
+   * ~53 in the next task — a single perk with an out-of-band `bonus` total
+   * fails here immediately, rather than surfacing only as a distribution
+   * shift many careers later.
+   */
+  it('gives every real perk a bonus total inside its rarity\'s budget', async () => {
+    const real = await vi.importActual<typeof import('@/data/perks')>('@/data/perks')
+    expect(real.PERKS.length).toBeGreaterThan(0)
+
+    for (const perk of real.PERKS) {
+      const total = Object.values(perk.bonus).reduce((sum: number, points) => sum + (points ?? 0), 0)
+      const budget = real.PERK_BUDGET[perk.rarity as PerkRarity]
+      expect(
+        total,
+        `${perk.id} (${perk.rarity}): total ${total} outside [${budget.min}, ${budget.max}]`,
+      ).toBeGreaterThanOrEqual(budget.min)
+      expect(
+        total,
+        `${perk.id} (${perk.rarity}): total ${total} outside [${budget.min}, ${budget.max}]`,
+      ).toBeLessThanOrEqual(budget.max)
+    }
   })
 })

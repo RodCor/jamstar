@@ -116,7 +116,7 @@ export function drawPerkChoices(player: Player, rng: Rng, lastSeason: Season | n
  */
 function pickAtOrBelow(remaining: Perk[], rarity: PerkRarity, rng: Rng): Perk {
   for (let tier = PERK_RARITIES.indexOf(rarity); tier >= 0; tier--) {
-    const atTier = remaining.filter((perk) => (perk.rarity ?? 'basic') === PERK_RARITIES[tier])
+    const atTier = remaining.filter((perk) => perk.rarity === PERK_RARITIES[tier])
     if (atTier.length > 0) return rng.weighted(atTier, (perk) => perk.weight)
   }
   return rng.weighted(remaining, (perk) => perk.weight)
