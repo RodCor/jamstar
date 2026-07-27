@@ -86,8 +86,13 @@ export function SeasonCard({ season, position }: { season: Season; position: Pos
       </div>
 
       <div className="grid grid-cols-5 gap-px bg-white/10">
-        {leadStats.map((stat, i) => (
-          <Stat key={stat} label={t(COUNTING_STAT_LABEL[stat])} value={season[stat].toFixed(1)} highlight={i === 0} />
+        {leadStats.map((stat) => (
+          <Stat
+            key={stat}
+            label={t(COUNTING_STAT_LABEL[stat])}
+            value={season[stat].toFixed(1)}
+            highlight={stat === 'points'}
+          />
         ))}
         <Stat label={t('statGames')} value={String(season.gamesPlayed)} />
         <Stat label={t('statTs')} value={formatPct(season.tsPct)} />
@@ -113,7 +118,7 @@ export function SeasonCard({ season, position }: { season: Season; position: Pos
           {expanded ? t('seasonLessStats') : t('seasonMoreStats')}
         </button>
 
-        <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="chip">
             {t('role')}: <span className="font-bold text-slate-100">{t(ROLE_KEY[season.role])}</span>
           </span>
