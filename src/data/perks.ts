@@ -211,6 +211,18 @@ export const PERKS: Perk[] = [
     weight: 20,
     rarity: 'legend',
   },
+  // `signature_move`, `telepathy` and `the_island` share the shape
+  // `{ primary: 7, mental: 3 }`. That is a known review finding, deliberately
+  // left open, because differentiating it is not free: `overallRating` is a
+  // weighted average and `mental` carries the lowest weight of any attribute
+  // at every position (`POSITION_WEIGHTS`, 0.06 at SF against physical's 0.48).
+  // Moving points off `mental` therefore raises rating without adding a single
+  // growth point. Measured twice on the 240-career cohort: shifting 3 points
+  // off `mental` on two of these perks took `allStarsPerCareer` from +11.46% to
+  // +14.23% against a ±12% band, and shifting 1 point still landed at +12.25%.
+  // Both red the distribution guard. Any future attempt has to keep each
+  // perk's `mental` allocation exactly where it is and find the distinction
+  // elsewhere — or move the band, which is a separate decision.
   {
     id: 'signature_move',
     name: { es: 'Movimiento propio', en: 'Signature Move' },
@@ -424,8 +436,8 @@ export const PERKS: Perk[] = [
     id: 'built_different',
     name: { es: 'Hecho de otra cosa', en: 'Built Different' },
     description: {
-      es: 'Caés mal, te levantás, seguís. El cuerpo médico no tiene nada que anotar en diez años.',
-      en: 'You land wrong, you get up, you keep playing. The training staff has nothing to write down for a decade.',
+      es: 'Te levantás de choques que dejan a otros un mes afuera. El preparador te pregunta qué hacés distinto y no sabés qué contestarle.',
+      en: 'You get up from collisions that put other men out for a month. The trainer asks what you do differently and you have no answer for him.',
     },
     bonus: { physical: 6, mental: 3 },
     effects: { injuryFactor: 0.5 },
@@ -511,7 +523,7 @@ export const PERKS: Perk[] = [
     id: 'point_of_attack',
     name: { es: 'Primera línea', en: 'Point of Attack' },
     description: {
-      es: 'Tomás al base desde la línea de fondo. El ataque rival arranca tarde todas las veces.',
+      es: 'Te le pegás al base desde que sacan de fondo. El ataque rival arranca tarde todas las veces.',
       en: 'You pick the ball handler up at the baseline. Their offence starts late every single time.',
     },
     bonus: { defense: 3, physical: 2 },
@@ -599,8 +611,8 @@ export const PERKS: Perk[] = [
     id: 'bench_spark',
     name: { es: 'Chispa desde el banco', en: 'Spark off the Bench' },
     description: {
-      es: 'Entrás con el partido frío y a los dos minutos el estadio está de pie.',
-      en: 'You check in with the game flat and two minutes later the building is standing.',
+      es: 'Entrás con el partido frío y a los dos minutos el estadio está de pie. El que salió te mira desde el banco y no entiende qué pasó.',
+      en: 'You check in with the game flat and two minutes later the building is standing. The man you replaced watches from the bench and cannot work out what happened.',
     },
     bonus: { mental: 2, defense: 1 },
     effects: { hype: 2 },
@@ -659,8 +671,8 @@ export const PERKS: Perk[] = [
     id: 'the_moment',
     name: { es: 'El momento', en: 'The Moment' },
     description: {
-      es: 'Quedan seis segundos, el estadio grita y para vos todo se pone lento. Ya sabés dónde vas a estar parado.',
-      en: 'Six seconds left, the building screaming, and everything slows down for you. You already know where you will be standing.',
+      es: 'Los dos bancos saben a quién le va a llegar la pelota. Se la dan igual, y termina como termina siempre.',
+      en: 'Both benches know exactly who the ball is going to. They give it to you anyway, and it ends the way it always ends.',
     },
     bonus: { mental: 6, scoring: 3 },
     effects: { clutch: 0.28 },

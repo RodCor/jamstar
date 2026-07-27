@@ -168,3 +168,71 @@ describe('perk bonus budgets', () => {
     }
   })
 })
+
+/**
+ * The guard above bounds each perk on its own. That is not enough, and the
+ * gap is not theoretical — it was measured.
+ *
+ * A career takes roughly twenty perks, so what reaches the player is the
+ * pool's *aggregate* magnitude, and `PERK_BUDGET` says nothing about it.
+ * Every one of these placements is legal per-perk and reds the suite:
+ *
+ * - 266 points (Gold and Legend seated at their band tops) puts
+ *   `allStarsPerCareer` at +21.34% against ±12%.
+ * - 246 points (every perk at its band floor) clears all nine distribution
+ *   metrics but fails `legacy.test.ts > rewards perks chosen to suit the
+ *   position`, because a pool with no spread inside a tier leaves nothing for
+ *   an informed pick to be better *at*.
+ *
+ * The pool currently sits at 257 and the suite's tightest metric,
+ * `allStarsPerCareer`, holds only 0.54pp of headroom — which works out at
+ * roughly half a growth point across the whole 53-perk pool. So the total is
+ * asserted directly, along with the size and the tier spread that set it.
+ *
+ * A failure here is not a licence to widen this band. It means the pool's
+ * magnitude moved, and the response is to re-run
+ * `career-distribution.test.ts` and `legacy.test.ts` and find out what that
+ * did — those are the measurements this band is a cheap proxy for.
+ */
+describe('the pool as a whole', () => {
+  const EXPECTED_TOTAL = 257
+  /**
+   * ±3%, i.e. 250–264 growth points.
+   *
+   * Deliberately narrower than it looks like it could be. The nearest
+   * measured failures are 246 and 266, and ±4% would reach 267.3 — admitting
+   * the 266-point placement that is known to red `allStarsPerCareer`. ±3%
+   * clears both boundaries with a few points to spare on each side while
+   * still leaving room to re-place a handful of perks inside their bands.
+   */
+  const TOLERANCE = 0.03
+
+  const SPREAD: Record<PerkRarity, number> = {
+    basic: 14, silver: 14, gold: 12, legend: 8, top1: 5,
+  }
+
+  it('holds 53 perks in a 14/14/12/8/5 spread', async () => {
+    const real = await vi.importActual<typeof import('@/data/perks')>('@/data/perks')
+    expect(real.PERKS).toHaveLength(53)
+
+    const counts = {} as Record<PerkRarity, number>
+    for (const rarity of Object.keys(SPREAD) as PerkRarity[]) counts[rarity] = 0
+    for (const perk of real.PERKS) counts[perk.rarity as PerkRarity] += 1
+    expect(counts).toEqual(SPREAD)
+  })
+
+  it('spends a total across the pool within 3% of 257 growth points', async () => {
+    const real = await vi.importActual<typeof import('@/data/perks')>('@/data/perks')
+    const total = real.PERKS.reduce(
+      (sum, perk) =>
+        sum + Object.values(perk.bonus).reduce((n: number, points) => n + (points ?? 0), 0),
+      0,
+    )
+    const drift = ((total - EXPECTED_TOTAL) / EXPECTED_TOTAL) * 100
+    expect(
+      Math.abs(drift),
+      `pool total ${total} growth points vs ${EXPECTED_TOTAL} (${drift.toFixed(1)}%). `
+        + 'Re-run career-distribution.test.ts and legacy.test.ts before changing this bound.',
+    ).toBeLessThanOrEqual(TOLERANCE * 100)
+  })
+})
