@@ -214,16 +214,28 @@ git add public/logos src/data/logos.ts && git commit && git push
 The logos have to be **committed** — Pages builds from the repository, so files
 that only exist on your machine will not reach the live site.
 
-**Do the dry run and read the cup lines before a real run.** `logos:fetch`
-resolves each entry in three steps: a manual URL from `scripts/logo-sources.json`
-if one is set, then the NBA's own CDN (clean SVGs, keyed by franchise id, clubs
-only), then Wikipedia's page image. Wikipedia is the only source covering
-everything here, and an ambiguous name is the real risk: it does not fail, it
-succeeds with the wrong badge. "Real Madrid" and "Flamengo" land on the football
-side, and "Copa del Rey", "Coppa Italia" and "Coupe de France" are all football
-tournaments first. A hint table in the script pins ~100 of those to the right
-article, and the dry run prints the article each one resolved to — the only
-place a wrong match is visible.
+**Do the dry run and read the lines before a real run.** `logos:fetch` resolves
+each entry in order:
+
+1. a manual URL from `scripts/logo-sources.json`, if one is set;
+2. the NBA's own CDN — clean SVGs keyed by franchise id, clubs only;
+3. **the logo named in the article's infobox**;
+4. Wikidata's structured "logo image" (P154);
+5. the article's lead image, and only if it looks like a badge at all.
+
+Steps 3–5 are all Wikipedia, in decreasing order of *is this actually the badge*.
+The order is the whole point. Relying on the lead image alone — which is all this
+script did originally — fails on most club crests and quietly succeeds with an
+arena photograph on the rest, because that API returns only **freely licensed**
+images and a club crest is almost always non-free, uploaded under fair use. The
+infobox names the real crest either way.
+
+The other risk is the search itself: an ambiguous name does not fail, it succeeds
+with the wrong badge. "Real Madrid" and "Flamengo" land on the football side;
+"Copa del Rey", "Coppa Italia" and "Coupe de France" are all football tournaments
+first; and every NCAA program's plain name is its football article. A hint table
+pins ~130 of those to the right article, and the dry run prints where each one
+resolved — the only place a wrong match is visible before it is on screen.
 
 Useful flags:
 
@@ -231,15 +243,26 @@ Useful flags:
 npm run logos:fetch -- --kind=cup             # team | league | cup
 npm run logos:fetch -- --league=nba           # one league at a time
 npm run logos:fetch -- --only=lal,copa_rey
+npm run logos:fetch -- --retry-failed         # just the ids in _report.json
 npm run logos:fetch -- --force                # re-download existing
 npm run logos:fetch -- --include-youth
 ```
 
-It skips anything already downloaded, so re-running only fills gaps. Whatever it
-cannot resolve gets listed in `public/logos/_report.json`; add a direct URL for
-those to `scripts/logo-sources.json` and re-run. Anything still missing keeps its
-generated crest (clubs) or stays text (leagues and cups), so a partial set is
-fine.
+It skips anything already downloaded, so re-running only fills gaps.
+
+**When something comes back wrong.** Every download is recorded in
+`public/logos/_sources.json` with the URL and the resolver that found it, and the
+run prints a list of anything that came from step 5 — those are the ones worth
+looking at. Fix one by putting a direct URL in `scripts/logo-sources.json`, which
+beats every resolver, then re-run with `--force --only=<id>`.
+
+Whatever cannot be resolved lands in `public/logos/_report.json`; `--retry-failed`
+re-runs exactly those, which is usually what you want after a batch is lost to
+rate limiting. The script backs off and retries on a 429 rather than giving up,
+but Wikimedia throttles hard enough that a large run can still lose a tail.
+
+Anything still missing keeps its generated crest (clubs) or stays text (leagues
+and cups), so a partial set is fine.
 
 Three ids are skipped by design, having no single real badge: `youth`,
 `conference_tournament` and `cba_allstar_cup`. `coupe_france_b` is aliased to
