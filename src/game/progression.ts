@@ -131,17 +131,28 @@ export function spendGrowthPoint(player: Player, key: AttributeKey): boolean {
   if (current >= 96) return false
 
   // Every rung is the seven-attribute ladder (0.15 / 0.4 / 0.85 / 1.5 / 2.3)
-  // scaled by 0.675. The budget in `growthPointsFor` was tuned when a growth
-  // point was one of seven attributes: since `overallRating` is a weighted
-  // *average*, the same budget spread over five moves it about 7/5 as fast, and
-  // careers inflated across the board. Scaling here rather than cutting the
-  // budget keeps the diminishing-returns shape — and the choice between
-  // specialising and spreading — exactly as it was. 0.675 rather than the
-  // arithmetic 5/7 = 0.714 most likely because development feeds back on
-  // itself: a better season earns more points in `developFromSeason`, so the
-  // inflation compounds beyond what the averaging alone predicts. The factor
-  // was measured against `__fixtures__/career-baseline.json`, not derived —
-  // that explanation for the gap is inferred rather than tested.
+  // scaled by 0.675. The gain-per-point ladder was tuned when a growth point
+  // was one of seven attributes: since `overallRating` is a weighted
+  // *average*, the same number of points spread over five attributes instead
+  // of seven moves it about 7/5 as fast, and careers inflated across the
+  // board. Scaling here rather than cutting the per-point gain keeps the
+  // diminishing-returns shape — and the choice between specialising and
+  // spreading — exactly as it was. 0.675 rather than the arithmetic
+  // 5/7 = 0.714 most likely because development feeds back on itself: a
+  // better season earns more points in `developFromSeason`, so the inflation
+  // compounds beyond what the averaging alone predicts. The factor was
+  // measured against `__fixtures__/career-baseline.json`, not derived — that
+  // explanation for the gap is inferred rather than tested.
+  //
+  // Note: the annual preseason allowance from `growthPointsFor` (added to
+  // `player.growthPoints` at the end of `ageOneYear`, above) is not part of
+  // this budget in practice. On any career where perks are on offer it is
+  // granted and then discarded whole by `takePerk`'s `player.growthPoints = 0`
+  // (see perks.ts) before it is ever spent through this function — long-
+  // standing behaviour, not something this branch introduced or that this
+  // scaling factor assumes away. The points that actually reach
+  // `spendGrowthPoint` come from `developFromSeason` and from perk bonuses,
+  // both of which grant and spend in the same breath.
   const gain =
     current >= 90 ? 0.101 : current >= 84 ? 0.27 : current >= 76 ? 0.574 : current >= 64 ? 1.013 : 1.552
 

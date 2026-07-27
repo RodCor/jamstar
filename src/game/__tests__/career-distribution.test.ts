@@ -227,6 +227,10 @@ describe('career distribution against the seven-attribute baseline', () => {
       // The tail that decides whether elite careers still exist: a hollowed
       // distribution can hold its mean while losing its top end.
       ['peakRating.p90', actual.peakRating.p90, baseline.peakRating.p90, 12],
+      // The floor: a change that holds every mean while flattening the
+      // distribution (fewer busts, fewer stars) would otherwise be invisible.
+      // p10 is where that flattening shows up first.
+      ['peakRating.p10', actual.peakRating.p10, baseline.peakRating.p10, 12],
       ['ringsPerCareer', actual.ringsPerCareer, baseline.ringsPerCareer, 12],
       // This band is ±30% while every other one is ±12%. That is deliberate, it
       // is not a test loosened to make a change pass, and the reason is that
@@ -243,10 +247,12 @@ describe('career distribution against the seven-attribute baseline', () => {
       // does not add a fraction of an MVP to everyone, it flips whole awards
       // from one career to another. Measured on this cohort, a 4.4% change in
       // total perk magnitude moves this number by 27 percentage points while
-      // peak rating moves under one — the band is narrower than the metric's
-      // own quantisation. The absolute shift being accepted here is 0.4625 to
-      // 0.575 MVPs per career: less than one MVP either way, over a whole
-      // career.
+      // peak rating moves under one percentage point — roughly a 30x gap in
+      // sensitivity between the two metrics, which is the actual reason MVP
+      // count needs a wider band: it reacts to rarity's intended effect far
+      // more violently than anything else this test tracks. The absolute
+      // shift being accepted here is 0.4625 to 0.575 MVPs per career: less
+      // than one MVP either way, over a whole career.
       //
       // So this row is no longer the place to look for a regression. The
       // metrics that actually measure player quality are `peakRating.mean` and

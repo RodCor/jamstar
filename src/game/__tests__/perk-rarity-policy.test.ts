@@ -198,6 +198,12 @@ describe('perk rarity policy vs career outcome', () => {
     expect(greedyMean, `greedy ${greedyMean} should exceed timid ${timidMean}`).toBeGreaterThan(
       timidMean,
     )
+    // Floor: `greedyMean > timidMean` alone is satisfied by any positive gap,
+    // even one so small it means the tiers barely differ. The measured gap is
+    // 4.50%; 2% leaves real room while still catching a genuine collapse of
+    // the rarity tiers toward each other. If this fails, report the actual
+    // number — do not lower the floor to make it pass.
+    expect(gapPct, `gap ${gapPct.toFixed(2)}% should be at least 2%`).toBeGreaterThanOrEqual(2)
     // If this fails, rarity dominates every other decision in the game.
     expect(gapPct, `gap ${gapPct.toFixed(2)}% should stay under 25%`).toBeLessThan(25)
   })
