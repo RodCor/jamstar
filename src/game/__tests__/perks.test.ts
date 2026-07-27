@@ -4,10 +4,11 @@ import type { Perk, PerkRarity } from '@/data/perks'
 
 /**
  * The two-stage rarity draw is tested against a small fixture that spans
- * every rarity, rather than the real 23-perk pool. Task 2 has since tagged
- * every real perk with a rarity, but the mechanism tests still want a pool
- * with a known, exact count per tier — independent of however the real
- * content happens to be distributed — so the fixture stays.
+ * every rarity, rather than the real 53-perk pool. Task 2 tagged every real
+ * perk with a rarity and Task 3 grew the pool to 14/14/12/8/5, but the
+ * mechanism tests still want a pool with a known, exact count per tier —
+ * independent of however the real content happens to be distributed — so the
+ * fixture stays.
  */
 const FIXTURE_PERKS = vi.hoisted(() => {
   function tier(rarity: string, count: number) {

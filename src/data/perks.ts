@@ -24,9 +24,12 @@ export type PerkRarity = 'basic' | 'silver' | 'gold' | 'legend' | 'top1'
  *
  * Re-derived from spec §6, whose figures were authored against the
  * pre-Wave-2a ladder: these are those figures divided by 0.675 (the factor
- * `spendGrowthPoint` was scaled by) and rounded to whole points. `top1` has no
- * members yet — that tier is Task 3's content — but the budget is defined now
- * so the guard below already covers it once those perks land.
+ * `spendGrowthPoint` was scaled by) and rounded to whole points.
+ *
+ * The bands are also what keeps the pool honest as it grows: a career of ~20
+ * seasons draws ~20 perks, so at 53 perks it consumes under 40% of the pool and
+ * the rarity odds — rather than exhaustion — decide what a player ends up with.
+ * Every entry below is checked against its band by `perks.test.ts`.
  */
 export const PERK_BUDGET: Record<PerkRarity, { min: number; max: number }> = {
   basic: { min: 3, max: 4 },
@@ -117,6 +120,103 @@ export const PERKS: Perk[] = [
     weight: 24,
     rarity: 'silver',
   },
+  {
+    id: 'pump_fake',
+    name: { es: 'Amague', en: 'Pump Fake' },
+    description: {
+      es: 'Levantás la pelota y el defensor se va al techo. Después es cuestión de esperarlo abajo.',
+      en: 'You show the ball and the defender leaves his feet. After that you just wait for him to land.',
+    },
+    bonus: { scoring: 4 },
+    weight: 30,
+    rarity: 'basic',
+  },
+  {
+    id: 'backdoor_cut',
+    name: { es: 'Corte por atrás', en: 'Backdoor Cut' },
+    description: {
+      es: 'En cuanto tu marca mira la pelota, ya te fuiste. El pase siempre llega.',
+      en: 'The moment your man turns to look at the ball you are gone. The pass always arrives.',
+    },
+    bonus: { scoring: 3, physical: 1 },
+    effects: { scoring: 1.04 },
+    weight: 28,
+    rarity: 'basic',
+  },
+  {
+    id: 'pull_up',
+    name: { es: 'Tiro en carrera', en: 'Pull-Up' },
+    description: {
+      es: 'Un bote, freno y sube. El de atrás nunca llega y el grandote ya se sentó.',
+      en: 'One dribble, hard stop, up. The trailer never arrives and the big already sat down.',
+    },
+    bonus: { scoring: 6 },
+    effects: { scoring: 1.07 },
+    weight: 24,
+    rarity: 'silver',
+  },
+  {
+    id: 'spin_move',
+    name: { es: 'Giro', en: 'Spin Move' },
+    description: {
+      es: 'Sentís el hombro del defensor y girás para el otro lado. Cuando te encuentra ya estás abajo del aro.',
+      en: 'You feel the shoulder and turn the other way. By the time he finds you, you are at the rim.',
+    },
+    bonus: { physical: 4, scoring: 2 },
+    effects: { scoring: 1.06 },
+    weight: 24,
+    rarity: 'silver',
+  },
+  {
+    id: 'heat_check',
+    name: { es: 'Mano caliente', en: 'Heat Check' },
+    description: {
+      es: 'Metés dos seguidos y el tercero sale desde donde te agarre. El banco se para antes de que entre.',
+      en: 'Two go down and the third comes from wherever you happen to be standing. The bench is up before it lands.',
+    },
+    bonus: { scoring: 6, mental: 2 },
+    effects: { scoring: 1.09, hype: 3 },
+    weight: 22,
+    rarity: 'gold',
+  },
+  {
+    id: 'post_footwork',
+    name: { es: 'Juego de espaldas', en: 'Post Footwork' },
+    description: {
+      es: 'Un pie, el otro, y el defensor quedó del lado equivocado. No hace falta saltar.',
+      en: 'One foot, then the other, and he is on the wrong side of you. No jumping required.',
+    },
+    bonus: { scoring: 5, physical: 3 },
+    effects: { scoring: 1.08, contractPull: 1.05 },
+    positions: ['SF', 'PF', 'C'],
+    weight: 22,
+    rarity: 'gold',
+  },
+  {
+    id: 'the_bag',
+    name: { es: 'La bolsa', en: 'The Bag' },
+    description: {
+      es: 'Tenés una respuesta para cada marca y las probaste todas en verano. La defensa sólo elige cómo perder.',
+      en: 'You have an answer for every coverage and you drilled all of them in July. The defence only gets to pick how it loses.',
+    },
+    bonus: { scoring: 8, playmaking: 3 },
+    effects: { scoring: 1.1, hype: 4 },
+    minAge: 23,
+    weight: 20,
+    rarity: 'legend',
+  },
+  {
+    id: 'signature_move',
+    name: { es: 'Movimiento propio', en: 'Signature Move' },
+    description: {
+      es: 'Todos saben lo que vas a hacer. Lo pasan en la tele, lo copian los pibes en el playón, y lo mismo no lo pueden defender.',
+      en: 'Everyone knows what is coming. It runs on every highlight reel, kids copy it in the park, and it still cannot be guarded.',
+    },
+    bonus: { scoring: 10, mental: 4 },
+    effects: { scoring: 1.18 },
+    weight: 12,
+    rarity: 'top1',
+  },
 
   // ------------------------------------------------------------- playmaking
   {
@@ -157,6 +257,88 @@ export const PERKS: Perk[] = [
     minAge: 20,
     weight: 20,
     rarity: 'gold',
+  },
+  {
+    id: 'outlet_pass',
+    name: { es: 'Primer pase', en: 'Outlet Pass' },
+    description: {
+      es: 'Bajás el rebote y la pelota ya está cruzando la cancha. El contraataque empieza en tus manos.',
+      en: 'You come down with the rebound and the ball is already across half court. The break starts in your hands.',
+    },
+    bonus: { playmaking: 3, physical: 1 },
+    weight: 28,
+    rarity: 'basic',
+  },
+  {
+    id: 'off_hand',
+    name: { es: 'Mano cambiada', en: 'Off Hand' },
+    description: {
+      es: 'Terminás con las dos manos igual de bien. Los scouts dejaron de escribir "mandalo a su lado débil".',
+      en: 'You finish with either hand. Scouts stopped writing "force him left" a while ago.',
+    },
+    bonus: { playmaking: 4 },
+    weight: 30,
+    rarity: 'basic',
+  },
+  {
+    id: 'drive_and_kick',
+    name: { es: 'Penetrar y descargar', en: 'Drive and Kick' },
+    description: {
+      es: 'Entrás para mover la ayuda, no para terminar. El tirador de la esquina te adora.',
+      en: 'You drive to move the help, not to finish. The corner shooter loves you for it.',
+    },
+    bonus: { playmaking: 6 },
+    effects: { playmaking: 1.08 },
+    weight: 24,
+    rarity: 'silver',
+  },
+  {
+    id: 'screen_setter',
+    name: { es: 'Bloqueo sólido', en: 'Screen Setter' },
+    description: {
+      es: 'Plantás los pies y no te movés. El compañero sale libre porque vos te comiste el choque.',
+      en: 'You set your feet and you do not move. Your teammate comes off clean because you ate the contact.',
+    },
+    bonus: { physical: 4, playmaking: 2 },
+    effects: { playmaking: 1.07 },
+    weight: 24,
+    rarity: 'silver',
+  },
+  {
+    id: 'transition_engine',
+    name: { es: 'Motor de contraataque', en: 'Transition Engine' },
+    description: {
+      es: 'Apenas cae el rebote ya estás en el otro campo. El rival corre para atrás toda la noche.',
+      en: 'The rebound is barely down and you are past half court. They spend the night running backwards.',
+    },
+    bonus: { physical: 5, playmaking: 3 },
+    effects: { playmaking: 1.07, scoring: 1.05 },
+    weight: 22,
+    rarity: 'gold',
+  },
+  {
+    id: 'metronome',
+    name: { es: 'Metrónomo', en: 'Metronome' },
+    description: {
+      es: 'El partido va al ritmo que vos marcás. Nadie se acuerda de haber decidido seguirte.',
+      en: 'The game runs at whatever tempo you set. Nobody remembers agreeing to it.',
+    },
+    bonus: { playmaking: 8, mental: 3 },
+    effects: { playmaking: 1.15, clutch: 0.06 },
+    weight: 18,
+    rarity: 'legend',
+  },
+  {
+    id: 'telepathy',
+    name: { es: 'Telepatía', en: 'Telepathy' },
+    description: {
+      es: 'Tus compañeros cortan antes de que los mires. Aprendieron que la pelota va a estar ahí aunque no tenga sentido.',
+      en: 'Teammates cut before you even look at them. They learned the ball will be there even when it makes no sense.',
+    },
+    bonus: { playmaking: 10, mental: 4 },
+    effects: { playmaking: 1.22 },
+    weight: 12,
+    rarity: 'top1',
   },
 
   // ---------------------------------------------------------------- physical
@@ -210,6 +392,40 @@ export const PERKS: Perk[] = [
     weight: 26,
     rarity: 'gold',
   },
+  {
+    id: 'box_out',
+    name: { es: 'Bloqueo de rebote', en: 'Box Out' },
+    description: {
+      es: 'Buscás el cuerpo antes que la pelota. Nadie te pasa por adelante en el segundo tiro.',
+      en: 'You find the body before you find the ball. Nobody gets in front of you on the second shot.',
+    },
+    bonus: { physical: 3, mental: 1 },
+    weight: 30,
+    rarity: 'basic',
+  },
+  {
+    id: 'extra_reps',
+    name: { es: 'Repeticiones de más', en: 'Extra Reps' },
+    description: {
+      es: 'Apagan las luces del gimnasio y vos seguís. El cuerpo se nota recién en marzo.',
+      en: 'They kill the gym lights and you keep going. The body only shows up in March.',
+    },
+    bonus: { physical: 4 },
+    weight: 30,
+    rarity: 'basic',
+  },
+  {
+    id: 'built_different',
+    name: { es: 'Hecho de otra cosa', en: 'Built Different' },
+    description: {
+      es: 'Caés mal, te levantás, seguís. El cuerpo médico no tiene nada que anotar en diez años.',
+      en: 'You land wrong, you get up, you keep playing. The training staff has nothing to write down for a decade.',
+    },
+    bonus: { physical: 9, mental: 5 },
+    effects: { injuryFactor: 0.5 },
+    weight: 12,
+    rarity: 'top1',
+  },
 
   // ---------------------------------------------------------------- defence
   {
@@ -248,6 +464,78 @@ export const PERKS: Perk[] = [
     effects: { defense: 1.08, clutch: 0.06 },
     weight: 24,
     rarity: 'gold',
+  },
+  {
+    id: 'contest_discipline',
+    name: { es: 'Mano arriba', en: 'Hand Up' },
+    description: {
+      es: 'No mordés ningún amague. Llegás al tiro con la mano estirada y sin cometer falta.',
+      en: 'You never bite on the fake. You arrive with a hand up and without fouling.',
+    },
+    bonus: { defense: 4 },
+    effects: { defense: 1.05 },
+    weight: 28,
+    rarity: 'basic',
+  },
+  {
+    id: 'switchable',
+    name: { es: 'Marcás a los cinco', en: 'Switchable' },
+    description: {
+      es: 'Cambiás a cualquiera y no se nota. Los bloqueos del rival dejan de significar algo.',
+      en: 'You switch onto anyone and nothing changes. Their screens stop meaning anything.',
+    },
+    bonus: { defense: 6 },
+    effects: { defense: 1.09 },
+    weight: 24,
+    rarity: 'silver',
+  },
+  {
+    id: 'charge_taker',
+    name: { es: 'Sacar cargas', en: 'Charge Taker' },
+    description: {
+      es: 'Te plantás y esperás el golpe. Te levantás del piso con la falta a favor.',
+      en: 'You plant your feet and wait for the hit. You get up off the floor with the call.',
+    },
+    bonus: { defense: 4, physical: 2 },
+    effects: { defense: 1.07 },
+    weight: 22,
+    rarity: 'silver',
+  },
+  {
+    id: 'point_of_attack',
+    name: { es: 'Primera línea', en: 'Point of Attack' },
+    description: {
+      es: 'Tomás al base desde la línea de fondo. El ataque rival arranca tarde todas las veces.',
+      en: 'You pick the ball handler up at the baseline. Their offence starts late every single time.',
+    },
+    bonus: { defense: 5, physical: 3 },
+    effects: { defense: 1.12, clutch: 0.04 },
+    weight: 22,
+    rarity: 'gold',
+  },
+  {
+    id: 'help_anchor',
+    name: { es: 'Ancla de la ayuda', en: 'Help Anchor' },
+    description: {
+      es: 'Hablás toda la posesión y los cinco se mueven con vos. La defensa del equipo es tu voz.',
+      en: 'You talk through the whole possession and all five move with you. The team defence is your voice.',
+    },
+    bonus: { defense: 7, mental: 4 },
+    effects: { defense: 1.18, awardPull: 0.03 },
+    weight: 20,
+    rarity: 'legend',
+  },
+  {
+    id: 'the_island',
+    name: { es: 'La isla', en: 'The Island' },
+    description: {
+      es: 'Te dejan solo con el mejor del otro equipo y el resto se olvida de ayudar. Al tipo lo sientan en el tercer cuarto.',
+      en: 'They leave you alone with their best player and the rest of the defence forgets help exists. He is on the bench by the third quarter.',
+    },
+    bonus: { defense: 10, mental: 4 },
+    effects: { defense: 1.3 },
+    weight: 12,
+    rarity: 'top1',
   },
 
   // ------------------------------------------------------------------ mental
@@ -300,6 +588,78 @@ export const PERKS: Perk[] = [
     effects: { hype: 5, contractPull: 1.12, awardPull: 0.04 },
     weight: 20,
     rarity: 'legend',
+  },
+  {
+    id: 'bench_spark',
+    name: { es: 'Chispa desde el banco', en: 'Spark off the Bench' },
+    description: {
+      es: 'Entrás con el partido frío y a los dos minutos el estadio está de pie.',
+      en: 'You check in with the game flat and two minutes later the building is standing.',
+    },
+    bonus: { mental: 3, defense: 1 },
+    effects: { hype: 2 },
+    weight: 26,
+    rarity: 'basic',
+  },
+  {
+    id: 'tempo_control',
+    name: { es: 'Manejo del tempo', en: 'Tempo Control' },
+    description: {
+      es: 'Cuando el partido se acelera, vos frenás. El equipo respira porque vos respirás.',
+      en: 'When the game speeds up, you slow down. The team breathes because you do.',
+    },
+    bonus: { mental: 6 },
+    effects: { clutch: 0.07 },
+    weight: 24,
+    rarity: 'silver',
+  },
+  {
+    id: 'road_warrior',
+    name: { es: 'De gira', en: 'Road Warrior' },
+    description: {
+      es: 'Dormís en el avión, comés lo que hay y jugás igual. Cinco partidos en siete noches no se te notan en la cara.',
+      en: 'You sleep on the plane, eat whatever is there, and play the same. Five games in seven nights never shows on you.',
+    },
+    bonus: { mental: 4, physical: 2 },
+    effects: { wearFactor: 0.92 },
+    weight: 22,
+    rarity: 'silver',
+  },
+  {
+    id: 'short_memory',
+    name: { es: 'Memoria corta', en: 'Short Memory' },
+    description: {
+      es: 'Errás tres seguidos y pedís la cuarta. Lo que pasó hace un minuto no existe.',
+      en: 'You miss three straight and call for the fourth. A minute ago does not exist.',
+    },
+    bonus: { mental: 6, scoring: 2 },
+    effects: { clutch: 0.09, awardPull: 0.02 },
+    weight: 20,
+    rarity: 'gold',
+  },
+  {
+    id: 'cornerstone',
+    name: { es: 'Piedra angular', en: 'Cornerstone' },
+    description: {
+      es: 'La franquicia se construye alrededor tuyo y en la oficina lo saben. Te cuidan como se cuida un edificio.',
+      en: 'The franchise gets built around you and the front office knows it. They look after you the way you look after a building.',
+    },
+    bonus: { mental: 6, physical: 5 },
+    effects: { contractPull: 1.15, injuryFactor: 0.82 },
+    weight: 18,
+    rarity: 'legend',
+  },
+  {
+    id: 'the_moment',
+    name: { es: 'El momento', en: 'The Moment' },
+    description: {
+      es: 'Quedan seis segundos, el estadio grita y para vos todo se pone lento. Ya sabés dónde vas a estar parado.',
+      en: 'Six seconds left, the building screaming, and everything slows down for you. You already know where you will be standing.',
+    },
+    bonus: { mental: 9, scoring: 5 },
+    effects: { clutch: 0.28 },
+    weight: 12,
+    rarity: 'top1',
   },
 
   // ------------------------------------------------------------ late career
