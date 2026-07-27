@@ -137,10 +137,11 @@ export function spendGrowthPoint(player: Player, key: AttributeKey): boolean {
   // careers inflated across the board. Scaling here rather than cutting the
   // budget keeps the diminishing-returns shape — and the choice between
   // specialising and spreading — exactly as it was. 0.675 rather than the
-  // arithmetic 5/7 = 0.714 because development feeds back on itself: a better
-  // season earns more points in `developFromSeason`, so the inflation compounds
-  // beyond what the averaging alone predicts. Measured against
-  // `__fixtures__/career-baseline.json`, not derived.
+  // arithmetic 5/7 = 0.714 most likely because development feeds back on
+  // itself: a better season earns more points in `developFromSeason`, so the
+  // inflation compounds beyond what the averaging alone predicts. The factor
+  // was measured against `__fixtures__/career-baseline.json`, not derived —
+  // that explanation for the gap is inferred rather than tested.
   const gain =
     current >= 90 ? 0.101 : current >= 84 ? 0.27 : current >= 76 ? 0.574 : current >= 64 ? 1.013 : 1.552
 
