@@ -12,6 +12,7 @@
  *   npm run logos:fetch -- --league=nba
  *   npm run logos:fetch -- --only=lal,copa_rey
  *   npm run logos:fetch -- --force         # re-download even if present
+ *   npm run logos:fetch -- --retry-failed  # only the ids in _report.json
  *   npm run logos:fetch -- --include-youth
  *
  * No dependencies — Node 22's built-in fetch is all it uses.
@@ -22,15 +23,25 @@
  *      wrong, and it wins over everything else.
  *   2. The NBA's own CDN, which serves clean SVGs keyed by franchise id.
  *      Clubs only.
- *   3. Wikipedia's page image for the entity's article.
+ *   3. The logo named in the article's infobox.
+ *   4. Wikidata's structured "logo image" (P154).
+ *   5. The article's lead image — but only if it looks like a badge.
  *
- * Wikipedia is the only source with coverage across everything in the game, and
- * a plain name search is the whole risk here: it does not fail on an ambiguous
- * name, it succeeds with the wrong badge. "Real Madrid" and "Flamengo" land on
- * the football side; "Copa del Rey", "Coppa Italia" and "Coupe de France" are
+ * Steps 3-5 are all Wikipedia, in decreasing order of "is this actually the
+ * badge". The order matters: relying on the lead image alone (which is all this
+ * script used to do) fails on most club crests and quietly succeeds with an
+ * arena photograph on the rest, because that API only returns *freely licensed*
+ * images and a club crest is almost always non-free.
+ *
+ * The other risk is the search itself. An ambiguous name does not fail, it
+ * succeeds with the wrong badge: "Real Madrid" and "Flamengo" land on the
+ * football side, and "Copa del Rey", "Coppa Italia" and "Coupe de France" are
  * all football tournaments first. SEARCH_HINTS pins every one of those to the
- * basketball article — which is why `--dry-run` prints the resolved article
- * title, and why it is worth reading before a real run.
+ * basketball article — which is why `--dry-run` prints where each entity
+ * resolved, and why it is worth reading before a real run.
+ *
+ * Every download is recorded in `public/logos/_sources.json`, so a badge that
+ * turns out to be wrong can be traced back to where it came from.
  */
 
 import {
@@ -50,6 +61,7 @@ const LEAGUES_FILE = join(ROOT, 'src', 'data', 'leagues.ts')
 const CUPS_FILE = join(ROOT, 'src', 'data', 'cups.ts')
 const SOURCES_FILE = join(ROOT, 'scripts', 'logo-sources.json')
 const REPORT_FILE = join(LOGO_DIR, '_report.json')
+const SOURCES_MANIFEST = join(LOGO_DIR, '_sources.json')
 
 // Wikimedia asks for a descriptive User-Agent and throttles anonymous bursts.
 const USER_AGENT =
@@ -69,7 +81,11 @@ const INCLUDE_YOUTH = has('--include-youth')
 const ONLY = value('only')?.split(',').map((s) => s.trim()).filter(Boolean) ?? null
 const LEAGUE = value('league')
 const KIND = value('kind')
-const CONCURRENCY = Math.max(1, Math.min(6, Number(value('concurrency') ?? 3)))
+const RETRY_FAILED = has('--retry-failed')
+// Two at a time, not three. Each entity costs several API calls now, and
+// Wikimedia throttles the client as a whole — going wider just triggers the
+// backoff sooner and finishes no faster.
+const CONCURRENCY = Math.max(1, Math.min(6, Number(value('concurrency') ?? 2)))
 
 /** NBA franchise ids — their CDN serves crisp SVGs keyed by these. */
 const NBA_CDN_IDS = {
@@ -164,6 +180,41 @@ const SEARCH_HINTS = {
   gl_scw: 'Santa Cruz Warriors',
   leb_bur: 'San Pablo Burgos',
   leb_ovi: 'Oviedo Club Baloncesto',
+  leb_alm: 'CB Cartagena',
+  // Italian cities with a famous football club and a basketball one.
+  lega_ven: 'Reyer Venezia Mestre',
+  lega_bre: 'Pallacanestro Brescia',
+  lega_tra: 'Aquila Basket Trento',
+  lega_tor: 'Pallacanestro Reggiana',
+  lega_tri: 'Pallacanestro Trieste',
+  lega_sas: 'Dinamo Sassari',
+  lkl_lie: 'BC Lietkabelis',
+  lkl_nep: 'BC Neptūnas',
+  lkl_sir: 'BC Šiauliai',
+  el_par: 'Paris Basketball',
+  fra_par: 'Paris Basketball',
+  el_alb: 'ALBA Berlin',
+  acb_val: 'Valencia Basket',
+  acb_jov: 'Joventut Badalona',
+  acb_man: 'Bàsquet Manresa',
+  nbb_pat: 'Pato Basquete',
+  prob_evr: 'ADA Blois Basket 41',
+  prob_ort: 'Orléans Loiret Basket',
+  gl_ign: 'NBA G League Ignite',
+  // College articles are per-sport, and the plain program name is the athletics
+  // or football one — every NCAA entry needs the suffix.
+  ncaa_uconn: 'UConn Huskies men’s basketball',
+  ncaa_mich: 'Michigan State Spartans men’s basketball',
+  ncaa_duk: 'Duke Blue Devils men’s basketball',
+  ncaa_kan: 'Kansas Jayhawks men’s basketball',
+  ncaa_ken: 'Kentucky Wildcats men’s basketball',
+  ncaa_unc: 'North Carolina Tar Heels men’s basketball',
+  ncaa_gon: 'Gonzaga Bulldogs men’s basketball',
+  ncaa_ucla: 'UCLA Bruins men’s basketball',
+  ncaa_ariz: 'Arizona Wildcats men’s basketball',
+  ncaa_bay: 'Baylor Bears men’s basketball',
+  ncaa_hou: 'Houston Cougars men’s basketball',
+  ncaa_ala: 'Alabama Crimson Tide men’s basketball',
 
   // Leagues. Most are unambiguous, but the acronyms are not: "ACB", "LKL" and
   // "BSL" all resolve to something else entirely without a full name.
@@ -264,32 +315,152 @@ function collectEntities() {
   ]
 }
 
-async function getJson(url) {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+/**
+ * Shared backoff. Wikimedia throttles the whole client, not one connection, so
+ * when a 429 arrives every worker has to back off together — otherwise the
+ * others keep hammering and the cooldown never takes effect. Without this a
+ * single 429 cascaded through the rest of the run and every remaining entity
+ * failed permanently, because nothing retried.
+ */
+let cooldownUntil = 0
+async function respectCooldown() {
+  const wait = cooldownUntil - Date.now()
+  if (wait > 0) await sleep(wait)
+}
+
+async function getJson(url, attempt = 0) {
+  await respectCooldown()
   const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } })
+
+  if (res.status === 429 || res.status === 503) {
+    if (attempt >= 4) throw new Error(`HTTP ${res.status} after ${attempt} retries`)
+    const header = Number(res.headers.get('retry-after'))
+    const wait = Number.isFinite(header) && header > 0 ? header * 1000 : 2000 * 2 ** attempt
+    cooldownUntil = Math.max(cooldownUntil, Date.now() + wait)
+    return getJson(url, attempt + 1)
+  }
+
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
 
-/** Wikipedia's lead image for the best-matching article. */
-async function wikipediaLogo(entity) {
-  const query = SEARCH_HINTS[entity.id] ?? `${entity.name} basketball`
-  const searchUrl =
-    'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*' +
-    `&list=search&srlimit=1&srnamespace=0&srsearch=${encodeURIComponent(query)}`
+const WIKI_API = 'https://en.wikipedia.org/w/api.php'
 
-  const search = await getJson(searchUrl)
-  const title = search?.query?.search?.[0]?.title
+/** Best-matching article title for an entity. */
+async function searchTitle(entity) {
+  const query = SEARCH_HINTS[entity.id] ?? `${entity.name} basketball`
+  const data = await getJson(
+    `${WIKI_API}?action=query&format=json&formatversion=2&list=search` +
+      `&srlimit=1&srnamespace=0&srsearch=${encodeURIComponent(query)}`,
+  )
+  return data?.query?.search?.[0]?.title ?? null
+}
+
+/** Turn a `File:` name into a download URL. */
+async function fileUrl(fileName) {
+  const data = await getJson(
+    `${WIKI_API}?action=query&format=json&formatversion=2&prop=imageinfo&iiprop=url` +
+      `&titles=${encodeURIComponent(`File:${fileName}`)}`,
+  )
+  return data?.query?.pages?.[0]?.imageinfo?.[0]?.url ?? null
+}
+
+/**
+ * The logo named in the article's infobox.
+ *
+ * This is the resolver that actually works for club crests. `pageimages` — what
+ * this script used to rely on — returns only *freely licensed* images, and a
+ * club crest is almost always non-free, uploaded locally to Wikipedia under
+ * fair use. So `pageimages` hid precisely the logos we wanted, and where it did
+ * return something it was the article's lead photo: an arena, a squad shot. The
+ * infobox parameter names the real crest either way.
+ */
+async function infoboxLogo(title) {
+  const data = await getJson(
+    `${WIKI_API}?action=parse&format=json&formatversion=2&prop=wikitext` +
+      `&page=${encodeURIComponent(title)}`,
+  )
+  const wikitext = data?.parse?.wikitext ?? ''
+  const match = wikitext.match(
+    /\|\s*(?:logo|logo_image|image|crest|badge)\s*=\s*(?:\[\[)?\s*(?:File:|Image:)?\s*([^|\]\n<]+?\.(?:svg|png|gif|jpe?g|webp))/i,
+  )
+  if (!match) return null
+  const url = await fileUrl(match[1].trim())
+  return url ? { url, via: `infobox:${title}` } : null
+}
+
+/** Wikidata's structured "logo image" (P154), when the infobox has no usable one. */
+async function wikidataLogo(title) {
+  const props = await getJson(
+    `${WIKI_API}?action=query&format=json&formatversion=2&prop=pageprops` +
+      `&titles=${encodeURIComponent(title)}`,
+  )
+  const qid = props?.query?.pages?.[0]?.pageprops?.wikibase_item
+  if (!qid) return null
+
+  const claims = await getJson(
+    `https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&property=P154&entity=${qid}`,
+  )
+  const file = claims?.claims?.P154?.[0]?.mainsnak?.datavalue?.value
+  if (!file) return null
+
+  // P154 files live on Commons, which mirrors the same imageinfo API.
+  const data = await getJson(
+    'https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2' +
+      `&prop=imageinfo&iiprop=url&titles=${encodeURIComponent(`File:${file}`)}`,
+  )
+  const url = data?.query?.pages?.[0]?.imageinfo?.[0]?.url
+  return url ? { url, via: `wikidata:${qid}` } : null
+}
+
+/**
+ * Is this file plausibly a badge rather than a photograph?
+ *
+ * Only applied to the `pageimages` fallback, which is the one resolver that
+ * hands back whatever image happens to lead the article. A JPEG is the giveaway
+ * — crests are published as SVG or PNG, photographs as JPEG — and the rest is
+ * the vocabulary of the pictures that actually turned up: arenas and squads.
+ */
+function looksLikeBadge(url) {
+  const name = decodeURIComponent(url).toLowerCase()
+  if (/\.jpe?g($|\?)/.test(name)) return false
+  return !/(arena|stadium|pavilion|pabell|palacio|hala|court|photo|fans|building|exterior|interior|roster|squad|celebrat)/.test(
+    name,
+  )
+}
+
+/** Last resort: the article's lead image, if it looks like a badge at all. */
+async function pageImageLogo(title) {
+  const data = await getJson(
+    `${WIKI_API}?action=query&format=json&formatversion=2&prop=pageimages&piprop=original` +
+      `&titles=${encodeURIComponent(title)}`,
+  )
+  const src = data?.query?.pages?.[0]?.original?.source
+  if (!src) return null
+  if (!looksLikeBadge(src)) return null
+  return { url: src, via: `pageimage:${title}` }
+}
+
+/**
+ * Wikipedia, in decreasing order of "is this actually the badge".
+ *
+ * The title lookup is shared, so a miss costs one call rather than three.
+ */
+async function wikipediaLogo(entity) {
+  const title = await searchTitle(entity)
   if (!title) return null
 
-  const imageUrl =
-    'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*' +
-    `&prop=pageimages&piprop=original&titles=${encodeURIComponent(title)}`
-
-  const page = await getJson(imageUrl)
-  const pages = page?.query?.pages ?? {}
-  const first = Object.values(pages)[0]
-  const src = first?.original?.source
-  return src ? { url: src, via: `wikipedia:${title}` } : null
+  for (const resolve of [infoboxLogo, wikidataLogo, pageImageLogo]) {
+    try {
+      const found = await resolve(title)
+      if (found) return found
+    } catch {
+      // Try the next source rather than losing the entity to one bad call.
+    }
+  }
+  return null
 }
 
 function nbaCdnLogo(entity) {
@@ -374,6 +545,9 @@ async function resolveAndFetch(entity, manual) {
         id: entity.id,
         status: 'ok',
         detail: `${entity.id}${ext} (${Math.round(buffer.length / 1024)} kB) via ${candidate.via}`,
+        // Provenance, so a badge that turns out to be an arena photograph can
+        // be traced to the resolver that produced it instead of guessed at.
+        source: { file: `${entity.id}${ext}`, via: candidate.via, url: candidate.url },
       }
     } catch (error) {
       problems.push(`${candidate.via}: ${error.message}`)
@@ -413,8 +587,9 @@ async function pool(items, worker, size) {
     while (cursor < items.length) {
       const index = cursor++
       results[index] = await worker(items[index], index)
-      // Be a good citizen between requests.
-      await new Promise((r) => setTimeout(r, 250))
+      // Be a good citizen between requests. Slower than it used to be, because
+      // each entity now costs several API calls instead of two.
+      await sleep(400)
     }
   })
   await Promise.all(runners)
@@ -448,6 +623,17 @@ async function main() {
   if (LEAGUE) entities = entities.filter((e) => e.leagueId === LEAGUE)
   if (ONLY) entities = entities.filter((e) => ONLY.includes(e.id))
 
+  // Pick up exactly where the last run gave up — the usual case being a batch
+  // lost to rate limiting rather than to anything actually missing.
+  if (RETRY_FAILED) {
+    if (!existsSync(REPORT_FILE)) {
+      console.error(`No ${REPORT_FILE} to retry from.`)
+      process.exit(1)
+    }
+    const ids = new Set(JSON.parse(readFileSync(REPORT_FILE, 'utf8')).map((r) => r.id))
+    entities = entities.filter((e) => ids.has(e.id))
+  }
+
   if (entities.length === 0) {
     console.error('Nothing matched those filters.')
     process.exit(1)
@@ -468,6 +654,14 @@ async function main() {
     console.log(`\n${entities.length} total: ${summary}.`)
     console.log(`Skipped by design: ${[...SKIP].join(', ')}.`)
     console.log(`Aliased: ${Object.entries(ALIASES).map(([a, s]) => `${a}←${s}`).join(', ')}.`)
+
+    // A hint keyed to an id that does not exist does nothing and says nothing,
+    // so it stays wrong until someone notices the badge never arrived.
+    const known = new Set(collectEntities().map((e) => e.id))
+    const orphans = Object.keys(SEARCH_HINTS).filter((id) => !known.has(id))
+    if (orphans.length > 0) {
+      console.warn(`\nSEARCH_HINTS entries matching no id (typo?): ${orphans.join(', ')}`)
+    }
     return
   }
 
@@ -502,14 +696,36 @@ async function main() {
       `${by('resolved').length} resolved, ${failed.length} failed.`,
   )
 
+  // Provenance for everything downloaded this run, merged over previous runs.
+  if (!DRY_RUN) {
+    const manifest = existsSync(SOURCES_MANIFEST)
+      ? JSON.parse(readFileSync(SOURCES_MANIFEST, 'utf8'))
+      : {}
+    for (const r of by('ok')) if (r.source) manifest[r.id] = r.source
+    writeFileSync(SOURCES_MANIFEST, JSON.stringify(manifest, null, 2))
+
+    // The lead-image resolver is the one that can hand back a photograph, so
+    // say which badges came from it rather than leaving them to be spotted by
+    // eye across 180 files.
+    const weak = by('ok').filter((r) => r.source?.via?.startsWith('pageimage:'))
+    if (weak.length > 0) {
+      console.log(
+        `\n${weak.length} came from the article's lead image rather than a named logo,` +
+          '\nso they are the ones worth a look:',
+      )
+      for (const w of weak) console.log(`  ${w.id.padEnd(14)} ${w.source.url}`)
+    }
+  }
+
   if (failed.length > 0) {
     writeFileSync(REPORT_FILE, JSON.stringify(failed, null, 2))
     console.log(`\nCouldn't resolve ${failed.length}:`)
     for (const f of failed) console.log(`  ${f.id.padEnd(12)} ${f.name}`)
     console.log(
-      `\nWritten to ${REPORT_FILE}. Fix any of them by adding a direct URL to\n` +
-        `scripts/logo-sources.json, e.g. { "${failed[0].id}": "https://…/logo.svg" },\n` +
-        'then re-run. Anything still missing just keeps its generated crest.',
+      `\nWritten to ${REPORT_FILE}. Retry just these with --retry-failed, or fix one\n` +
+        `by adding a direct URL to scripts/logo-sources.json, e.g.\n` +
+        `  { "${failed[0].id}": "https://…/logo.svg" }\n` +
+        'then re-run. Anything still missing falls back gracefully.',
     )
   }
 
