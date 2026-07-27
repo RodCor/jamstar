@@ -95,6 +95,10 @@ export function startOffseason(state: GameState): GameState {
   next.pendingPlacementNote = null
   next.pendingRenewalNote = null
 
+  // Snapshot before ageing and growth, so the preseason screen can show the
+  // year's net movement rather than only what the player chose to spend.
+  player.attributesLastYear = { ...player.attributes }
+
   // Age, natural growth/decline, and this year's growth allowance.
   ageOneYear(player, yearRng(next, 'ageing'))
   player.stage = stageForAge(player.age, player.currentLeagueId !== 'youth')
@@ -204,7 +208,11 @@ function openPreseason(state: GameState): GameState {
     player.currentTeamId = 'youth_hs'
     player.currentLeagueId = 'youth'
   }
-  player.perkChoices = drawPerkChoices(player, new Rng(`${state.seed}::${state.year}::perks`))
+  player.perkChoices = drawPerkChoices(
+    player,
+    new Rng(`${state.seed}::${state.year}::perks`),
+    state.seasons[state.seasons.length - 1] ?? null,
+  )
   state.phase = 'preseason'
   return state
 }

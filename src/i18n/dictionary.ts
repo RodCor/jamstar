@@ -50,21 +50,17 @@ export const es = {
   posC: 'Pívot',
 
   // Attributes
-  attrShooting: 'Tiro',
-  attrHandling: 'Manejo',
-  attrAthleticism: 'Atletismo',
+  attrScoring: 'Anotación',
+  attrPlaymaking: 'Generación',
   attrDefense: 'Defensa',
-  attrStrength: 'Físico',
-  attrIq: 'Lectura de juego',
-  attrLeadership: 'Liderazgo',
+  attrPhysical: 'Físico',
+  attrMental: 'Mentalidad',
 
-  attrShootingHelp: 'Más puntos y eficiencia. Envejece bien.',
-  attrHandlingHelp: 'Asistencias y menos pérdidas.',
-  attrAthleticismHelp: 'Explosión y jugadas de highlight — pero más lesiones y la caída más dura después de los 30.',
+  attrScoringHelp: 'Puntos y eficiencia de tiro. Envejece bien.',
+  attrPlaymakingHelp: 'Asistencias, manejo y menos pérdidas.',
   attrDefenseHelp: 'Robos, tapones y premios defensivos.',
-  attrStrengthHelp: 'Rebotes y aguante. Limita un poco la agilidad.',
-  attrIqHelp: 'Mejores decisiones en los eventos y una carrera más larga.',
-  attrLeadershipHelp: 'Manda en el vestuario y hace ganar al equipo.',
+  attrPhysicalHelp: 'Explosión, rebote y aguante — pero más lesiones y la caída más dura después de los 30.',
+  attrMentalHelp: 'Decisiones, momentos decisivos y una carrera más larga.',
 
   // Preseason
   preseasonTitle: 'Pretemporada',
@@ -92,6 +88,8 @@ export const es = {
   noAwards: 'Sin premios esta temporada',
   salary: 'Salario',
   continue: 'Continuar',
+  seasonMoreStats: 'Ver más',
+  seasonLessStats: 'Ver menos',
 
   // Roles
   roleStar: 'Figura',
@@ -136,6 +134,11 @@ export const es = {
   perkFxDefense: 'Mejor defensa',
   perkFxRebounding: 'Más rebotes',
   perkFxAwards: 'Más premios',
+  perkRarityBasic: 'Básica',
+  perkRaritySilver: 'Plata',
+  perkRarityGold: 'Oro',
+  perkRarityLegend: 'Leyenda',
+  perkRarityTop1: 'Top 1%',
 
   // Free agency
   offersTitle: 'Ofertas de contrato',
@@ -242,21 +245,17 @@ export const en: Dictionary = {
   posPF: 'Power Forward',
   posC: 'Center',
 
-  attrShooting: 'Shooting',
-  attrHandling: 'Handling',
-  attrAthleticism: 'Athleticism',
+  attrScoring: 'Scoring',
+  attrPlaymaking: 'Playmaking',
   attrDefense: 'Defense',
-  attrStrength: 'Strength',
-  attrIq: 'Basketball IQ',
-  attrLeadership: 'Leadership',
+  attrPhysical: 'Physical',
+  attrMental: 'Mental',
 
-  attrShootingHelp: 'More points and efficiency. Ages well.',
-  attrHandlingHelp: 'Assists, and fewer turnovers.',
-  attrAthleticismHelp: 'Explosion and highlight plays — but more injuries and the steepest fall after 30.',
+  attrScoringHelp: 'Points and shooting efficiency. Ages well.',
+  attrPlaymakingHelp: 'Assists, ball handling and fewer turnovers.',
   attrDefenseHelp: 'Steals, blocks and defensive awards.',
-  attrStrengthHelp: 'Rebounds and durability. Caps your quickness a little.',
-  attrIqHelp: 'Better outcomes in events and a longer career.',
-  attrLeadershipHelp: 'Runs the locker room and makes the team win.',
+  attrPhysicalHelp: 'Explosion, rebounding and durability — but more injuries and the steepest fall after 30.',
+  attrMentalHelp: 'Decisions, big moments and a longer career.',
 
   preseasonTitle: 'Preseason',
   playSeason: 'Play the season',
@@ -282,6 +281,8 @@ export const en: Dictionary = {
   noAwards: 'No awards this season',
   salary: 'Salary',
   continue: 'Continue',
+  seasonMoreStats: 'More',
+  seasonLessStats: 'Less',
 
   roleStar: 'Star',
   roleStarter: 'Starter',
@@ -321,6 +322,11 @@ export const en: Dictionary = {
   perkFxDefense: 'Better defense',
   perkFxRebounding: 'More rebounds',
   perkFxAwards: 'More awards',
+  perkRarityBasic: 'Basic',
+  perkRaritySilver: 'Silver',
+  perkRarityGold: 'Gold',
+  perkRarityLegend: 'Legend',
+  perkRarityTop1: 'Top 1%',
 
   offersTitle: 'Contract offers',
   offersSubtitle: 'Choose where to play. The better you are, the better these get.',

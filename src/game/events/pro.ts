@@ -70,7 +70,7 @@ export const PRO_EVENTS: GameEvent[] = [
         resolve: (ctx) =>
           gamble(
             ctx,
-            ctx.player.attributes.leadership > 60 ? 0.62 : 0.34,
+            ctx.player.attributes.mental > 60 ? 0.62 : 0.34,
             outcome(
               'Hablaron cuarenta minutos a puertas cerradas. Salieron entendiéndose.',
               'You talked for forty minutes behind closed doors. You came out understanding each other.',
@@ -92,7 +92,7 @@ export const PRO_EVENTS: GameEvent[] = [
             'Fuiste el primero en llegar durante tres meses. El entrenador no lo dijo, pero volvió a ponerte.',
             'You were first in the gym for three months. The coach never said anything, but you started again.',
             'good',
-            { attributes: { shooting: 3, defense: 2 }, hidden: { coachTrust: 12, morale: -4 } },
+            { attributes: { scoring: 3, defense: 2 }, hidden: { coachTrust: 12, morale: -4 } },
           ),
       },
       {
@@ -153,7 +153,7 @@ export const PRO_EVENTS: GameEvent[] = [
             'Dijiste que no a una fortuna. Tu agente no te habló por un mes; el vestuario te respetó para siempre.',
             'You said no to a fortune. Your agent did not speak to you for a month; the locker room respected you forever.',
             'good',
-            { attributes: { leadership: 5 }, hidden: { morale: 6, hype: 6, coachTrust: 8 } },
+            { attributes: { mental: 5 }, hidden: { morale: 6, hype: 6, coachTrust: 8 } },
           ),
       },
     ],
@@ -177,12 +177,12 @@ export const PRO_EVENTS: GameEvent[] = [
         resolve: (ctx) =>
           gamble(
             ctx,
-            ctx.player.attributes.leadership > 62 ? 0.75 : 0.42,
+            ctx.player.attributes.mental > 62 ? 0.75 : 0.42,
             outcome(
               'Uniste el vestuario. El equipo pasó de pelear el descenso a pelear el título.',
               'You united the room. The team went from fighting relegation to fighting for the title.',
               'epic',
-              { attributes: { leadership: 8, iq: 3 }, hidden: { coachTrust: 16, morale: 12, hype: 8 } },
+              { attributes: { mental: 11 }, hidden: { coachTrust: 16, morale: 12, hype: 8 } },
             ),
             outcome(
               'Te quedó grande. Los veteranos te pasaron por encima y el grupo se rompió del todo.',
@@ -199,7 +199,7 @@ export const PRO_EVENTS: GameEvent[] = [
             'Sin la carga del vestuario, tu juego dio un salto. El equipo, no tanto.',
             'Without the locker room on your shoulders, your game jumped. The team, less so.',
             'neutral',
-            { attributes: { shooting: 4, athleticism: 2 }, hidden: { morale: 4 } },
+            { attributes: { scoring: 4, physical: 2 }, hidden: { morale: 4 } },
           ),
       },
     ],
@@ -331,7 +331,7 @@ export const PRO_EVENTS: GameEvent[] = [
               'La mitad del país te dio la razón. Te convertiste en una voz que pesa.',
               'Half the country agreed with you. You became a voice that carries weight.',
               'good',
-              { attributes: { leadership: 4 }, hidden: { hype: 14, coachTrust: -10 } },
+              { attributes: { mental: 4 }, hidden: { hype: 14, coachTrust: -10 } },
             ),
             outcome(
               'El club te multó y el entrenador dejó de contar con vos.',
@@ -420,7 +420,7 @@ export const PRO_EVENTS: GameEvent[] = [
               'Se respetaron después de eso. La química mejoró justamente porque se dijeron la verdad.',
               'You respected each other afterwards. The chemistry improved precisely because the truth got said.',
               'good',
-              { attributes: { leadership: 4 }, hidden: { morale: 6 } },
+              { attributes: { mental: 4 }, hidden: { morale: 6 } },
             ),
             outcome(
               'El vestuario eligió bando y no fue el tuyo. Temporada larga.',
@@ -437,7 +437,7 @@ export const PRO_EVENTS: GameEvent[] = [
             'Comieron juntos, hablaron dos horas y salieron siendo un equipo de verdad.',
             'You ate together, talked for two hours, and came out an actual team.',
             'good',
-            { attributes: { leadership: 3, iq: 2 }, hidden: { morale: 10, coachTrust: 6 } },
+            { attributes: { mental: 5 }, hidden: { morale: 10, coachTrust: 6 } },
           ),
       },
     ],
@@ -497,7 +497,7 @@ export const PRO_EVENTS: GameEvent[] = [
         resolve: (ctx) =>
           gamble(
             ctx,
-            ctx.player.attributes.iq > 65 ? 0.6 : 0.38,
+            ctx.player.attributes.mental > 65 ? 0.6 : 0.38,
             outcome(
               'Salió. Tenés ingresos que no dependen de que tus rodillas aguanten.',
               'It worked. You have income that does not depend on your knees holding up.',
@@ -519,7 +519,7 @@ export const PRO_EVENTS: GameEvent[] = [
             'Índices, plazos fijos, cero adrenalina. En diez años vas a agradecerlo.',
             'Index funds, fixed terms, zero adrenaline. In ten years you will be grateful.',
             'good',
-            { money: 700_000, attributes: { iq: 2 } },
+            { money: 700_000, attributes: { mental: 2 } },
           ),
       },
     ],

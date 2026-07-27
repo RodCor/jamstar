@@ -1,0 +1,12 @@
+{
+  "_comment": "Career distribution of the SEVEN-attribute model, captured from main @ 2af1dfa before the Wave 2a merge. 240 seeded careers, random choice/offer/perk/minigame policy seeded per career. This is the only record of how the game behaved before the merge; it cannot be reconstructed afterwards.",
+  "careers": 240,
+  "ppg": { "mean": 9.861, "p10": 5.9, "p50": 9.7, "p90": 14 },
+  "rpg": { "mean": 4.735, "p10": 2, "p50": 4.1, "p90": 8.8 },
+  "apg": { "mean": 3.837, "p10": 1.7, "p50": 3.4, "p90": 6.7 },
+  "seasons": { "mean": 20.867, "p10": 18, "p50": 21, "p90": 24 },
+  "peakRating": { "mean": 83.343, "p10": 75.9, "p50": 84.4, "p90": 88.7 },
+  "ringsPerCareer": 1.7708,
+  "mvpsPerCareer": 0.4625,
+  "allStarsPerCareer": 1.0542
+}

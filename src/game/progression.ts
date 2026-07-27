@@ -3,7 +3,7 @@
  *
  * The shape the whole game hangs on — teenagers improve fast, players peak
  * roughly 26-30, and after that the decline rate depends on what kind of player
- * you chose to be. Athleticism falls off a cliff; IQ and shooting barely move.
+ * you chose to be. Physical falls off a cliff; mental and scoring barely move.
  */
 
 import type { Attributes, AttributeKey, Player } from './types'
@@ -56,28 +56,25 @@ export function developFromSeason(
 }
 
 /**
- * How fast each attribute moves with age. Positive = still growing at that age.
- * These per-attribute curves are what make Atletismo a gamble and IQ a hedge.
+ * How fast each attribute falls once past its peak, in points per year.
+ * Physical is the gamble and mental is the hedge — that contrast is what makes
+ * an ageing career interesting, so the merge preserves it at the extremes.
  */
 const DECLINE_RATE: Record<AttributeKey, number> = {
-  athleticism: 1.0,
-  strength: 0.45,
-  handling: 0.3,
+  physical: 0.75, // between athleticism's 1.0 and strength's 0.45, weighted to the explosion you lose first
   defense: 0.5,
-  shooting: 0.15,
-  iq: -0.25, // keeps improving into the late 30s
-  leadership: -0.35,
+  playmaking: 0.3, // handling's old rate; the hands go slowly
+  scoring: 0.15, // a jump shot survives almost everything
+  mental: -0.3, // negative: experience keeps accruing into the late 30s
 }
 
 /** Age at which each attribute stops growing on its own and starts to fade. */
 const PEAK_AGE: Record<AttributeKey, number> = {
-  athleticism: 24,
-  strength: 27,
-  handling: 27,
+  physical: 25,
+  playmaking: 27,
   defense: 28,
-  shooting: 30,
-  iq: 40,
-  leadership: 40,
+  scoring: 30,
+  mental: 40,
 }
 
 /**
@@ -99,13 +96,13 @@ export function ageOneYear(player: Player, rng: Rng): void {
       const distance = peak - player.age
       delta = rng.float(0.2, 1.1) * Math.min(1, distance / 6)
       // Highlight athletes bloom physically faster than they learn.
-      if (key === 'athleticism' && style.id === 'highlight') delta *= 1.25
-      if (key === 'iq' && style.id === 'highlight') delta *= 0.7
+      if (key === 'physical' && style.id === 'highlight') delta *= 1.25
+      if (key === 'mental' && style.id === 'highlight') delta *= 0.7
     } else {
       const yearsPast = player.age - peak
       const rate = DECLINE_RATE[key]
       if (rate <= 0) {
-        // IQ and leadership keep creeping up — experience is cumulative.
+        // Mental keeps creeping up — experience is cumulative.
         delta = rng.float(0, -rate * 1.4)
       } else {
         const severity = rate * (0.35 + yearsPast * 0.16) * (1 + wearPenalty * 1.3)
@@ -133,8 +130,31 @@ export function spendGrowthPoint(player: Player, key: AttributeKey): boolean {
   const current = player.attributes[key]
   if (current >= 96) return false
 
+  // Every rung is the seven-attribute ladder (0.15 / 0.4 / 0.85 / 1.5 / 2.3)
+  // scaled by 0.675. The gain-per-point ladder was tuned when a growth point
+  // was one of seven attributes: since `overallRating` is a weighted
+  // *average*, the same number of points spread over five attributes instead
+  // of seven moves it about 7/5 as fast, and careers inflated across the
+  // board. Scaling here rather than cutting the per-point gain keeps the
+  // diminishing-returns shape — and the choice between specialising and
+  // spreading — exactly as it was. 0.675 rather than the arithmetic
+  // 5/7 = 0.714 most likely because development feeds back on itself: a
+  // better season earns more points in `developFromSeason`, so the inflation
+  // compounds beyond what the averaging alone predicts. The factor was
+  // measured against `__fixtures__/career-baseline.json`, not derived — that
+  // explanation for the gap is inferred rather than tested.
+  //
+  // Note: the annual preseason allowance from `growthPointsFor` (added to
+  // `player.growthPoints` at the end of `ageOneYear`, above) is not part of
+  // this budget in practice. On any career where perks are on offer it is
+  // granted and then discarded whole by `takePerk`'s `player.growthPoints = 0`
+  // (see perks.ts) before it is ever spent through this function — long-
+  // standing behaviour, not something this branch introduced or that this
+  // scaling factor assumes away. The points that actually reach
+  // `spendGrowthPoint` come from `developFromSeason` and from perk bonuses,
+  // both of which grant and spend in the same breath.
   const gain =
-    current >= 90 ? 0.15 : current >= 84 ? 0.4 : current >= 76 ? 0.85 : current >= 64 ? 1.5 : 2.3
+    current >= 90 ? 0.101 : current >= 84 ? 0.27 : current >= 76 ? 0.574 : current >= 64 ? 1.013 : 1.552
 
   player.attributes[key] = clamp(current + gain, 5, 96)
   player.growthPoints -= 1
@@ -171,13 +191,21 @@ export function autoSpendGrowth(player: Player, rng: Rng): void {
   }
 }
 
-/** Positional value of each attribute. Drives both rating and auto-spending. */
+/**
+ * Positional value of each attribute. Drives both rating and auto-spending.
+ *
+ * Each row sums to 1, though `overallRating` normalises anyway. The old
+ * seven-key rows folded in here: handling and part of iq into playmaking,
+ * athleticism and strength into physical, leadership and the rest of iq into
+ * mental — with iq leaning toward playmaking for guards, who read the floor
+ * with the ball, and toward mental for bigs, who read it without.
+ */
 const POSITION_WEIGHTS: Record<string, Partial<Record<AttributeKey, number>>> = {
-  PG: { handling: 0.26, shooting: 0.22, iq: 0.2, athleticism: 0.14, defense: 0.1, leadership: 0.06, strength: 0.02 },
-  SG: { shooting: 0.3, handling: 0.18, athleticism: 0.18, defense: 0.16, iq: 0.12, strength: 0.04, leadership: 0.02 },
-  SF: { shooting: 0.22, athleticism: 0.22, defense: 0.2, handling: 0.14, strength: 0.12, iq: 0.08, leadership: 0.02 },
-  PF: { strength: 0.24, defense: 0.24, athleticism: 0.2, shooting: 0.16, iq: 0.1, handling: 0.04, leadership: 0.02 },
-  C: { strength: 0.3, defense: 0.28, athleticism: 0.18, iq: 0.12, shooting: 0.1, handling: 0.01, leadership: 0.01 },
+  PG: { playmaking: 0.38, scoring: 0.22, physical: 0.16, mental: 0.14, defense: 0.1 },
+  SG: { scoring: 0.3, playmaking: 0.24, physical: 0.22, defense: 0.16, mental: 0.08 },
+  SF: { physical: 0.34, scoring: 0.22, defense: 0.2, playmaking: 0.18, mental: 0.06 },
+  PF: { physical: 0.44, defense: 0.24, scoring: 0.16, playmaking: 0.08, mental: 0.08 },
+  C: { physical: 0.48, defense: 0.28, scoring: 0.1, mental: 0.09, playmaking: 0.05 },
 }
 
 /**
@@ -186,14 +214,7 @@ const POSITION_WEIGHTS: Record<string, Partial<Record<AttributeKey, number>>> = 
  */
 export function overallRating(player: Player): number {
   const a = player.attributes
-  const weights: Record<string, Partial<Record<AttributeKey, number>>> = {
-    PG: { handling: 0.26, shooting: 0.22, iq: 0.2, athleticism: 0.14, defense: 0.1, leadership: 0.06, strength: 0.02 },
-    SG: { shooting: 0.3, handling: 0.18, athleticism: 0.18, defense: 0.16, iq: 0.12, strength: 0.04, leadership: 0.02 },
-    SF: { shooting: 0.22, athleticism: 0.22, defense: 0.2, handling: 0.14, strength: 0.12, iq: 0.08, leadership: 0.02 },
-    PF: { strength: 0.24, defense: 0.24, athleticism: 0.2, shooting: 0.16, iq: 0.1, handling: 0.04, leadership: 0.02 },
-    C: { strength: 0.3, defense: 0.28, athleticism: 0.18, iq: 0.12, shooting: 0.1, handling: 0.01, leadership: 0.01 },
-  }
-  const w = weights[player.position]
+  const w = POSITION_WEIGHTS[player.position]
   let total = 0
   let weightSum = 0
   for (const key of ATTRIBUTE_KEYS) {

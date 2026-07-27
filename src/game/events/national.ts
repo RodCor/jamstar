@@ -25,7 +25,7 @@ export const NATIONAL_EVENTS: GameEvent[] = [
             `Cantaste el himno con la camiseta de ${ctx.country.name.es} puesta. Tu viejo lloró en la tribuna.`,
             `You sang the anthem wearing the ${ctx.country.name.en} shirt. Your dad cried in the stands.`,
             'epic',
-            { attributes: { iq: 3, leadership: 3 }, hidden: { hype: 14, morale: 18, wear: 6 } },
+            { attributes: { mental: 6 }, hidden: { hype: 14, morale: 18, wear: 6 } },
           ),
       },
       {
@@ -62,12 +62,12 @@ export const NATIONAL_EVENTS: GameEvent[] = [
         resolve: (ctx) =>
           gamble(
             ctx,
-            0.42 + ctx.player.attributes.shooting / 400,
+            0.42 + ctx.player.attributes.scoring / 400,
             outcome(
               'Entró. Sobre la chicharra. Ese video se va a reproducir mientras exista el básquet en tu país.',
               'It went in. At the buzzer. That clip will play for as long as basketball exists in your country.',
               'epic',
-              { attributes: { leadership: 5 }, hidden: { hype: 26, morale: 24 } },
+              { attributes: { mental: 5 }, hidden: { hype: 26, morale: 24 } },
             ),
             outcome(
               'Se fue larga. En tu país todavía discuten esa jugada.',
@@ -87,13 +87,13 @@ export const NATIONAL_EVENTS: GameEvent[] = [
               'La metió tu compañero. Ganaron y vos hiciste la jugada correcta, aunque la foto sea de otro.',
               'Your teammate made it. You won, and you made the right play, even if the photo belongs to someone else.',
               'good',
-              { attributes: { iq: 5, leadership: 4 }, hidden: { morale: 16, hype: 8 } },
+              { attributes: { mental: 9 }, hidden: { morale: 16, hype: 8 } },
             ),
             outcome(
               'Falló. Todos dijeron que tendrías que haber tirado vos.',
               'They missed. Everyone said you should have taken it.',
               'bad',
-              { attributes: { iq: 2 }, hidden: { morale: -14, hype: -4 } },
+              { attributes: { mental: 2 }, hidden: { morale: -14, hype: -4 } },
             ),
           ),
       },
@@ -141,7 +141,7 @@ export const NATIONAL_EVENTS: GameEvent[] = [
             'Volviste al club con una furia distinta. Fue tu mejor pretemporada en años.',
             'You went back to your club with a different kind of anger. It was your best preseason in years.',
             'good',
-            { attributes: { shooting: 3, defense: 3, athleticism: 2 }, hidden: { morale: -6, coachTrust: 8 } },
+            { attributes: { scoring: 3, defense: 3, physical: 2 }, hidden: { morale: -6, coachTrust: 8 } },
           ),
       },
     ],
@@ -177,7 +177,7 @@ export const NATIONAL_EVENTS: GameEvent[] = [
             `Te convertiste en un símbolo en ${ctx.country.name.es}. Nunca jugaste unos Juegos.`,
             `You became a symbol in ${ctx.country.name.en}. You never played an Olympics.`,
             'good',
-            { attributes: { leadership: 6 }, hidden: { morale: 16, hype: 4 } },
+            { attributes: { mental: 6 }, hidden: { morale: 16, hype: 4 } },
           ),
       },
     ],
@@ -203,7 +203,7 @@ export const NATIONAL_EVENTS: GameEvent[] = [
             'Diez años después, ese chico dijo en su discurso de retiro que vos le enseñaste a ser profesional.',
             'Ten years later, that kid said in their retirement speech that you taught them how to be a professional.',
             'epic',
-            { attributes: { leadership: 8, iq: 3 }, hidden: { morale: 14 } },
+            { attributes: { mental: 11 }, hidden: { morale: 14 } },
           ),
       },
       {

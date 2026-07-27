@@ -23,7 +23,7 @@ import { startOffseason } from './engine'
  */
 export const START_AGE = 13
 export const START_YEAR = 2026
-export const SAVE_VERSION = 3
+export const SAVE_VERSION = 4
 
 export interface CreationChoices {
   name: string
@@ -45,11 +45,11 @@ const HEIGHT_BY_POSITION: Record<Position, [number, number]> = {
 
 /** Baseline teenage attributes by position, before style and country modifiers. */
 const BASE_BY_POSITION: Record<Position, Partial<Attributes>> = {
-  PG: { handling: 12, iq: 8, shooting: 4, strength: -8, defense: -2 },
-  SG: { shooting: 10, handling: 5, athleticism: 3, strength: -4 },
-  SF: { athleticism: 6, defense: 4, shooting: 2 },
-  PF: { strength: 8, defense: 6, athleticism: 2, handling: -6, shooting: -4 },
-  C: { strength: 12, defense: 8, handling: -12, shooting: -8, athleticism: -2 },
+  PG: { playmaking: 17, scoring: 4, mental: 3, defense: -2, physical: -8 },
+  SG: { scoring: 10, playmaking: 5, physical: -1 },
+  SF: { physical: 6, defense: 4, scoring: 2 },
+  PF: { physical: 10, defense: 6, playmaking: -6, scoring: -4 },
+  C: { physical: 10, defense: 8, playmaking: -12, scoring: -8 },
 }
 
 export function createPlayer(choices: CreationChoices, rng: Rng): Player {

@@ -37,7 +37,7 @@ export const INJURY_EVENTS: GameEvent[] = [
               'You compensated with the other leg and tore something. You lost twice as long.',
               'bad',
               {
-                injury: injury('ankle_bad', 'Esguince grave', 'Severe sprain', 30, 12, { athleticism: -4 }),
+                injury: injury('ankle_bad', 'Esguince grave', 'Severe sprain', 30, 12, { physical: -4 }),
                 hidden: { morale: -10 },
               },
             ),
@@ -81,9 +81,9 @@ export const INJURY_EVENTS: GameEvent[] = [
               'neutral',
               {
                 injury: injury('acl', 'Rotura de ligamento cruzado', 'ACL tear', 70, 18, {
-                  athleticism: -9,
+                  physical: -9,
                 }),
-                attributes: { iq: 6 },
+                attributes: { mental: 6 },
                 hidden: { morale: -8, hype: -12 },
               },
             ),
@@ -93,8 +93,7 @@ export const INJURY_EVENTS: GameEvent[] = [
               'bad',
               {
                 injury: injury('acl_bad', 'Rodilla comprometida', 'Compromised knee', 90, 26, {
-                  athleticism: -16,
-                  strength: -5,
+                  physical: -21,
                 }),
                 hidden: { morale: -20, hype: -18 },
               },
@@ -113,7 +112,7 @@ export const INJURY_EVENTS: GameEvent[] = [
               'epic',
               {
                 injury: injury('acl_fast', 'Rodilla reconstruida', 'Reconstructed knee', 40, 14, {
-                  athleticism: -4,
+                  physical: -4,
                 }),
                 hidden: { hype: 14, coachTrust: 12 },
               },
@@ -125,7 +124,7 @@ export const INJURY_EVENTS: GameEvent[] = [
               {
                 retire: true,
                 injury: injury('acl_career', 'Lesión de carrera', 'Career-ending injury', 120, 40, {
-                  athleticism: -25,
+                  physical: -25,
                 }),
               },
             ),
@@ -155,7 +154,7 @@ export const INJURY_EVENTS: GameEvent[] = [
             'Reinventaste tu juego alrededor de la cabeza en lugar de las piernas. Ganaste tres años de carrera.',
             'You rebuilt your game around your head instead of your legs. You bought three more years.',
             'good',
-            { attributes: { iq: 7, shooting: 3, athleticism: -3 }, hidden: { wear: -12 } },
+            { attributes: { mental: 7, scoring: 3, physical: -3 }, hidden: { wear: -12 } },
           ),
       },
       {
@@ -196,10 +195,9 @@ export const INJURY_EVENTS: GameEvent[] = [
               'neutral',
               {
                 injury: injury('achilles', 'Tendón de Aquiles', 'Achilles tendon', 82, 30, {
-                  athleticism: -18,
-                  strength: -6,
+                  physical: -24,
                 }),
-                attributes: { iq: 4 },
+                attributes: { mental: 4 },
                 hidden: { morale: -10 },
               },
             ),
@@ -264,7 +262,7 @@ export const INJURY_EVENTS: GameEvent[] = [
               'The dizziness lasted two months. You lost half a year and some peripheral vision.',
               'bad',
               {
-                injury: injury('concussion', 'Conmoción cerebral', 'Concussion', 40, 10, { iq: -3 }),
+                injury: injury('concussion', 'Conmoción cerebral', 'Concussion', 40, 10, { mental: -3 }),
                 hidden: { morale: -12 },
               },
             ),
@@ -293,7 +291,7 @@ export const INJURY_EVENTS: GameEvent[] = [
             'Empezaste terapia. Tardó, pero volviste a jugar por las razones por las que empezaste.',
             'You started therapy. It took time, but you went back to playing for the reasons you started.',
             'good',
-            { hidden: { morale: 28, wear: -6 }, attributes: { iq: 3, leadership: 3 } },
+            { hidden: { morale: 28, wear: -6 }, attributes: { mental: 6 } },
           ),
       },
       {

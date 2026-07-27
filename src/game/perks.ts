@@ -6,13 +6,65 @@
  * comes back around.
  */
 
-import type { Player } from './types'
-import { Rng } from './rng'
-import { PERKS, aggregateEffects, getPerk, type Perk } from '@/data/perks'
+import type { AwardId, Player, Season } from './types'
+import { Rng, clamp } from './rng'
+import { PERKS, aggregateEffects, getPerk, type Perk, type PerkRarity } from '@/data/perks'
 import { spendGrowthPoint } from './progression'
 
 /** How many are put in front of the player each preseason. */
 export const PERK_CHOICES = 3
+
+/** Weakest to strongest — also the order the draw falls back through. */
+export const PERK_RARITIES: readonly PerkRarity[] = ['basic', 'silver', 'gold', 'legend', 'top1']
+
+const MAJOR_AWARDS: readonly AwardId[] = ['mvp', 'dpoy', 'finals_mvp']
+const TITLE_AWARDS: readonly AwardId[] = ['league_champion', 'cup_champion']
+
+/**
+ * How good last season was, 0..1. Feeds the rarity roll below: a career year
+ * earns a shot at the rare tiers, a rookie with no season yet earns nothing.
+ */
+export function standingFor(lastSeason: Season | null): number {
+  if (!lastSeason) return 0
+  const hasMajorAward = lastSeason.awards.some((award) => MAJOR_AWARDS.includes(award))
+  const wonTitle = lastSeason.awards.some((award) => TITLE_AWARDS.includes(award))
+  const madeAllStar = lastSeason.awards.includes('all_star')
+  return clamp(
+    (lastSeason.rating - 50) / 40
+      + (hasMajorAward ? 0.15 : 0)
+      + (wonTitle ? 0.15 : 0)
+      + (madeAllStar ? 0.05 : 0),
+    0,
+    1,
+  )
+}
+
+/** The odds table's two endpoints — standing 0 and standing 1 — each summing to 1. */
+const ODDS_AT_MIN: Record<PerkRarity, number> = {
+  basic: 0.45, silver: 0.38, gold: 0.15, legend: 0.02, top1: 0,
+}
+const ODDS_AT_MAX: Record<PerkRarity, number> = {
+  basic: 0.05, silver: 0.2, gold: 0.4, legend: 0.27, top1: 0.08,
+}
+
+/**
+ * The rarity distribution to roll a preseason's three slots against.
+ *
+ * Pure — no `Rng` involved — so a replayed seed always sees the same odds;
+ * only the roll made against them (in `drawPerkChoices`) consumes randomness.
+ */
+export function rarityOdds(standing: number): Record<PerkRarity, number> {
+  const s = clamp(standing, 0, 1)
+  const odds = {} as Record<PerkRarity, number>
+  for (const rarity of PERK_RARITIES) {
+    odds[rarity] = ODDS_AT_MIN[rarity] + (ODDS_AT_MAX[rarity] - ODDS_AT_MIN[rarity]) * s
+  }
+  // Both endpoints already sum to 1 and interpolation preserves that, but
+  // renormalise anyway so float dust can never leave the total off by an epsilon.
+  const total = PERK_RARITIES.reduce((sum, rarity) => sum + odds[rarity], 0)
+  for (const rarity of PERK_RARITIES) odds[rarity] /= total
+  return odds
+}
 
 /** Perks this player could be offered right now. */
 function eligiblePerks(player: Player): Perk[] {
@@ -29,24 +81,45 @@ function eligiblePerks(player: Player): Perk[] {
 /**
  * Draw this preseason's options.
  *
- * Weighted toward what the player's position actually uses, so a centre is not
- * repeatedly offered ball-handling upgrades — but not exclusively, because an
- * off-profile perk is one of the more interesting things you can be offered.
+ * Two-stage: roll a rarity per slot from `rarityOdds(standingFor(lastSeason))`,
+ * then fill it from the eligible pool, tie-broken by the existing `weight`
+ * field. Weighted toward what the player's position actually uses, so a centre
+ * is not repeatedly offered ball-handling upgrades — but not exclusively,
+ * because an off-profile perk is one of the more interesting things you can
+ * be offered.
  */
-export function drawPerkChoices(player: Player, rng: Rng): string[] {
+export function drawPerkChoices(player: Player, rng: Rng, lastSeason: Season | null): string[] {
   const pool = eligiblePerks(player)
   if (pool.length === 0) return []
 
+  const odds = rarityOdds(standingFor(lastSeason))
   const picked: Perk[] = []
   const remaining = [...pool]
 
   while (picked.length < PERK_CHOICES && remaining.length > 0) {
-    const choice = rng.weighted(remaining, (perk) => perk.weight)
+    const rolled = rng.weighted(PERK_RARITIES, (rarity) => odds[rarity])
+    const choice = pickAtOrBelow(remaining, rolled, rng)
     picked.push(choice)
     remaining.splice(remaining.indexOf(choice), 1)
   }
 
   return picked.map((perk) => perk.id)
+}
+
+/**
+ * An eligible perk at this rarity, or the next tier down if none remain.
+ *
+ * Only ever steps down, never up: a legend-tier drought must not turn into a
+ * back door for legends themselves, or a player who cleared out every Gold
+ * would start getting Legends handed to them automatically. If even `basic`
+ * comes up dry, any eligible perk beats offering fewer than three.
+ */
+function pickAtOrBelow(remaining: Perk[], rarity: PerkRarity, rng: Rng): Perk {
+  for (let tier = PERK_RARITIES.indexOf(rarity); tier >= 0; tier--) {
+    const atTier = remaining.filter((perk) => perk.rarity === PERK_RARITIES[tier])
+    if (atTier.length > 0) return rng.weighted(atTier, (perk) => perk.weight)
+  }
+  return rng.weighted(remaining, (perk) => perk.weight)
 }
 
 /**
@@ -71,7 +144,19 @@ export function takePerk(player: Player, perkId: string): boolean {
       spendGrowthPoint(player, key as keyof typeof perk.bonus)
     }
   }
-  // Perks spend exactly what they grant.
+  // Perks spend exactly what they grant, but this line also wipes anything
+  // still sitting in `player.growthPoints` from other sources — chiefly the
+  // annual preseason allowance `growthPointsFor` adds in `ageOneYear`
+  // (progression.ts). On any career where perks are on offer, that allowance
+  // is granted and then discarded here every single season, before
+  // `autoSpendGrowth` ever runs, so `growthPointsFor`'s output never reaches
+  // an attribute. This is long-standing behaviour — the `= 0` predates this
+  // branch — not an oversight introduced now, and it must not be fixed
+  // incidentally: the 0.675 gain-ladder scale, the 257-point perk pool total,
+  // and every calibrated distribution band in this codebase were measured
+  // with this discard in place. Restoring the annual allowance would add
+  // roughly 60-100 unspent growth points per career and invalidate all of
+  // them at once. Changing this needs its own measured pass.
   player.growthPoints = 0
   return true
 }

@@ -11,26 +11,28 @@ export type Position = 'PG' | 'SG' | 'SF' | 'PF' | 'C'
 
 export type Hand = 'right' | 'left'
 
-/** The seven visible attributes. Each has an explicit tradeoff, surfaced in the UI. */
-export type AttributeKey =
-  | 'shooting'
-  | 'handling'
-  | 'athleticism'
-  | 'defense'
-  | 'strength'
-  | 'iq'
-  | 'leadership'
+/**
+ * The five visible attributes, each named for what it does rather than for a
+ * body part. Each has an explicit tradeoff, surfaced in the UI.
+ *
+ * - `scoring` — putting the ball in the hoop, and doing it efficiently.
+ * - `playmaking` — creating for others: the handle, the pass, the read with the
+ *   ball in your hands.
+ * - `defense` — stopping the other end.
+ * - `physical` — explosion, size and durability. The steepest decline of the
+ *   five, and the one that buys you injuries.
+ * - `mental` — decisions, composure and the locker room. Still climbing at 38.
+ */
+export type AttributeKey = 'scoring' | 'playmaking' | 'defense' | 'physical' | 'mental'
 
 export type Attributes = Record<AttributeKey, number>
 
 export const ATTRIBUTE_KEYS: readonly AttributeKey[] = [
-  'shooting',
-  'handling',
-  'athleticism',
+  'scoring',
+  'playmaking',
   'defense',
-  'strength',
-  'iq',
-  'leadership',
+  'physical',
+  'mental',
 ]
 
 /** Hidden state the player feels but never sees as a raw number. */
@@ -384,6 +386,12 @@ export interface Player {
   age: number
   stage: CareerStage
   attributes: Attributes
+  /**
+   * Attributes as they stood at the previous preseason, so the screen can show
+   * what a year actually bought. Absent in a player's first preseason, when
+   * there is nothing to compare against.
+   */
+  attributesLastYear?: Attributes
   hidden: HiddenStats
   currentTeamId: string
   currentLeagueId: string

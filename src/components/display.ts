@@ -31,23 +31,19 @@ export const PLAYOFF_KEY: Record<PlayoffResult, keyof Dictionary> = {
 }
 
 export const ATTRIBUTE_KEY: Record<AttributeKey, keyof Dictionary> = {
-  shooting: 'attrShooting',
-  handling: 'attrHandling',
-  athleticism: 'attrAthleticism',
+  scoring: 'attrScoring',
+  playmaking: 'attrPlaymaking',
   defense: 'attrDefense',
-  strength: 'attrStrength',
-  iq: 'attrIq',
-  leadership: 'attrLeadership',
+  physical: 'attrPhysical',
+  mental: 'attrMental',
 }
 
 export const ATTRIBUTE_HELP_KEY: Record<AttributeKey, keyof Dictionary> = {
-  shooting: 'attrShootingHelp',
-  handling: 'attrHandlingHelp',
-  athleticism: 'attrAthleticismHelp',
+  scoring: 'attrScoringHelp',
+  playmaking: 'attrPlaymakingHelp',
   defense: 'attrDefenseHelp',
-  strength: 'attrStrengthHelp',
-  iq: 'attrIqHelp',
-  leadership: 'attrLeadershipHelp',
+  physical: 'attrPhysicalHelp',
+  mental: 'attrMentalHelp',
 }
 
 /** Money, compact and readable in both locales. */
