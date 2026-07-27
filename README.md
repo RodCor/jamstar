@@ -26,7 +26,7 @@ and durability but owns the steepest decline of the five and the injuries that
 come with it after 30. *Mentalidad/Mental* is the one attribute still climbing
 in your late 30s. *Anotación/Scoring* ages the best of the rest; *Generación/
 Playmaking* and *Defensa/Defense* round the five out, weighted differently by
-position. Same for the seven play styles — the creation screen states each
+position. Same for the six play styles — the creation screen states each
 gamble plainly rather than hiding it.
 
 **Development is layered, not allocated.** Every attribute grows and fades on its
@@ -187,13 +187,13 @@ share one finalisation routine so they can never drift apart.
 ### Balance
 
 Calibrated across hundreds of simulated careers so the population looks like real
-basketball. A player who lets the engine auto-pick every perk and converts every
-playable final still lands in the NBA well over half the time — there are two
-doors in now, the draft and a free-agent call — but a legend-or-GOAT outcome
-stays under a quarter of careers; picking perks that actually suit your position
-measurably raises both the average legacy score and how often elite outcomes
-happen. Achievements are weighted by the tier they were earned at — a title in
-the LEB Oro counts, but it is not an NBA ring, and the legacy score says so.
+basketball. A player who takes whatever perk comes up first and loses every final
+they reach still becomes a legend or GOAT in under a quarter of careers, and
+reaches the NBA less than two-thirds of the time. Picking perks that actually
+suit your position instead measurably raises both the average legacy score and
+how often a career clears Hall-of-Fame tier. Achievements are weighted by the
+tier they were earned at — a title in the LEB Oro counts, but it is not an NBA
+ring, and the legacy score says so.
 
 ---
 
