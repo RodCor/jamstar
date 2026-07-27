@@ -1,12 +1,12 @@
 /**
- * The development years: nineteen to twenty-one, still nobody's professional.
+ * The development years: nineteen to twenty-one.
  *
- * `stageForAge` only puts a player here while they have not yet turned pro, so
- * this is the deck for the ones who are neither a prospect nor a signing — the
- * college years, the second team, the season on loan in a league nobody watches.
- * The stage had fourteen cards before this file and only three of them were
- * ungated, which meant most of what a player met here was decided by the flag on
- * their passport rather than by anything they did.
+ * Old enough to be somewhere real — the college years, the second team, a first
+ * contract at a club that cannot pay, a season on loan in a league nobody
+ * watches — and too young for any of it to have been decided yet. The stage had
+ * fourteen cards before this file and only three of them were ungated, which
+ * meant most of what a player met here was decided by the flag on their passport
+ * rather than by anything they did.
  *
  * Every card below is ungated for that reason, and every one of them is a trade:
  * at this age nothing is bought without something being sold, and the deck's

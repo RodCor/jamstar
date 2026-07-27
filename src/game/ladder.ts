@@ -20,11 +20,24 @@ export interface Placement {
   note: { es: string; en: string } | null
 }
 
-/** Stage for a given age. The draft is a moment, not a year, so it is handled separately. */
-export function stageForAge(age: number, hasTurnedPro: boolean): CareerStage {
+/**
+ * Stage for a given age. The draft is a moment, not a year, so it is handled
+ * separately, and retirement is set by the engine rather than derived here.
+ *
+ * Age alone, deliberately. This used to take a `hasTurnedPro` flag and gate
+ * `breakout` and `development` behind it, on the theory that signing somewhere
+ * meant you had stopped developing. Two things were wrong with that. The flag
+ * was computed as `currentLeagueId !== 'youth'`, and the ladder moves everyone
+ * out of the youth league at 17 — so `development` was unreachable, zero
+ * seasons across forty measured careers, and `breakout` lasted exactly one. And
+ * the premise itself does not survive contact: a nineteen-year-old in the ACB
+ * is developing, whatever his registration says, and the cards written for that
+ * stage are the ones that fit him. Do not reintroduce the flag.
+ */
+export function stageForAge(age: number): CareerStage {
   if (age < 17) return 'youth'
-  if (age < 19 && !hasTurnedPro) return 'breakout'
-  if (age < 22 && !hasTurnedPro) return 'development'
+  if (age < 19) return 'breakout'
+  if (age < 22) return 'development'
   if (age < 30) return 'prime'
   if (age < 36) return 'veteran'
   return 'twilight'

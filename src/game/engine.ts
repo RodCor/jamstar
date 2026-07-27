@@ -95,7 +95,7 @@ export function startOffseason(state: GameState): GameState {
 
   // Natural growth and decline for the year.
   ageOneYear(player, yearRng(next, 'ageing'))
-  player.stage = stageForAge(player.age, player.currentLeagueId !== 'youth')
+  player.stage = stageForAge(player.age)
 
   const country = getCountry(player.countryCode)
 
