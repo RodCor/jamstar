@@ -93,6 +93,7 @@ export function startOffseason(state: GameState): GameState {
   next.pendingDraft = null
   next.pendingTournament = null
   next.pendingPlacementNote = null
+  next.pendingRenewalNote = null
 
   // Age, natural growth/decline, and this year's growth allowance.
   ageOneYear(player, yearRng(next, 'ageing'))
@@ -112,9 +113,9 @@ export function startOffseason(state: GameState): GameState {
     return next
   }
 
-  const offers =
+  const slate =
     player.currentLeagueId === 'youth'
-      ? generateFirstOffers(player, country, yearRng(next, 'first-offers'))
+      ? { offers: generateFirstOffers(player, country, yearRng(next, 'first-offers')), renewalDeclined: null }
       : generateOffers(
           player,
           country,
@@ -123,12 +124,14 @@ export function startOffseason(state: GameState): GameState {
           next.seasons[next.seasons.length - 1] ?? null,
         )
 
-  if (offers.length === 0) {
+  next.pendingRenewalNote = slate.renewalDeclined
+
+  if (slate.offers.length === 0) {
     // Nobody called. Stay put rather than stall the career.
     return openPreseason(next)
   }
 
-  next.pendingOffers = offers
+  next.pendingOffers = slate.offers
   next.phase = 'offers'
   return next
 }

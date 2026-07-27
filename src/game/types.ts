@@ -411,6 +411,11 @@ export interface GameState {
    */
   pendingPlacementNote: Localized | null
   /**
+   * Set when the player's club chose not to re-sign them, so free agency can
+   * say so instead of presenting a list with a silent hole in it.
+   */
+  pendingRenewalNote: Localized | null
+  /**
    * A season that is fully simulated except for its final, held back while the
    * player plays for the title. Never present outside the `minigame` phase.
    */
