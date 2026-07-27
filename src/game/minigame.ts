@@ -131,6 +131,11 @@ function stagePressure(competition: CompetitionKind, league: League | null | und
       return 0.04
     case 'league':
       return league?.tier === 1 ? 0.1 : league?.tier === 2 ? 0.04 : 0
+    // A cup final is one night against whoever survived the other half of the
+    // bracket — less weight than a league final at the same level, and often a
+    // weaker opponent, which is what makes it winnable for a smaller club.
+    case 'cup':
+      return league?.tier === 1 ? 0.04 : -0.04
   }
 }
 
@@ -152,8 +157,14 @@ export function buildChallenge(input: ChallengeInput): MinigameChallenge {
   )
 
   // Harder finals give you more attempts but demand more of them, so a title is
-  // never one lucky tap. International finals are the longest series of all.
-  const big = competition !== 'league' || league?.tier === undefined || league.tier <= 2
+  // never one lucky tap. International finals are the longest series of all; a
+  // cup final is always the short one, whatever league it sits in.
+  const big =
+    competition === 'cup'
+      ? false
+      : competition === 'league'
+        ? league?.tier === undefined || league.tier <= 2
+        : true
   const rounds = big ? 5 : 3
   const required = big ? 3 : 2
 

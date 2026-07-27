@@ -23,7 +23,7 @@ import { startOffseason } from './engine'
  */
 export const START_AGE = 13
 export const START_YEAR = 2026
-export const SAVE_VERSION = 2
+export const SAVE_VERSION = 3
 
 export interface CreationChoices {
   name: string
@@ -121,6 +121,9 @@ export function createGame(choices: CreationChoices, seed: string, mode: GameMod
     pendingPlacementNote: null,
     draftSeason: null,
     pendingMinigame: null,
+    pendingFinals: [],
+    cupRun: null,
+    finalHeadlines: [],
     pendingOffers: null,
     pendingDraft: null,
     pendingTournament: null,

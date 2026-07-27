@@ -277,6 +277,8 @@ export interface CareerTotals {
   rpg: number
   apg: number
   rings: number
+  /** Domestic cups won. */
+  cups: number
   mvps: number
   finalsMvps: number
   allStars: number
@@ -415,6 +417,19 @@ export interface GameState {
   draftSeason: Season | null
   /** The final awaiting the player, if any. */
   pendingMinigame: MinigameChallenge | null
+  /**
+   * Club finals still to be played this season, after the one in front of the
+   * player. A club can reach both its cup final and its league final, and each
+   * has to be won on its own.
+   */
+  pendingFinals: MinigameChallenge[]
+  /** This season's domestic cup run, if the club's league has a cup. */
+  cupRun: CupRun | null
+  /**
+   * Headlines from finals played this season, collected as each is decided and
+   * folded into the season once it closes.
+   */
+  finalHeadlines: LocalizedHeadline[]
   /** Contracts on the table, when the player is choosing a club. */
   pendingOffers: ContractOffer[] | null
   /** Draft night, the one year it happens. */
@@ -450,7 +465,42 @@ export type MinigameType =
   | 'play_recall'
 
 /** What is being decided, which changes the stakes and the framing. */
-export type CompetitionKind = 'league' | 'world_cup' | 'olympics' | 'continental'
+export type CompetitionKind = 'league' | 'cup' | 'world_cup' | 'olympics' | 'continental'
+
+/** A domestic knockout cup, played alongside the league season. */
+export interface Cup {
+  id: string
+  /** The league whose clubs contest it. */
+  leagueId: string
+  name: Localized
+  abbr: string
+  /** 0-100 quality of the clubs you have to get past. */
+  fieldStrength: number
+  /** 0-100 how much winning it is worth to a career. */
+  prestige: number
+}
+
+/**
+ * A club's run in the domestic cup, resolved during the season.
+ *
+ * Lives on the state rather than inside the season because the final may be
+ * handed to the player as a minigame, which means it survives across a phase.
+ */
+export interface CupRun {
+  cupId: string
+  name: Localized
+  /** How far the club got. */
+  outcome: 'early' | 'quarterfinal' | 'semifinal' | 'final'
+  /** Who is waiting in the final, if they got there. */
+  opponentTeamId: string | null
+  /** Set once the final is decided, either by the player or by a roll. */
+  won: boolean | null
+  /**
+   * Whether the player contested the final themselves. A final they played
+   * already has its own headline, so the summary must not narrate it twice.
+   */
+  played: boolean
+}
 
 /** A contract on the table during free agency. */
 export interface ContractOffer {
@@ -481,9 +531,12 @@ export interface DraftResult {
   fallbackLeagueId: string
 }
 
+/** The competitions played for a country rather than a club. */
+export type NationalCompetition = Exclude<CompetitionKind, 'league' | 'cup'>
+
 /** A summer with the national team. */
 export interface NationalTournament {
-  kind: Exclude<CompetitionKind, 'league'>
+  kind: NationalCompetition
   name: Localized
   year: number
   /** How far the run got before the final. */

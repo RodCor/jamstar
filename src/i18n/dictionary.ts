@@ -170,6 +170,7 @@ export const es = {
   rivalVs: 'Vos vs. {name}',
   rivalRetired: 'Retirado en {year}',
   rings: 'Títulos',
+  cups: 'Copas',
   mvps: 'MVPs',
   allStars: 'All-Star',
 
@@ -348,6 +349,7 @@ export const en: Dictionary = {
   rivalVs: 'You vs. {name}',
   rivalRetired: 'Retired in {year}',
   rings: 'Titles',
+  cups: 'Cups',
   mvps: 'MVPs',
   allStars: 'All-Star',
 

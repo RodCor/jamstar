@@ -13,7 +13,9 @@ import type {
   EventOutcome,
   GameState,
   League,
+  Localized,
   LocalizedHeadline,
+  MinigameChallenge,
   PendingEvent,
   Season,
   Team,
@@ -32,6 +34,7 @@ import {
 } from './progression'
 import { stageForAge } from './ladder'
 import { buildChallenge, isWin, resultHeadline } from './minigame'
+import { cupForLeague, cupHeadline, rollCupFinal, runCup } from './cup'
 import { autoTakePerk, drawPerkChoices, takePerk } from './perks'
 import { generateFirstOffers, generateOffers } from './offers'
 import { draftHeadline, isDraftEligible, runDraft } from './draft'
@@ -83,6 +86,8 @@ export function startOffseason(state: GameState): GameState {
 
   next.pendingEvent = null
   next.pendingMinigame = null
+  next.pendingFinals = []
+  next.cupRun = null
   next.draftSeason = null
   next.pendingOffers = null
   next.pendingDraft = null
@@ -277,9 +282,10 @@ export function continueAfterEvent(state: GameState): GameState {
 /**
  * Run the season.
  *
- * If the player reaches a final they can actually contest, the season is parked
- * as a draft and the phase hands over to the minigame; otherwise it is finalised
- * straight away.
+ * If the player reaches a final they can actually contest — the domestic cup in
+ * midwinter, the league final in June, or both — the season is parked as a draft
+ * and the phase hands over to the minigames one at a time; otherwise it is
+ * finalised straight away.
  */
 function simulateSeason(state: GameState): GameState {
   const player = state.player
@@ -316,34 +322,68 @@ function simulateSeason(state: GameState): GameState {
     headlines: [],
   }
 
-  // You only get to play for it if you were actually on the floor.
-  const canContest = reachedFinal && role !== 'injured' && gamesPlayed > 0 && league.tier <= 3
+  // You only get to play for a title if you were actually on the floor.
+  const onTheFloor = role !== 'injured' && gamesPlayed > 0
+  const finals: MinigameChallenge[] = []
 
-  if (canContest) {
+  // The cup runs first — it is decided in February, months before the playoff.
+  const cup = cupForLeague(league.id)
+  if (cup) {
+    const run = runCup(cup, team, player, role, yearRng(state, 'cup'))
+    state.cupRun = run
+
+    if (run.outcome === 'final') {
+      const opponent = run.opponentTeamId ? getTeam(run.opponentTeamId) : null
+      if (onTheFloor && opponent) {
+        finals.push(
+          buildChallenge({
+            player,
+            rng: yearRng(state, 'cup-challenge'),
+            competition: 'cup',
+            league,
+            opponentStrength: opponent.strength,
+            opponentName: opponent.name,
+            opponentTeamId: opponent.id,
+            stake: { es: `Final de ${cup.name.es}`, en: `${cup.name.en} final` },
+          }),
+        )
+      } else {
+        run.won = rollCupFinal(team, cup, yearRng(state, 'cup-roll'))
+      }
+    }
+  }
+
+  const canContestLeague = reachedFinal && onTheFloor && league.tier <= 3
+  if (canContestLeague) {
     const opponent = pickFinalOpponent(team, league, yearRng(state, 'final-opponent'))
+    finals.push(
+      buildChallenge({
+        player,
+        rng: yearRng(state, 'final-challenge'),
+        competition: 'league',
+        league,
+        opponentStrength: opponent.strength,
+        opponentName: opponent.name,
+        opponentTeamId: opponent.id,
+        stake: {
+          es: `Final de ${league.name.es}`,
+          en: `${league.name.en} final`,
+        },
+      }),
+    )
+  } else if (reachedFinal) {
+    draft.playoffResult = rollFinal(team, yearRng(state, 'final-roll'))
+  }
+
+  if (finals.length > 0) {
     state.draftSeason = draft
-    state.pendingMinigame = buildChallenge({
-      player,
-      rng: yearRng(state, 'final-challenge'),
-      competition: 'league',
-      league,
-      opponentStrength: opponent.strength,
-      opponentName: opponent.name,
-      opponentTeamId: opponent.id,
-      stake: {
-        es: `Final de ${league.name.es}`,
-        en: `${league.name.en} final`,
-      },
-    })
+    state.pendingMinigame = finals[0]
+    state.pendingFinals = finals.slice(1)
     state.phase = 'minigame'
     return state
   }
 
-  if (reachedFinal) {
-    draft.playoffResult = rollFinal(team, yearRng(state, 'final-roll'))
-  }
-
-  return finalizeSeason(state, draft, null)
+  return finalizeSeason(state, draft)
 }
 
 /** An opponent for the final: a strong side from the same league. */
@@ -353,7 +393,12 @@ function pickFinalOpponent(team: Team, league: League, rng: Rng): Team {
   return rng.weighted(others, (t) => Math.max(1, t.strength - 40))
 }
 
-/** Apply the result of a played final and finish the season. */
+/**
+ * Apply the result of a played final.
+ *
+ * A club can be in two finals in one season, so this hands the next one straight
+ * back to the player rather than closing the season out early.
+ */
 export function resolveMinigame(state: GameState, successes: number): GameState {
   const next = structuredClone(state)
   const challenge = next.pendingMinigame
@@ -361,16 +406,41 @@ export function resolveMinigame(state: GameState, successes: number): GameState 
   if (!challenge || !draft) return next
 
   const won = isWin(challenge, successes)
-  draft.playoffResult = won ? 'champion' : 'finals'
 
-  const headline: LocalizedHeadline = {
-    text: resultHeadline(challenge, won, challenge.opponentName),
+  if (challenge.competition === 'cup') {
+    if (next.cupRun) {
+      next.cupRun.won = won
+      next.cupRun.played = true
+    }
+  } else {
+    draft.playoffResult = won ? 'champion' : 'finals'
+  }
+
+  // Name the trophy on cup finals. Without it a season that reached both finals
+  // reads as two identical "champions over X" lines with no way to tell which
+  // one was the league and which the cup.
+  const text = resultHeadline(challenge, won, challenge.opponentName)
+  next.finalHeadlines.push({
+    text: challenge.competition === 'cup' ? stampCompetition(challenge.stake, text) : text,
     tone: won ? 'epic' : 'bad',
+  })
+
+  // Still a trophy to play for: back to the court.
+  const remaining = next.pendingFinals
+  if (remaining.length > 0) {
+    next.pendingMinigame = remaining[0]
+    next.pendingFinals = remaining.slice(1)
+    return next
   }
 
   next.pendingMinigame = null
   next.draftSeason = null
-  return finalizeSeason(next, draft, headline)
+  return finalizeSeason(next, draft)
+}
+
+/** "Copa del Rey final — you sank them from the line…" */
+function stampCompetition(stake: Localized, text: Localized): Localized {
+  return { es: `${stake.es}: ${text.es}`, en: `${stake.en}: ${text.en}` }
 }
 
 /**
@@ -448,11 +518,7 @@ export function continueFromNational(state: GameState): GameState {
  * career log. Shared by both the played-final and rolled-final paths so the two
  * can never drift apart.
  */
-function finalizeSeason(
-  state: GameState,
-  season: Season,
-  finalHeadline: LocalizedHeadline | null,
-): GameState {
+function finalizeSeason(state: GameState, season: Season): GameState {
   const player = state.player
   const league = getLeague(season.leagueId)
   const rng = yearRng(state, 'awards')
@@ -468,8 +534,11 @@ function finalizeSeason(
     rng,
   })
 
+  // The cup is a trophy in its own right, not a footnote of the league season.
+  if (state.cupRun?.won) season.awards.unshift('cup_champion')
+
   season.salary = computeSalary(league, season.role, player.hidden.hype, rng)
-  season.headlines = buildHeadlines(state, season, finalHeadline)
+  season.headlines = buildHeadlines(state, season)
 
   // Development earned on the floor, before the rest of the fallout.
   developFromSeason(player, season.rating, season.minutesPerGame, yearRng(state, 'in-season-growth'))
@@ -506,38 +575,57 @@ function finalizeSeason(
   // Rival moves in parallel on their own stream, measured against this season.
   advanceRival(state.rival, state.year, player.age, season, yearRng(state, 'rival'))
 
+  state.finalHeadlines = []
   state.phase = 'season_result'
   return state
 }
 
-function buildHeadlines(
-  state: GameState,
-  season: Season,
-  finalHeadline: LocalizedHeadline | null,
-): LocalizedHeadline[] {
+/**
+ * Whether the player decided their own league final, rather than watching it be
+ * rolled. Derived from the same conditions `simulateSeason` gates on, so the two
+ * cannot drift apart.
+ */
+function playedLeagueFinal(season: Season): boolean {
+  if (getLeague(season.leagueId).tier > 3) return false
+  if (season.role === 'injured' || season.gamesPlayed === 0) return false
+  return season.playoffResult === 'champion' || season.playoffResult === 'finals'
+}
+
+function buildHeadlines(state: GameState, season: Season): LocalizedHeadline[] {
   const out: LocalizedHeadline[] = []
   const note = state.pendingPlacementNote
   if (note) out.push({ text: note, tone: 'neutral' })
 
-  // A played final tells its own story; only narrate generically otherwise.
-  if (finalHeadline) {
-    out.push(finalHeadline)
-  } else if (season.playoffResult === 'champion') {
-    out.push({
-      text: {
-        es: '¡Campeones! Vuelta olímpica y la ciudad en la calle.',
-        en: 'Champions! The city pours into the streets.',
-      },
-      tone: 'epic',
-    })
-  } else if (season.playoffResult === 'finals') {
-    out.push({
-      text: {
-        es: 'Llegaron a la final y se quedaron en la puerta.',
-        en: 'You reached the final and fell at the last step.',
-      },
-      tone: 'bad',
-    })
+  // The cup is decided months before the playoff, so it is told first.
+  if (state.cupRun) {
+    const line = cupHeadline(state.cupRun, getLeague(season.leagueId))
+    if (line) out.push(line)
+  }
+
+  // A final the player actually contested tells its own story.
+  out.push(...state.finalHeadlines)
+
+  // A league final that was rolled instead of played still needs narrating.
+  // Both happen in the same season below the third tier, where the cup is
+  // playable but the league final is not.
+  if (!playedLeagueFinal(season)) {
+    if (season.playoffResult === 'champion') {
+      out.push({
+        text: {
+          es: '¡Campeones! Vuelta olímpica y la ciudad en la calle.',
+          en: 'Champions! The city pours into the streets.',
+        },
+        tone: 'epic',
+      })
+    } else if (season.playoffResult === 'finals') {
+      out.push({
+        text: {
+          es: 'Llegaron a la final y se quedaron en la puerta.',
+          en: 'You reached the final and fell at the last step.',
+        },
+        tone: 'bad',
+      })
+    }
   }
 
   if (season.gamesMissed > (season.gamesPlayed + season.gamesMissed) * 0.5) {

@@ -237,14 +237,18 @@ keeps its generated crest, so a partial set is fine.
 
 ## Swapping the name data
 
-**All real names live in three files**: `src/data/teams.ts` (clubs),
-`src/data/people.ts` (rival players, coaches, agents) and `src/data/countries.ts`
-(nations and national teams). The engine only ever refers to clubs by `id`, so
-replacing these with a licence-safe set requires **no changes to `src/game`**.
+**All real names live in four files**: `src/data/teams.ts` (clubs),
+`src/data/people.ts` (rival players, coaches, agents), `src/data/countries.ts`
+(nations and national teams) and `src/data/cups.ts` (domestic cups). The engine
+only ever refers to clubs by `id`, so replacing these with a licence-safe set
+requires **no changes to `src/game`**.
 
-To build a fully fictional version: rewrite the `name` fields in `teams.ts`, swap
-`REAL_STARS` in `people.ts` for generated names, and leave every `id` untouched.
-The test suite will confirm nothing broke.
+To build a fully fictional version: rewrite the `name` fields in `teams.ts` and
+`cups.ts`, swap `REAL_STARS` in `people.ts` for generated names, and leave every
+`id` untouched. The test suite will confirm nothing broke.
+
+Cups are opt-in per league: a league with no entry in `cups.ts` simply has no cup,
+and the whole subsystem is skipped for it.
 
 > **A note on names.** This project uses real league, club and player names for
 > authenticity, in the same way the games that inspired it do. Those names are

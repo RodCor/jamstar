@@ -219,8 +219,15 @@ export function Game() {
         {state.phase === 'event' && (
           <EventScreen state={state} onChoose={handleChoose} onContinue={handleAfterEvent} />
         )}
-        {state.phase === 'minigame' && (
-          <MinigameScreen state={state} onFinish={handleMinigameFinish} />
+        {state.phase === 'minigame' && state.pendingMinigame && (
+          // Keyed on the competition: a club can play its cup final and its
+          // league final in the same season, and the second must start from a
+          // clean tracker rather than inherit the first one's attempts.
+          <MinigameScreen
+            key={`${state.year}-${state.pendingMinigame.competition}`}
+            state={state}
+            onFinish={handleMinigameFinish}
+          />
         )}
         {state.phase === 'season_result' && (
           <SeasonResultScreen state={state} onContinue={handleAfterSeason} />

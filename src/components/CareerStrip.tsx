@@ -101,9 +101,10 @@ function Details({ state }: { state: GameState }) {
 
       {tab === 'career' ? (
         <div className="space-y-2.5 p-3">
-          <div className="tnum grid grid-cols-4 gap-1.5 text-center">
+          <div className="tnum grid grid-cols-5 gap-1 text-center">
             <Mini label={t('seasonsPlayed')} value={String(totals.seasons)} />
             <Mini label={t('rings')} value={String(totals.rings)} />
+            <Mini label={t('cups')} value={String(totals.cups)} />
             <Mini label={t('mvps')} value={String(totals.mvps)} />
             <Mini label={t('allStars')} value={String(totals.allStars)} />
           </div>
