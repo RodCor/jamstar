@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { trophiesFor, trophyLabel } from '../trophies'
+import { trophiesFor, trophyForAward, trophyLabel } from '../trophies'
 import type { Season } from '../types'
 
 function season(over: Partial<Season> = {}): Season {
@@ -67,5 +67,46 @@ describe('trophiesFor', () => {
       season({ cupId: 'copa_that_was_removed', cupWon: true, awards: ['cup_champion'] }),
     )
     expect(trophies).toEqual([])
+  })
+})
+
+describe('trophyForAward', () => {
+  it('resolves league_champion to the league trophy', () => {
+    const trophies = trophiesFor(season({ playoffResult: 'champion' }))
+    const trophy = trophyForAward('league_champion', trophies)
+    expect(trophy?.kind).toBe('league')
+    expect(trophy?.result).toBe('champion')
+  })
+
+  it('resolves cup_champion to the cup trophy', () => {
+    const trophies = trophiesFor(
+      season({ leagueId: 'acb', cupId: 'copa_rey', cupWon: true, awards: ['cup_champion'] }),
+    )
+    const trophy = trophyForAward('cup_champion', trophies)
+    expect(trophy?.kind).toBe('cup')
+    expect(trophy?.result).toBe('champion')
+  })
+
+  it('resolves each award to its own trophy when a season wins both', () => {
+    const trophies = trophiesFor(
+      season({
+        leagueId: 'acb',
+        playoffResult: 'champion',
+        cupId: 'copa_rey',
+        cupWon: true,
+        awards: ['league_champion', 'cup_champion'],
+      }),
+    )
+    expect(trophyForAward('league_champion', trophies)?.kind).toBe('league')
+    expect(trophyForAward('cup_champion', trophies)?.kind).toBe('cup')
+  })
+
+  it('returns null for a non-championship award', () => {
+    const trophies = trophiesFor(season({ playoffResult: 'champion' }))
+    expect(trophyForAward('mvp', trophies)).toBeNull()
+  })
+
+  it('returns null when no matching trophy is present', () => {
+    expect(trophyForAward('cup_champion', [])).toBeNull()
   })
 })

@@ -44,6 +44,11 @@ export function RetirementScreen({ state, onPlayAgain }: Props) {
     const counts = new Map<string, number>()
     for (const season of state.seasons) {
       for (const award of season.awards) {
+        // `league_champion` and `cup_champion` are named per competition in the
+        // trophy cabinet above — counting them again here would both duplicate
+        // that cabinet and bring back the generic "Campeón" string it exists to
+        // replace.
+        if (award === 'league_champion' || award === 'cup_champion') continue
         counts.set(award, (counts.get(award) ?? 0) + 1)
       }
     }
@@ -174,7 +179,10 @@ export function RetirementScreen({ state, onPlayAgain }: Props) {
                   {trophyLabel({ ...trophy, result: titles > 0 ? 'champion' : 'finalist' })[locale]}
                   {titles > 1 && <span className="tnum font-bold text-flame-400"> ×{titles}</span>}
                   {finals > 0 && (
-                    <span className="tnum text-slate-500"> · {finals} 🥈</span>
+                    <span className="tnum text-slate-500">
+                      {' '}
+                      · {finals} {trophyIcon({ ...trophy, result: 'finalist' })}
+                    </span>
                   )}
                 </span>
               ))}

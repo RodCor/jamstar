@@ -5,7 +5,7 @@ import type { AwardId } from '@/game/types'
 import { AWARD_INFO } from '@/game/awards'
 import { cupLogoPathFor } from '@/data/logos'
 import { CupCrest } from './CompetitionCrest'
-import { trophyLabel, type Trophy } from '@/game/trophies'
+import { trophyForAward, trophyIcon, trophyLabel, type Trophy } from '@/game/trophies'
 
 /**
  * Winning something should feel like winning something.
@@ -31,12 +31,8 @@ export function AwardReveal({
   const major = info.weight >= 45
 
   // A championship is named after what it won; every other award already is.
-  const titled =
-    headline === 'league_champion' || headline === 'cup_champion'
-      ? trophies.find((tr) => tr.result === 'champion' &&
-          (headline === 'cup_champion' ? tr.kind === 'cup' : tr.kind === 'league'))
-      : undefined
-  const heading = titled ? trophyLabel(titled)[locale] : info[locale]
+  const headlineTrophy = trophyForAward(headline, trophies)
+  const heading = headlineTrophy ? trophyLabel(headlineTrophy)[locale] : info[locale]
 
   const cupTrophy = trophies.find((tr) => tr.kind === 'cup' && tr.result === 'champion')
   // Only when a real trophy badge exists. `CupCrest` would happily draw its
@@ -79,15 +75,19 @@ export function AwardReveal({
 
         {rest.length > 0 && (
           <div className="mt-3 flex flex-wrap justify-center gap-1.5">
-            {rest.map((award, i) => (
-              <span
-                key={`${award}-${i}`}
-                className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[11px]
-                           font-semibold text-slate-300"
-              >
-                {AWARD_INFO[award].icon} {AWARD_INFO[award][locale]}
-              </span>
-            ))}
+            {rest.map((award, i) => {
+              const trophy = trophyForAward(award, trophies)
+              return (
+                <span
+                  key={`${award}-${i}`}
+                  className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[11px]
+                             font-semibold text-slate-300"
+                >
+                  {trophy ? trophyIcon(trophy) : AWARD_INFO[award].icon}{' '}
+                  {trophy ? trophyLabel(trophy)[locale] : AWARD_INFO[award][locale]}
+                </span>
+              )
+            })}
           </div>
         )}
       </div>

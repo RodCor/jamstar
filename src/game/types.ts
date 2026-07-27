@@ -427,8 +427,11 @@ export interface GameState {
   /**
    * Set when the player's club chose not to re-sign them, so free agency can
    * say so instead of presenting a list with a silent hole in it.
+   *
+   * Optional: added by this wave, so a save written before it has no key at
+   * all and loads with this field `undefined` rather than `null`.
    */
-  pendingRenewalNote: Localized | null
+  pendingRenewalNote?: Localized | null
   /**
    * A season that is fully simulated except for its final, held back while the
    * player plays for the title. Never present outside the `minigame` phase.

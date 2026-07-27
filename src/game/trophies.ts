@@ -15,7 +15,7 @@
  * because winning pushes an award id and losing pushes nothing.
  */
 
-import type { Localized, Season } from './types'
+import type { AwardId, Localized, Season } from './types'
 import { getLeague } from '@/data/leagues'
 import { CUPS } from '@/data/cups'
 
@@ -85,4 +85,17 @@ export function trophyLabel(trophy: Trophy): Localized {
 export function trophyIcon(trophy: Trophy): string {
   if (trophy.result === 'finalist') return trophy.kind === 'cup' ? '🥈' : '🏅'
   return '🏆'
+}
+
+/**
+ * The trophy a championship award id refers to, if this season produced it.
+ *
+ * `league_champion` and `cup_champion` are the only award ids that are not
+ * self-describing — every other award already names itself. A season can
+ * produce both, so the kind has to be matched rather than taking the first.
+ */
+export function trophyForAward(award: AwardId, trophies: Trophy[]): Trophy | null {
+  if (award !== 'league_champion' && award !== 'cup_champion') return null
+  const kind = award === 'cup_champion' ? 'cup' : 'league'
+  return trophies.find((tr) => tr.result === 'champion' && tr.kind === kind) ?? null
 }
