@@ -213,15 +213,23 @@ export const PERKS: Perk[] = [
   },
   // `signature_move`, `telepathy` and `the_island` share the shape
   // `{ primary: 7, mental: 3 }`. That is a known review finding, deliberately
-  // left open, because differentiating it is not free: `overallRating` is a
-  // weighted average and `mental` carries the lowest weight of any attribute
-  // at every position (`POSITION_WEIGHTS`, 0.06 at SF against physical's 0.48).
-  // Moving points off `mental` therefore raises rating without adding a single
-  // growth point. Measured twice on the 240-career cohort: shifting 3 points
-  // off `mental` on two of these perks took `allStarsPerCareer` from +11.46% to
-  // +14.23% against a ±12% band, and shifting 1 point still landed at +12.25%.
-  // Both red the distribution guard. Any future attempt has to keep each
-  // perk's `mental` allocation exactly where it is and find the distinction
+  // left open, because differentiating it is not free.
+  //
+  // `overallRating` is a weighted average over `POSITION_WEIGHTS`
+  // (`src/game/progression.ts`), and `mental` is the cheapest place to put a
+  // growth point almost everywhere: it is in the bottom two at all five
+  // positions — lowest at SG (0.08) and SF (0.06), tied lowest at PF (0.08),
+  // second-lowest at PG (0.14) and C (0.09) — and it never exceeds 0.14. The
+  // attributes these perks would move those points onto run far heavier at the
+  // positions that use them: physical to 0.48, playmaking to 0.38, scoring to
+  // 0.30, defense to 0.28. So the same growth points buy more rating, for free,
+  // and All-Star selection keys off rating.
+  //
+  // Measured twice on the 240-career cohort: shifting 3 points off `mental` on
+  // two of these perks took `allStarsPerCareer` from +11.46% to +14.23%
+  // against a ±12% band, and shifting 1 point still landed at +12.25%. Both
+  // red the distribution guard. Any future attempt has to keep each perk's
+  // `mental` allocation exactly where it is and find the distinction
   // elsewhere — or move the band, which is a separate decision.
   {
     id: 'signature_move',
@@ -436,8 +444,8 @@ export const PERKS: Perk[] = [
     id: 'built_different',
     name: { es: 'Hecho de otra cosa', en: 'Built Different' },
     description: {
-      es: 'Te levantás de choques que dejan a otros un mes afuera. El preparador te pregunta qué hacés distinto y no sabés qué contestarle.',
-      en: 'You get up from collisions that put other men out for a month. The trainer asks what you do differently and you have no answer for him.',
+      es: 'Dos partidos en dos noches y al otro día te levantás como si no hubiera pasado nada. El calendario dice una cosa y tu cuerpo no se enteró.',
+      en: 'Two games in two nights and you get up the next morning as though neither happened. The calendar says one thing and nobody ever told your body.',
     },
     bonus: { physical: 6, mental: 3 },
     effects: { injuryFactor: 0.5 },
