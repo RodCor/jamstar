@@ -3,9 +3,11 @@
  *
  * Every other file here writes cards that any player can draw; this one writes
  * cards that only make sense in one place. A `fromCountry` gate takes several
- * codes at a time because the cultures overlap: the potrero is the same on both
- * banks of the Río de la Plata, and a cantera in Málaga and one in Bologna ask
- * a fifteen-year-old the same question.
+ * codes at a time because the cultures overlap: the club on the corner is the
+ * same institution on both banks of the Río de la Plata, and a cantera in
+ * Málaga and one in Bologna ask a fifteen-year-old the same question. Where a
+ * grouping turned out to be a convenience rather than a culture — Lithuania and
+ * Germany do not share a Tuesday-night crowd — it was split instead of fudged.
  *
  * Coverage is a hard requirement rather than a nice-to-have: every country gets
  * a pair of cards of its own at youth and a pair shared with the countries that
@@ -20,46 +22,46 @@ export const ORIGIN_EVENTS: GameEvent[] = [
   // --- Río de la Plata: AR, UY ---
 
   event({
-    id: 'origin_rp_potrero',
+    id: 'origin_rp_mini',
     weight: 24,
     stages: ['youth'],
-    category: 'personal',
+    category: 'locker_room',
     requires: gate.fromCountry('AR', 'UY'),
-    title: loc('El potrero', 'The Dirt Court'),
+    title: loc('El mini de los sábados', 'Saturday Morning Mini'),
     body: (ctx) =>
       loc(
-        `Atrás del club hay una cancha de cemento partido, con un aro sin red y un tablero de madera hinchada. Los sábados se llena de tipos de treinta que juegan por la gaseosa. Tenés ${ctx.player.age} años y te miran como a un pibe.`,
-        `Behind the club there is a cracked concrete court, a netless rim and a warped wooden backboard. On Saturdays it fills with thirty-year-olds playing for a bottle of Coke. You are ${ctx.player.age} and they look at you like a kid.`,
+        `Se fue el profe que daba mini y en ${ctx.team.name.es} no hay plata para otro. La comisión te pide a vos: sábados a las nueve, veinte nenes de siete años, dos horas. No se paga, se hace porque sí. A esa misma hora entrenás tiro con el ayudante.`,
+        `The coach who ran the under-8s left and ${ctx.team.name.en} has no money for another. The committee asks you: Saturdays at nine, twenty seven-year-olds, two hours. Nobody gets paid, it is simply what the club does. It is also exactly when you shoot with the assistant.`,
       ),
     choices: [
       {
-        label: loc('Meterme en la rueda y aguantar los codazos', 'Get in the run and take the elbows'),
+        label: loc('Agarrar el mini', 'Take the under-8s'),
         resolve: (ctx) =>
           gamble(
             ctx,
-            0.65,
+            0.6,
             outcome(
-              'Te empujaron hasta que dejaste de retroceder. Ya nadie de tu categoría te saca del poste bajo.',
-              'They shoved you until you stopped giving ground. Nobody in your age group moves you off the low post now.',
+              'Explicar un bloqueo cuarenta veces a un nene de siete te obligó a entender por qué se hace. Nunca más volviste a jugar sin saber para qué.',
+              'Explaining a screen forty times to a seven-year-old forced you to understand why it is set. You never played another possession without knowing what it was for.',
               'good',
-              { attributes: { physical: 4, defense: 3, mental: 3 }, hidden: { morale: 4, hype: 8 } },
+              { attributes: { playmaking: 5, mental: 4 }, hidden: { coachTrust: 10, morale: 6 } },
             ),
             outcome(
-              'Un manotazo en la muñeca que quedó mal. Dos semanas escribiendo con la otra mano y tirando de memoria.',
-              'A slap on the wrist that never healed right. Two weeks writing with the other hand and shooting from memory.',
-              'bad',
-              { attributes: { scoring: -1, physical: -1 }, hidden: { wear: 5 } },
+              'Dos años de sábados dando mini. En el club sos de la familia y en la cancha te quedaste sin mano.',
+              'Two years of Saturday mornings with the little ones. At the club you are family; on the floor your shot went cold.',
+              'neutral',
+              { attributes: { scoring: -2, mental: 2 }, hidden: { coachTrust: 8, morale: -4 } },
             ),
           ),
       },
       {
-        label: loc('Quedarme adentro, donde el piso es de parquet', 'Stay inside, where the floor is parquet'),
+        label: loc('Decir que no y seguir tirando', 'Say no and keep shooting'),
         resolve: () =>
           outcome(
-            'Mil tiros por semana bajo techo. Tenés una mecánica preciosa y no sabés jugar con un tipo encima.',
-            'A thousand shots a week under a roof. Your form is beautiful and you have no idea how to play with a body on you.',
+            'Doscientos tiros cada sábado a la mañana y una mecánica que no falla. En un club que funciona a pulmón, el que dice que no queda anotado.',
+            'Two hundred shots every Saturday morning and a stroke that does not miss. In a club that runs on people volunteering, the one who says no gets remembered.',
             'neutral',
-            { attributes: { scoring: 5, physical: -1 }, hidden: { coachTrust: 5 } },
+            { attributes: { scoring: 5, mental: -1 }, hidden: { hype: 5, coachTrust: -8 } },
           ),
       },
     ],
@@ -406,14 +408,14 @@ export const ORIGIN_EVENTS: GameEvent[] = [
     ],
   }),
 
-  // --- Lituania y Alemania: LT, DE ---
+  // --- Lituania: LT. El gimnasio compartido con Alemania es `origin_baltic_key`. ---
 
   event({
     id: 'origin_baltic_town',
     weight: 24,
     stages: ['youth'],
     category: 'media',
-    requires: gate.fromCountry('LT', 'DE'),
+    requires: gate.fromCountry('LT'),
     title: loc('El pueblo entero en la tribuna', 'The Whole Town in the Stands'),
     body: () =>
       loc(
@@ -495,6 +497,54 @@ export const ORIGIN_EVENTS: GameEvent[] = [
             'You slept nine hours a night for two years and your body thanked you for it. Your hands, less so.',
             'neutral',
             { attributes: { physical: 5, scoring: -1 }, hidden: { wear: -5, morale: 4 } },
+          ),
+      },
+    ],
+  }),
+
+  // --- Alemania: DE ---
+
+  event({
+    id: 'origin_de_doble_licencia',
+    weight: 24,
+    stages: ['youth'],
+    category: 'coach',
+    requires: gate.fromCountry('DE'),
+    title: loc('Doble licencia', 'The Double Licence'),
+    body: (ctx) =>
+      loc(
+        `${ctx.team.name.es} te dio la doble ficha. El sábado a la noche jugás en la segunda del club, contra hombres de treinta que cobran por esto. El domingo a las once, trescientos kilómetros más allá, jugás el juvenil. Dos entrenadores, un cuerpo, y los dos hablan de vos como si fueras de ellos.`,
+        `${ctx.team.name.en} gave you the dual registration. Saturday night you play for the club's second team, against thirty-year-old men who are paid to be there. Sunday at eleven, three hundred kilometres away, you play the juniors. Two coaches, one body, and both of them talk about you as though you were theirs.`,
+      ),
+    choices: [
+      {
+        label: loc('Jugar los dos, todos los fines de semana', 'Play both, every weekend'),
+        resolve: (ctx) =>
+          gamble(
+            ctx,
+            0.58,
+            outcome(
+              'Cincuenta partidos en una temporada, la mitad contra hombres hechos. A los diecisiete ya sabías jugar cansado, que es la mitad del oficio.',
+              'Fifty games in a season, half of them against grown men. At seventeen you already knew how to play tired, which is half the job.',
+              'good',
+              { attributes: { physical: 5, mental: 3, defense: 2 }, hidden: { coachTrust: 10, hype: 12, wear: 8 } },
+            ),
+            outcome(
+              'En febrero no te levantabas de la cama los lunes. Jugaste los dos torneos a media máquina y no fuiste importante en ninguno.',
+              'By February you could not get out of bed on Mondays. You played both competitions at half speed and mattered in neither.',
+              'bad',
+              { attributes: { physical: -2, scoring: -1, mental: 1 }, hidden: { wear: 12, morale: -10 } },
+            ),
+          ),
+      },
+      {
+        label: loc('Quedarme solo con los hombres de la segunda', 'Take the second team and drop the juniors'),
+        resolve: () =>
+          outcome(
+            'Doce minutos por partido contra profesionales, y el resto de la semana entrenando con ellos. Del juvenil, donde eras el mejor de todos, te borraron de la foto.',
+            'Twelve minutes a game against professionals, and the rest of the week training with them. At the junior team, where you were the best of the lot, they took you out of the photograph.',
+            'neutral',
+            { attributes: { defense: 4, physical: 3, scoring: -2 }, hidden: { coachTrust: 8, hype: -2, morale: -4 } },
           ),
       },
     ],
@@ -643,36 +693,52 @@ export const ORIGIN_EVENTS: GameEvent[] = [
   }),
 
   event({
-    id: 'origin_fr_dos_camisetas',
+    id: 'origin_fr_primer_contrato',
     weight: 22,
     stages: ['youth', 'breakout'],
-    category: 'national',
+    category: 'transfer',
     requires: gate.fromCountry('FR'),
-    title: loc('Dos camisetas el mismo verano', 'Two Shirts, One Summer'),
+    title: loc('El primer contrato', 'The First Contract'),
     body: (ctx) =>
       loc(
-        `El europeo juvenil y la pretemporada de ${ctx.team.name.es} caen en las mismas seis semanas. Los dos te dijeron, con mucha educación, que la decisión es tuya.`,
-        `The junior Europeans and preseason at ${ctx.team.name.en} fall in the same six weeks. Both of them told you, very politely, that it is your decision.`,
+        `${ctx.team.name.es} te formó desde los doce y por eso tiene derecho a tu primera firma profesional: tres años, al mínimo del convenio, a la edad en que se decide todo. Si decís que no, ningún club francés te puede fichar y a los dieciocho te vas del país.`,
+        `${ctx.team.name.en} trained you from the age of twelve, and that gives them first call on your first professional signature: three years, at the collective minimum, at the age where everything gets decided. Say no and no French club may sign you — at eighteen you leave the country.`,
       ),
     choices: [
       {
-        label: loc('El seleccionado juvenil', 'The junior national team'),
+        label: loc('Firmar los tres años', 'Sign the three years'),
         resolve: () =>
           outcome(
-            'Seis partidos en once días contra lo mejor del continente. Volviste fundido y sabiendo exactamente dónde estás parado.',
-            'Six games in eleven days against the best on the continent. You came back wrecked and knowing exactly where you stand.',
-            'neutral',
-            { attributes: { mental: 4, defense: 2, physical: -1 }, hidden: { hype: 10, coachTrust: -10, wear: 6 } },
+            'Debutaste a los dieciocho en tu casa, con la gente que te vio crecer, cobrando menos que el último del banco. Te formaron bien y te tuvieron barato.',
+            'You debuted at eighteen at home, in front of the people who watched you grow, earning less than the last man on the bench. They developed you well and they had you cheap.',
+            'good',
+            {
+              attributes: { defense: 3, physical: 3, mental: 2, scoring: -1 },
+              hidden: { coachTrust: 14, hype: 2 },
+            },
           ),
       },
       {
-        label: loc('La pretemporada del club', 'Club preseason'),
-        resolve: () =>
-          outcome(
-            'Seis semanas de fuerza con el primer equipo y un lugar en la rotación en octubre. Nadie afuera del club se enteró.',
-            'Six weeks in the weight room with the first team and a rotation spot in October. Nobody outside the club noticed.',
-            'good',
-            { attributes: { physical: 5, scoring: 1, mental: -1 }, hidden: { coachTrust: 12, hype: -5 } },
+        label: loc('No firmar y buscar equipo afuera', 'Refuse, and find a team abroad'),
+        resolve: (ctx) =>
+          gamble(
+            ctx,
+            0.5,
+            outcome(
+              'A los dieciocho, con un bolso y sin hablar el idioma. Jugaste treinta minutos por partido desde octubre y en Francia empezaron a preguntar por vos desde afuera.',
+              'Eighteen years old, one bag, and not a word of the language. You played thirty minutes a game from October, and France started asking about you from the outside in.',
+              'good',
+              { attributes: { scoring: 5, mental: 3 }, hidden: { hype: 12, morale: -8 } },
+            ),
+            outcome(
+              'El club de afuera te quería de tercer extranjero. Un año de calentar y no podés volver a firmar en tu país.',
+              'The club abroad wanted you as their third import. A year of warming up, and you cannot sign at home either.',
+              'bad',
+              {
+                attributes: { scoring: -2, mental: 1 },
+                hidden: { hype: -6, morale: -14, coachTrust: -10 },
+              },
+            ),
           ),
       },
     ],
@@ -1031,7 +1097,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
             'Sos el mejor jugador de un club que no va a ganar nada. Te dieron la pelota y todos los minutos que quieras.',
             'You are the best player at a club that will not win anything. They gave you the ball and every minute you want.',
             'neutral',
-            { attributes: { scoring: 7, playmaking: 3, mental: -1 }, hidden: { coachTrust: 12 } },
+            { attributes: { scoring: 6, playmaking: 2, mental: -1 }, hidden: { coachTrust: 12, hype: -4 } },
           ),
       },
       {
@@ -1039,18 +1105,18 @@ export const ORIGIN_EVENTS: GameEvent[] = [
         resolve: (ctx) =>
           gamble(
             ctx,
-            0.4,
+            0.45,
             outcome(
               'Salió a favor tuyo después de un año de papeles. Sos libre y en el club no te saludan más.',
               'It went your way after a year of paperwork. You are free and nobody at the club says hello any more.',
               'good',
-              { attributes: { mental: 5, scoring: 1 }, hidden: { hype: 12, coachTrust: -10 } },
+              { attributes: { mental: 6, scoring: 3 }, hidden: { hype: 18, coachTrust: -10 } },
             ),
             outcome(
-              'Perdiste, y encima perdiste un año entrenando aparte con el segundo entrenador.',
-              'You lost, and you lost a year on top of it, training on your own with the second coach.',
+              'Perdiste, y perdiste un año entrenando aparte con el segundo entrenador. Igual, media liga se enteró de tu nombre leyendo el expediente.',
+              'You lost, and you lost a year on top of it, training on your own with the second coach. Half the league learned your name reading the file, mind you.',
               'bad',
-              { attributes: { mental: -1, scoring: -1 }, hidden: { coachTrust: -16, morale: -12 } },
+              { attributes: { mental: -1, scoring: -1 }, hidden: { coachTrust: -16, morale: -12, hype: 2 } },
             ),
           ),
       },
@@ -1310,20 +1376,20 @@ export const ORIGIN_EVENTS: GameEvent[] = [
         label: loc('Bancar a todos', 'Carry all of them'),
         resolve: () =>
           outcome(
-            'Pagaste el techo, la operación y el negocio del tío. Jugaste toda la temporada con el teléfono prendido.',
-            'You paid for the roof, the operation and the uncle’s business. You played the whole season with your phone on.',
+            'Pagaste el techo, la operación y el negocio del tío. Jugaste toda la temporada con el teléfono prendido y llegaste a mayo sin nada adentro.',
+            'You paid for the roof, the operation and the uncle’s business. You played the whole season with your phone on and got to May with nothing left inside.',
             'neutral',
-            { attributes: { mental: 5, scoring: -2 }, hidden: { morale: 6, hype: 4 }, money: -120_000 },
+            { attributes: { mental: 5, scoring: -2, physical: -2 }, hidden: { morale: 6, hype: 4 }, money: -120_000 },
           ),
       },
       {
         label: loc('Poner un límite y bancarme las llamadas', 'Set a limit and live with the phone calls'),
         resolve: () =>
           outcome(
-            'Dijiste que no dos veces y en tu casa se enteraron las dos. Guardaste la plata y perdiste algo peor.',
-            'You said no twice and both times they heard about it at home. You kept the money and lost something worse.',
+            'Dijiste que no dos veces y en tu casa se enteraron las dos. Dormiste mal y entrenaste como no entrenabas desde los diecinueve.',
+            'You said no twice and both times they heard about it at home. You slept badly and trained the way you had not trained since you were nineteen.',
             'neutral',
-            { attributes: { scoring: 3, mental: -2 }, hidden: { morale: -12 } },
+            { attributes: { scoring: 3, physical: 2, mental: -2 }, hidden: { morale: -12 } },
           ),
       },
     ],
