@@ -219,13 +219,38 @@ seven progress bars on the preseason screen.
 | `physical` | athleticism, strength |
 | `mental` | iq, leadership |
 
-**Conversion rule for every existing formula.** Where a formula referenced two
-attributes that now merge, it takes the merged one at the *same* coefficient —
-not the sum. Summing would silently double the weight of physicality in every
-rebound and injury roll and rebalance the game as a side effect of a rename.
-Where a formula referenced `iq`, it becomes `mental` unless the surrounding
-logic is about reading the floor with the ball, in which case it becomes
-`playmaking`; each such site is decided individually and noted in the plan.
+**Conversion rule for every existing formula.** There are three cases and they
+do not share an answer. An earlier draft of this spec gave one rule for all
+three — "take the same coefficient, not the sum" — which was wrong, and would
+have quietly deflated every formula that referenced two now-merged attributes.
+Assists, for instance, were `handling * 0.075 + iq * 0.05`; carrying `0.075`
+forward loses 40% of the term.
+
+1. **Additive contribution formulas** (`stats.ts`, `minigame.ts`) — **sum the
+   coefficients.** If `playmaking` stands in for what `handling` and `iq` both
+   used to say, then `playmaking * 0.125` preserves the mean where
+   `handling * 0.075 + iq * 0.05` produced it. The total weight is unchanged;
+   it is merely concentrated in one attribute. Outcomes do spread wider, since
+   two attributes no longer average each other out — that is a consequence of
+   having fewer, more meaningful attributes, and is intended.
+
+2. **Normalised weight maps** (`overallRating`, `POSITION_WEIGHTS`) — sum, and
+   the existing `weightSum` division makes it self-normalising.
+
+3. **Per-attribute scalars** (`DECLINE_RATE`, `PEAK_AGE`) — summing is
+   meaningless; these are chosen values and the plan states each as a literal
+   with its reasoning.
+
+**The `iq` split is not mechanical.** `iq` divides between `playmaking` and
+`mental` differently at each of its ~20 sites, so the plan enumerates every one
+with its target rather than leaving it to judgement at implementation time.
+
+**A behavioural guard is required.** A systematic deflation of every formula
+passes the entire existing suite — the "plausible basketball bands" test has
+bands wide enough to hide it. So the distribution of 240 seeded careers is
+captured from the seven-attribute model *before* the merge and committed as a
+fixture, and the merged model is asserted to land within a stated band of it.
+This must be captured first: once the merge lands it cannot be reconstructed.
 
 **Call sites**, by weight of change:
 
