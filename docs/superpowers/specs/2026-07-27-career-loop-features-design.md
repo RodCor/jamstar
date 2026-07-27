@@ -175,8 +175,10 @@ Derivation:
   `AWARD_INFO[id]` label. They take a `trophies` prop and render the named
   version for the two championship ids, falling back to the static label for
   everything else (MVP, DPOY and the rest are already named correctly).
-- **Retirement cabinet.** Replaces the flat `titles / cups` counters with a
-  grouping by competition, ordered by prestige.
+- **Retirement cabinet.** A new block grouping trophies by competition, ordered
+  by how many were won. It sits *below* the existing `titles / cups` counter
+  strip rather than replacing it — the strip is the at-a-glance summary, and
+  removing it would take "seasons played" with it, since they share a row.
 - **Share card and headlines.** The league final stake at `engine.ts:374`
   already interpolates `league.name`; the cup stake at `engine.ts:353` already
   interpolates `cup.name`. Both are correct and stay. `finalHeadline` and
