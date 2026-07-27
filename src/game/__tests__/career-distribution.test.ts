@@ -38,6 +38,15 @@ import baseline from '../__fixtures__/career-baseline.json'
  * The harness below must stay byte-compatible with the one that captured the
  * fixture: same seeds, same creation choices, same order of RNG draws. Any
  * change to how the careers are driven silently invalidates the comparison.
+ *
+ * Scope of this guard: it is a strong net for formula-level deflation. A
+ * dropped or halved coefficient in `stats.ts` moves a mean (or the
+ * `peakRating.p90` tail) by tens of percent and trips one of the assertions
+ * below immediately. It is a weak net for data-level bonuses — a few
+ * attribute points added to a fraction of the cohort by `src/data/styles.ts`,
+ * `src/data/perks.ts`, or the event decks is small enough, at 240 careers, to
+ * be invisible against the ±12% bands here. Absence of a failure is not
+ * evidence those files are balanced; it only means no formula regressed.
  */
 
 const POSITIONS: Position[] = ['PG', 'SG', 'SF', 'PF', 'C']
@@ -206,6 +215,9 @@ describe('career distribution against the seven-attribute baseline', () => {
       // broke, not that scoring drifted. Held tighter than the rest.
       ['seasons.mean', actual.seasons.mean, baseline.seasons.mean, 8],
       ['peakRating.mean', actual.peakRating.mean, baseline.peakRating.mean, 12],
+      // The tail that decides whether elite careers still exist: a hollowed
+      // distribution can hold its mean while losing its top end.
+      ['peakRating.p90', actual.peakRating.p90, baseline.peakRating.p90, 12],
       ['ringsPerCareer', actual.ringsPerCareer, baseline.ringsPerCareer, 12],
       ['mvpsPerCareer', actual.mvpsPerCareer, baseline.mvpsPerCareer, 12],
       ['allStarsPerCareer', actual.allStarsPerCareer, baseline.allStarsPerCareer, 12],

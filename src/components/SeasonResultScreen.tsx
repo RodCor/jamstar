@@ -33,11 +33,13 @@ export function SeasonResultScreen({ state, onContinue }: Props) {
 }
 
 type CountingStat = 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks'
+/** A lead-row entry: either a counting stat or the 3P% rate stat (SG's third slot). */
+type LeadStat = CountingStat | 'threePct'
 
 /** The three numbers that define each position, plus the two that define a season. */
-const BOX_LEAD: Record<Position, CountingStat[]> = {
+const BOX_LEAD: Record<Position, LeadStat[]> = {
   PG: ['points', 'assists', 'steals'],
-  SG: ['points', 'assists', 'steals'],
+  SG: ['points', 'assists', 'threePct'],
   SF: ['points', 'rebounds', 'steals'],
   PF: ['points', 'rebounds', 'blocks'],
   C: ['points', 'rebounds', 'blocks'],
@@ -62,6 +64,8 @@ export function SeasonCard({ season, position }: { season: Season; position: Pos
 
   const leadStats = BOX_LEAD[position]
   const restStats = ALL_COUNTING_STATS.filter((stat) => !leadStats.includes(stat))
+  // SG's lead row already shows 3P%; don't repeat it in the "more" section.
+  const leadsWithThreePct = leadStats.includes('threePct')
 
   return (
     <div className="panel overflow-hidden">
@@ -89,8 +93,8 @@ export function SeasonCard({ season, position }: { season: Season; position: Pos
         {leadStats.map((stat) => (
           <Stat
             key={stat}
-            label={t(COUNTING_STAT_LABEL[stat])}
-            value={season[stat].toFixed(1)}
+            label={t(stat === 'threePct' ? 'statThree' : COUNTING_STAT_LABEL[stat])}
+            value={stat === 'threePct' ? formatPct(season.threePct) : season[stat].toFixed(1)}
             highlight={stat === 'points'}
           />
         ))}
@@ -105,7 +109,9 @@ export function SeasonCard({ season, position }: { season: Season; position: Pos
           ))}
           <Stat label={t('statMin')} value={season.minutesPerGame.toFixed(0)} small />
           <Stat label={t('statFg')} value={formatPct(season.fgPct)} small />
-          <Stat label={t('statThree')} value={formatPct(season.threePct)} small />
+          {!leadsWithThreePct && (
+            <Stat label={t('statThree')} value={formatPct(season.threePct)} small />
+          )}
         </div>
       )}
 
