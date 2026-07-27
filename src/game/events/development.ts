@@ -9,8 +9,18 @@
  * rather than by anything they did.
  *
  * Every card below is ungated for that reason, and every one of them is a trade:
- * at this age nothing is bought without something being sold, and the deck's
- * expected value is deliberately thinner than the youth deck's to say so.
+ * at this age nothing is bought without something being sold.
+ *
+ * On the magnitudes: these are balanced against the *effective* pool — the
+ * weight-adjusted expected value of the cards a real career can actually draw
+ * here, measured at +1.43 attributes and +2.73 hype per draw. That is not the
+ * mean over every card carrying the stage, which reads +1.91 attributes: nine of
+ * the fourteen pre-existing cards sit behind hype, age or league gates an
+ * ordinary career fails, and they pull the deck-wide average well above anything
+ * a player ever sees. Balancing against the deck-wide figure inflated this stage
+ * by a third of an attribute point per draw, across three seasons of every
+ * career, and it was visible in the distribution guard. Match the effective
+ * pool, not the deck listing.
  */
 
 import type { GameEvent } from '../types'
@@ -36,7 +46,7 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
             'Aprobaste raspando y volviste a estar habilitado. El equipo ganó cuatro de seis sin vos y el que jugó en tu lugar no piensa devolver el puesto.',
             'You scraped a pass and were cleared to play. The team won four of six without you, and the boy who played in your place has no intention of giving the spot back.',
             'neutral',
-            { attributes: { mental: 4, scoring: -2 }, hidden: { coachTrust: -6, hype: -2 } },
+            { attributes: { mental: 3, scoring: -2 }, hidden: { coachTrust: -4, hype: -1 } },
           ),
       },
       {
@@ -49,13 +59,13 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
               'Jugaste los seis partidos, volviste y aprobaste de pedo, con un profesor de buen humor. Nadie te cuenta esta historia sin reírse.',
               'You played all six, came back and passed by sheer luck, with an examiner in a good mood. Nobody tells you this story without laughing.',
               'good',
-              { attributes: { scoring: 4, mental: 1 }, hidden: { hype: 16, morale: 6 } },
+              { attributes: { scoring: 5, mental: 1 }, hidden: { hype: 16, morale: 6 } },
             ),
             outcome(
               'Jugaste los seis partidos y no aprobaste. Cuatro meses afuera de la lista, mirando desde la tribuna con el buzo puesto.',
               'You played all six and failed. Four months off the eligibility list, watching from the stand in your tracksuit.',
               'bad',
-              { attributes: { mental: 1, physical: -2 }, hidden: { hype: -6, morale: -10, coachTrust: -8 } },
+              { attributes: { mental: 1, physical: -2 }, hidden: { hype: -6, morale: -8, coachTrust: -6, wear: 4 } },
             ),
           ),
       },
@@ -84,15 +94,15 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
               'Llegaste a septiembre pesando lo que pesa un profesional y moviéndote como te movías antes. Eso no le pasa a casi nadie.',
               'You reached September weighing what a professional weighs and moving the way you moved before. That happens to almost nobody.',
               'good',
-              { attributes: { physical: 6, defense: 1 }, hidden: { coachTrust: 8, wear: 3 } },
+              { attributes: { physical: 5, defense: 1 }, hidden: { coachTrust: 8, wear: 3 } },
             ),
             outcome(
               'Ganaste los ocho kilos y perdiste el primer paso. Sos más fuerte que nunca y llegás tarde a todo.',
               'You gained the eight kilos and lost your first step. You are stronger than you have ever been and late to everything.',
               'bad',
               {
-                attributes: { physical: 5, scoring: -3, playmaking: -3, defense: -2 },
-                hidden: { coachTrust: 6, morale: -8 },
+                attributes: { physical: 4, scoring: -3, playmaking: -3, defense: -2 },
+                hidden: { coachTrust: 6, morale: -6 },
               },
             ),
           ),
@@ -104,7 +114,7 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
             'Ganaste tres kilos y seguiste tirando dos horas por día. En noviembre te sacó del quinteto un tipo que te empujaba y no te podía marcar.',
             'You gained three kilos and kept shooting two hours a day. In November you lost your place to a boy who could shove you off the ball and could not guard you.',
             'neutral',
-            { attributes: { scoring: 3, playmaking: 1, physical: -2 }, hidden: { coachTrust: -10, hype: 5 } },
+            { attributes: { scoring: 2, playmaking: 1, physical: -2 }, hidden: { coachTrust: -8, hype: 5 } },
           ),
       },
     ],
@@ -129,7 +139,7 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
             'Doce meses entrenando contra profesionales y ni un partido. Volviste sabiendo más y con un año menos de vidriera.',
             'Twelve months training against professionals and not one game. You came back knowing more, with a year less in the shop window.',
             'neutral',
-            { attributes: { defense: 2, mental: 3, scoring: -2 }, hidden: { coachTrust: 10, hype: -6, morale: -2 } },
+            { attributes: { defense: 2, mental: 2, scoring: -2 }, hidden: { coachTrust: 10, hype: -6, morale: -2 } },
           ),
       },
       {
@@ -142,13 +152,13 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
               'Treinta minutos por partido en una liga que no mira nadie, y una planilla que sí miran. En junio llamaron tres clubes.',
               'Thirty minutes a game in a league nobody watches, and a stat sheet people do watch. In June three clubs called.',
               'good',
-              { attributes: { scoring: 4, playmaking: 1 }, hidden: { hype: 20, coachTrust: -8 } },
+              { attributes: { scoring: 4, playmaking: 1 }, hidden: { hype: 20, coachTrust: -8, wear: 4 } },
             ),
             outcome(
               'Jugaste un año entero contra nadie y te volviste muy bueno en cosas que arriba no sirven. Volviste con números y sin oficio.',
               'You played a whole year against nobody and got very good at things that do not work at the level above. You came back with numbers and no craft.',
               'bad',
-              { attributes: { scoring: 2, defense: -3, mental: -1 }, hidden: { hype: 4, morale: -2 } },
+              { attributes: { scoring: 2, defense: -3, mental: -2 }, hidden: { hype: 4, morale: -2 } },
             ),
           ),
       },
@@ -177,13 +187,13 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
               'Te consiguió equipo en agosto y te pagó el vuelo. Hizo todo lo que dijo que iba a hacer y se quedó exactamente con lo que dijo que se iba a quedar.',
               'He found you a club in August and paid for the flight. He did everything he said he would do and kept exactly what he said he would keep.',
               'good',
-              { attributes: { scoring: 3, mental: 1 }, hidden: { hype: 16 } },
+              { attributes: { scoring: 2, mental: 1 }, hidden: { hype: 16 } },
             ),
             outcome(
               'Te mandó a tres pruebas en tres países en cinco semanas y no salió ninguna. Seguís atado cuatro años más.',
               'He sent you to three trials in three countries in five weeks and none of them came off. You are tied to him for four more years.',
               'bad',
-              { attributes: { physical: -2, mental: 2 }, hidden: { morale: -6, wear: 5 } },
+              { attributes: { physical: -3, mental: 2 }, hidden: { morale: -6, wear: 5 } },
             ),
           ),
       },
@@ -194,7 +204,7 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
             'Atendió el teléfono todo el año y no cobró nada. También dejó pasar dos ofertas porque no le gustaban los clubes, y una de esas dos era buena.',
             'He answered the phone all year and charged nothing. He also let two offers go because he did not like the clubs, and one of those two was a good one.',
             'neutral',
-            { attributes: { mental: 2, scoring: 1 }, hidden: { coachTrust: 12, hype: -2 } },
+            { attributes: { mental: 2 }, hidden: { coachTrust: 12, hype: -2 } },
           ),
       },
     ],
@@ -219,7 +229,10 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
             'Fuiste el primero en saberse las veinte jugadas y el último en entrar. Te ganaste el respeto del ayudante y ni un minuto del entrenador.',
             'You were the first to know all twenty sets and the last one off the bench. You earned the assistant’s respect and none of the head coach’s minutes.',
             'neutral',
-            { attributes: { mental: 3, defense: 2, scoring: -3 }, hidden: { coachTrust: 8, morale: -4, hype: -2 } },
+            {
+              attributes: { mental: 2, defense: 2, scoring: -3 },
+              hidden: { coachTrust: 8, morale: -2, hype: -2, wear: 2 },
+            },
           ),
       },
       {
@@ -232,13 +245,13 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
               'Para la quinta fecha el sistema se había acomodado a vos. Nadie lo dijo en voz alta y lo vieron todos.',
               'By the fifth game the system had bent around you. Nobody said it out loud and everybody saw it.',
               'good',
-              { attributes: { scoring: 5, playmaking: 2 }, hidden: { hype: 16, coachTrust: 4 } },
+              { attributes: { scoring: 4, playmaking: 2 }, hidden: { hype: 16, coachTrust: 4 } },
             ),
             outcome(
               'Te sacó a los siete minutos del primer partido y no volviste a entrar hasta marzo.',
               'He took you off after seven minutes of the first game and you did not get back on until March.',
               'bad',
-              { attributes: { scoring: -2, mental: 1 }, hidden: { coachTrust: -16, morale: -8 } },
+              { attributes: { scoring: -2, mental: 1 }, hidden: { coachTrust: -16, morale: -4 } },
             ),
           ),
       },
@@ -265,8 +278,8 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
             'You played thirty games for nothing and ended up playing thirty minutes a night because there was nobody else left. In September they paid you half of it.',
             'neutral',
             {
-              attributes: { scoring: 2, playmaking: 2, physical: -2 },
-              hidden: { coachTrust: 10, morale: -4, wear: 2, hype: 8 },
+              attributes: { scoring: 2, playmaking: 1, physical: -2 },
+              hidden: { coachTrust: 10, morale: -2, wear: 2, hype: 7 },
             },
           ),
       },
@@ -280,13 +293,13 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
               'Firmaste en un club chico que paga poco y paga. Media temporada tranquila y un cuerpo técnico que te enseñó a defender.',
               'You signed with a small club that pays little and pays. Half a quiet season and a staff who taught you how to guard people.',
               'good',
-              { attributes: { defense: 4, mental: 2 }, hidden: { morale: 8, coachTrust: 4 } },
+              { attributes: { defense: 3, mental: 2 }, hidden: { morale: 8, coachTrust: 4 } },
             ),
             outcome(
               'En enero no hay mercado. Entrenaste solo hasta agosto y arrancaste de cero.',
               'There is no market in January. You trained alone until August and started again from nothing.',
               'bad',
-              { attributes: { physical: 2, scoring: -3 }, hidden: { hype: -8, morale: -12 } },
+              { attributes: { physical: 2, scoring: -3 }, hidden: { hype: -8, morale: -8 } },
             ),
           ),
       },
@@ -315,13 +328,13 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
               'Cuando volvió, en marzo, el puesto ya no estaba libre. Él lo entendió antes que vos.',
               'When he came back in March the job was no longer free. He understood that before you did.',
               'good',
-              { attributes: { scoring: 4, mental: 1 }, hidden: { hype: 12, coachTrust: 6 } },
+              { attributes: { scoring: 4, mental: 1 }, hidden: { hype: 12, coachTrust: 6, wear: 5 } },
             ),
             outcome(
               'Once partidos de titular y once partidos tirando sin pensar. Cuando volvió, el entrenador respiró.',
               'Eleven games as a starter and eleven games of shooting without thinking. When he came back, the coach exhaled.',
               'bad',
-              { attributes: { scoring: 2, playmaking: -3 }, hidden: { hype: -2, coachTrust: -10, morale: -4 } },
+              { attributes: { scoring: 1, playmaking: -3 }, hidden: { hype: -2, coachTrust: -10, morale: -4 } },
             ),
           ),
       },
@@ -332,7 +345,7 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
             'Cero pérdidas, quince minutos y ni un tiro que no fuera obvio. Cuando volvió te dio las gracias, y el entrenador te mandó al banco contento con vos.',
             'No turnovers, fifteen minutes, and not one shot that was not obvious. When he came back he thanked you, and the coach sent you to the bench pleased with you.',
             'neutral',
-            { attributes: { playmaking: 2, defense: 2, scoring: -2 }, hidden: { coachTrust: 10 } },
+            { attributes: { playmaking: 2, defense: 1, scoring: -2 }, hidden: { coachTrust: 10 } },
           ),
       },
     ],
@@ -360,13 +373,13 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
               'Tres sesiones por día porque no había otra cosa que hacer. Nunca en tu vida mejoraste tanto en tan poco tiempo.',
               'Three sessions a day because there was nothing else to do. You never improved so much in so little time, before or since.',
               'good',
-              { attributes: { scoring: 4, physical: 3 }, hidden: { hype: 6, wear: 3, morale: -6 } },
+              { attributes: { scoring: 3, physical: 3 }, hidden: { hype: 6, wear: 3, morale: -6 } },
             ),
             outcome(
               'Te rompiste solo, sin nadie que te dijera basta. En febrero tenías una rodilla que se quejaba y a nadie a quien contárselo.',
               'You broke yourself down alone, with nobody there to say enough. By February you had a knee that complained and nobody to tell.',
               'bad',
-              { attributes: { scoring: 2, physical: -4 }, hidden: { wear: 6, morale: -12 } },
+              { attributes: { scoring: 1, physical: -4 }, hidden: { wear: 5, morale: -12 } },
             ),
           ),
       },
@@ -377,7 +390,7 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
             'Conseguiste tres amigos que no juegan al básquet y una rutina de persona. Entrenaste bien y no entrenaste de más, que a los veinte parece poco.',
             'You found three friends who do not play basketball and the routine of a human being. You trained well and did not train too much, which at twenty feels like nothing.',
             'neutral',
-            { attributes: { mental: 3, scoring: -1 }, hidden: { morale: 12, wear: -4, hype: 2 } },
+            { attributes: { mental: 2, scoring: -1 }, hidden: { morale: 12, wear: -4, hype: 2, coachTrust: 2 } },
           ),
       },
     ],
@@ -405,13 +418,13 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
               'Dos tipos de treinta te escucharon y el resto los siguió. Ganaron seis de los últimos veinte, que en ese equipo era una barbaridad.',
               'Two thirty-year-olds listened, and the rest followed them. You won six of the last twenty, which at that club was an outrage.',
               'good',
-              { attributes: { mental: 5, playmaking: 2 }, hidden: { coachTrust: 12, morale: 8 } },
+              { attributes: { mental: 4, playmaking: 2 }, hidden: { coachTrust: 12, morale: 8, wear: 3 } },
             ),
             outcome(
               'Hablaste y se hizo un silencio que duró hasta junio. Aprendiste a los veinte que la cinta no te la da el entrenador.',
               'You spoke and there was a silence that lasted until June. You learned at twenty that the armband is not the coach’s to give.',
               'bad',
-              { attributes: { mental: 3, scoring: -3 }, hidden: { morale: -12 } },
+              { attributes: { mental: 2, scoring: -3 }, hidden: { morale: -12 } },
             ),
           ),
       },
@@ -422,7 +435,7 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
             'Cerraste la boca y metiste dieciocho por noche en un equipo que perdía por veinte. Los números fueron tuyos; la temporada no fue de nadie.',
             'You kept your mouth shut and put up eighteen a night for a team losing by twenty. The numbers were yours; the season belonged to nobody.',
             'neutral',
-            { attributes: { scoring: 3, defense: -3 }, hidden: { hype: 8, coachTrust: -6 } },
+            { attributes: { scoring: 3, defense: -2 }, hidden: { hype: 8, coachTrust: -4 } },
           ),
       },
     ],
@@ -447,7 +460,7 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
             'Tres meses de camilla a los veinte años, mirando cómo se armaba el equipo sin vos. Volviste en abril con una rodilla que no se acuerda de nada.',
             'Three months on a treatment table at twenty, watching the team take shape without you. You came back in April with a knee that remembers nothing.',
             'neutral',
-            { attributes: { physical: 3, scoring: -2 }, hidden: { wear: -14, hype: -4, morale: -4 } },
+            { attributes: { physical: 3, scoring: -2 }, hidden: { wear: -14, hype: -2, morale: -2 } },
           ),
       },
       {
@@ -466,7 +479,7 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
               'Aguantó hasta febrero. Lo que era una artroscopía de cuarenta minutos terminó siendo una operación de verdad.',
               'It held until February. What was a forty-minute arthroscopy turned into a real operation.',
               'bad',
-              { attributes: { physical: -5, scoring: -2 }, hidden: { wear: 16, morale: -8 } },
+              { attributes: { physical: -5, scoring: -2 }, hidden: { wear: 16, morale: -4 } },
             ),
           ),
       },
@@ -492,7 +505,7 @@ export const DEVELOPMENT_EVENTS: GameEvent[] = [
             'Te diste dos años. Desde el lunes entrenaste distinto: sin vueltas, sin excusas y con un reloj adentro que no se apaga nunca.',
             'You gave yourself two years. From that Monday you trained differently: no detours, no excuses, and a clock inside you that never switches off.',
             'neutral',
-            { attributes: { mental: 4, scoring: 1, physical: -1 }, hidden: { morale: -8, wear: 1, hype: 4 } },
+            { attributes: { mental: 3, scoring: 1, physical: -1 }, hidden: { morale: -8, wear: 1, hype: 6 } },
           ),
       },
       {
