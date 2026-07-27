@@ -172,6 +172,7 @@ export const es = {
   rivalRetired: 'Retirado en {year}',
   rings: 'Títulos',
   cups: 'Copas',
+  trophyCabinet: 'Vitrina',
   mvps: 'MVPs',
   allStars: 'All-Star',
 
@@ -352,6 +353,7 @@ export const en: Dictionary = {
   rivalRetired: 'Retired in {year}',
   rings: 'Titles',
   cups: 'Cups',
+  trophyCabinet: 'Trophy cabinet',
   mvps: 'MVPs',
   allStars: 'All-Star',
 

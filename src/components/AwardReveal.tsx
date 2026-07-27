@@ -5,6 +5,7 @@ import type { AwardId } from '@/game/types'
 import { AWARD_INFO } from '@/game/awards'
 import { cupLogoPathFor } from '@/data/logos'
 import { CupCrest } from './CompetitionCrest'
+import { trophyLabel, type Trophy } from '@/game/trophies'
 
 /**
  * Winning something should feel like winning something.
@@ -15,11 +16,11 @@ import { CupCrest } from './CompetitionCrest'
  */
 export function AwardReveal({
   awards,
-  /** The cup just won, when there is one — so the trophy shows its own badge. */
-  cupId = null,
+  /** Trophies this season produced, so a title is named after its competition. */
+  trophies = [],
 }: {
   awards: AwardId[]
-  cupId?: string | null
+  trophies?: Trophy[]
 }) {
   const { t, locale } = useT()
   if (awards.length === 0) return null
@@ -28,10 +29,23 @@ export function AwardReveal({
   const [headline, ...rest] = sorted
   const info = AWARD_INFO[headline]
   const major = info.weight >= 45
+
+  // A championship is named after what it won; every other award already is.
+  const titled =
+    headline === 'league_champion' || headline === 'cup_champion'
+      ? trophies.find((tr) => tr.result === 'champion' &&
+          (headline === 'cup_champion' ? tr.kind === 'cup' : tr.kind === 'league'))
+      : undefined
+  const heading = titled ? trophyLabel(titled)[locale] : info[locale]
+
+  const cupTrophy = trophies.find((tr) => tr.kind === 'cup' && tr.result === 'champion')
   // Only when a real trophy badge exists. `CupCrest` would happily draw its
   // generated plate here, but as the hero of the reveal the emoji trophy beats
   // an abbreviation on a rectangle — the plate is for inline use beside a name.
-  const badge = headline === 'cup_champion' && cupId && cupLogoPathFor(cupId) ? cupId : null
+  const badge =
+    headline === 'cup_champion' && cupTrophy && cupLogoPathFor(cupTrophy.competitionId)
+      ? cupTrophy.competitionId
+      : null
 
   return (
     <div
@@ -55,7 +69,7 @@ export function AwardReveal({
             major ? 'text-xl text-flame-400' : 'text-base text-slate-100'
           }`}
         >
-          {info[locale]}
+          {heading}
         </p>
         {major && (
           <p className="mt-1 text-[11px] font-semibold uppercase tracking-widest text-flame-400/70">
