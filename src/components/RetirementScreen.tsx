@@ -7,6 +7,7 @@ import { computeLegacy, computeTotals } from '@/game/legacy'
 import { getTeam } from '@/data/teams'
 import { flagFor } from '@/data/countries'
 import { AWARD_INFO } from '@/game/awards'
+import { trophiesFor, trophyIcon, trophyLabel, type Trophy } from '@/game/trophies'
 import { formatMoney, teamTextColor } from './display'
 import { buildShareText, drawShareCard } from './shareCard'
 import { TeamCrest } from './TeamCrest'
@@ -43,12 +44,33 @@ export function RetirementScreen({ state, onPlayAgain }: Props) {
     const counts = new Map<string, number>()
     for (const season of state.seasons) {
       for (const award of season.awards) {
+        // `league_champion` and `cup_champion` are named per competition in the
+        // trophy cabinet above — counting them again here would both duplicate
+        // that cabinet and bring back the generic "Campeón" string it exists to
+        // replace.
+        if (award === 'league_champion' || award === 'cup_champion') continue
         counts.set(award, (counts.get(award) ?? 0) + 1)
       }
     }
     return [...counts.entries()].sort(
       (a, b) => AWARD_INFO[b[0] as keyof typeof AWARD_INFO].weight - AWARD_INFO[a[0] as keyof typeof AWARD_INFO].weight,
     )
+  }, [state.seasons])
+
+  // Every trophy of the career, grouped by competition so "NBA ×2" reads as a
+  // career rather than as two unrelated rings.
+  const cabinet = useMemo(() => {
+    const groups = new Map<string, { trophy: Trophy; titles: number; finals: number }>()
+    for (const s of state.seasons) {
+      for (const trophy of trophiesFor(s)) {
+        const key = `${trophy.kind}:${trophy.competitionId}`
+        const entry = groups.get(key) ?? { trophy, titles: 0, finals: 0 }
+        if (trophy.result === 'champion') entry.titles++
+        else entry.finals++
+        groups.set(key, entry)
+      }
+    }
+    return [...groups.values()].sort((a, b) => b.titles - a.titles || b.finals - a.finals)
   }, [state.seasons])
 
   async function handleDownload() {
@@ -143,6 +165,30 @@ export function RetirementScreen({ state, onPlayAgain }: Props) {
           {t('earnings')}:{' '}
           <span className="tnum font-bold text-slate-200">{formatMoney(totals.earnings, locale)}</span>
         </p>
+
+        {cabinet.length > 0 && (
+          <div className="mt-4">
+            <span className="label">{t('trophyCabinet')}</span>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {cabinet.map(({ trophy, titles, finals }) => (
+                <span
+                  key={`${trophy.kind}:${trophy.competitionId}`}
+                  className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-slate-300"
+                >
+                  {trophyIcon({ ...trophy, result: titles > 0 ? 'champion' : 'finalist' })}{' '}
+                  {trophyLabel({ ...trophy, result: titles > 0 ? 'champion' : 'finalist' })[locale]}
+                  {titles > 1 && <span className="tnum font-bold text-flame-400"> ×{titles}</span>}
+                  {finals > 0 && (
+                    <span className="tnum text-slate-500">
+                      {' '}
+                      · {finals} {trophyIcon({ ...trophy, result: 'finalist' })}
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {awardCounts.length > 0 && (
           <div className="mt-4">

@@ -8,6 +8,7 @@ import { PLAYOFF_KEY, ROLE_KEY, TONE_CLASS, formatMoney, formatPct } from './dis
 import { AwardReveal } from './AwardReveal'
 import { TeamCrest } from './TeamCrest'
 import { LeagueCrest } from './CompetitionCrest'
+import { trophiesFor } from '@/game/trophies'
 
 interface Props {
   state: GameState
@@ -21,7 +22,7 @@ export function SeasonResultScreen({ state, onContinue }: Props) {
 
   return (
     <div className="space-y-3 animate-fade-up">
-      <AwardReveal awards={season.awards} cupId={state.cupRun?.won ? state.cupRun.cupId : null} />
+      <AwardReveal awards={season.awards} trophies={trophiesFor(season)} />
       <SeasonCard season={season} />
       <button type="button" onClick={onContinue} className="btn-primary w-full py-3.5 text-base">
         {t('continue')}

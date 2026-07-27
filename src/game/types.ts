@@ -179,6 +179,20 @@ export interface Season {
   teamWins: number
   teamLosses: number
   playoffResult: PlayoffResult
+  /**
+   * The cup contested this season, so the trophy can be named after the fact —
+   * `state.cupRun` is cleared before the next season and cannot be read later.
+   *
+   * Optional: seasons recorded before this field existed do not carry it, and
+   * Wave 1 deliberately does not bump `SAVE_VERSION` to force them out.
+   */
+  cupId?: string | null
+  /**
+   * How the cup final went: `true` won, `false` reached it and lost, `null`
+   * never got there. A loss is recorded nowhere else — the winner gets an
+   * award id, the runner-up got nothing at all.
+   */
+  cupWon?: boolean | null
   awards: AwardId[]
   /** Salary earned this season, USD. */
   salary: number
@@ -410,6 +424,14 @@ export interface GameState {
    * `beginSeason` and folded into the season's headlines once it is simulated.
    */
   pendingPlacementNote: Localized | null
+  /**
+   * Set when the player's club chose not to re-sign them, so free agency can
+   * say so instead of presenting a list with a silent hole in it.
+   *
+   * Optional: added by this wave, so a save written before it has no key at
+   * all and loads with this field `undefined` rather than `null`.
+   */
+  pendingRenewalNote?: Localized | null
   /**
    * A season that is fully simulated except for its final, held back while the
    * player plays for the title. Never present outside the `minigame` phase.

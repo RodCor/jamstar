@@ -119,6 +119,7 @@ export function createGame(choices: CreationChoices, seed: string, mode: GameMod
     seasons: [],
     pendingEvent: null,
     pendingPlacementNote: null,
+    pendingRenewalNote: null,
     draftSeason: null,
     pendingMinigame: null,
     pendingFinals: [],

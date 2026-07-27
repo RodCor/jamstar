@@ -11,6 +11,7 @@ import type {
   ContractOffer,
   Country,
   League,
+  Localized,
   Player,
   PlayerRole,
   Season,
@@ -225,10 +226,12 @@ function candidateLeagues(player: Player, country: Country, rng: Rng): League[] 
     if (league.id === 'youth') return false
     // The NCAA route runs one way; a professional never goes back to college.
     if (league.id === 'ncaa') return false
-    // NBA interest is handled on its own terms below, never through the tier
-    // pool — left in the pool it becomes an escalator that quietly turns free
-    // agency into the main route to the best league in the world.
-    if (league.tier === 1) return false
+    // The escalator this blocks is the one *into* the NBA: left open, free
+    // agency becomes the reliable route to the best league in the world and
+    // draft night stops mattering. A player already there is not climbing
+    // anything by re-signing, and shutting them out produced the opposite
+    // absurdity — an NBA starter whose every option was in Europe.
+    if (league.tier === 1 && player.currentLeagueId !== 'nba') return false
     return wanted.has(league.tier)
   })
 }
@@ -306,6 +309,47 @@ function nbaSuitor(player: Player, lastSeason: Season | null, rng: Rng): Team | 
 }
 
 /**
+ * Why a club let a player go, in its own words.
+ *
+ * `renewalOdds` already computes the three terms that sink the odds, so the
+ * message can say which one did it rather than being generically sad. Checked
+ * in order of what the player would most obviously recognise, and a pure
+ * function of the season just played — no RNG, so a replayed seed narrates it
+ * identically.
+ */
+function declineNote(player: Player, team: Team, lastSeason: Season | null): Localized {
+  if (lastSeason && lastSeason.gamesMissed > lastSeason.gamesPlayed) {
+    return {
+      es: `${team.name.es} no te renueva. No quieren arriesgar otra temporada con tu historial físico.`,
+      en: `${team.name.en} are letting you go. They will not risk another year on your injury record.`,
+    }
+  }
+  if (player.age > 33) {
+    return {
+      es: `${team.name.es} no te renueva. El club decidió rejuvenecer el plantel.`,
+      en: `${team.name.en} are letting you go. The club is getting younger.`,
+    }
+  }
+  if (lastSeason && lastSeason.rating < 52) {
+    return {
+      es: `${team.name.es} no te renueva. El cuerpo técnico quiere otro perfil para el puesto.`,
+      en: `${team.name.en} are letting you go. The coaching staff wants a different profile.`,
+    }
+  }
+  return {
+    es: `${team.name.es} no te renueva. No hubo oferta y no te dieron motivos.`,
+    en: `${team.name.en} are letting you go. No offer came, and no reason with it.`,
+  }
+}
+
+/** The shortlist, plus what the player's own club decided. */
+export interface OfferSlate {
+  offers: ContractOffer[]
+  /** Set only when there was a club to keep the player and it chose not to. */
+  renewalDeclined: Localized | null
+}
+
+/**
  * Build the shortlist.
  *
  * The current club is included when they would plausibly re-sign you, so
@@ -317,7 +361,7 @@ export function generateOffers(
   rng: Rng,
   /** Last season, which is what the club is actually deciding on. */
   lastSeason: Season | null = null,
-): ContractOffer[] {
+): OfferSlate {
   const leagues = candidateLeagues(player, country, rng)
 
   const tier = tierForPlayer(player)
@@ -349,9 +393,18 @@ export function generateOffers(
 
   // A renewal, when the club still rates you — which, after a good season, is
   // very nearly always.
-  if (rng.chance(renewalOdds(player, lastSeason))) {
+  let renewalDeclined: Localized | null = null
+  // Out of the youth system there is no club to renew with, and nothing to
+  // report: that path goes through `generateFirstOffers`.
+  if (player.currentLeagueId !== 'youth') {
     const team = getTeam(currentTeamId)
-    offers.push(makeOffer(team, { isCurrentClub: true }))
+    if (rng.chance(renewalOdds(player, lastSeason))) {
+      offers.push(makeOffer(team, { isCurrentClub: true }))
+    } else {
+      renewalDeclined = declineNote(player, team, lastSeason)
+    }
+    // Reserved either way. Left out on a decline, the club could be drawn again
+    // by the general loop and offered back as though it were a stranger.
     usedTeams.add(team.id)
   }
 
@@ -362,7 +415,7 @@ export function generateOffers(
     usedTeams.add(nbaTeam.id)
   }
 
-  if (leagues.length === 0) return offers
+  if (leagues.length === 0) return { offers, renewalDeclined }
 
   let guard = 0
   while (offers.length < MAX_OFFERS && guard < 40) {
@@ -385,10 +438,11 @@ export function generateOffers(
   }
 
   // Best first — but "best" is deliberately ambiguous, which is the point.
-  return offers.sort((a, b) => {
+  offers.sort((a, b) => {
     const tierDiff = getLeague(a.leagueId).tier - getLeague(b.leagueId).tier
     return tierDiff !== 0 ? tierDiff : b.salary - a.salary
   })
+  return { offers, renewalDeclined }
 }
 
 /** The very first contract, for a player leaving high school. */

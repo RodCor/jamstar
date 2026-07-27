@@ -93,6 +93,7 @@ export function startOffseason(state: GameState): GameState {
   next.pendingDraft = null
   next.pendingTournament = null
   next.pendingPlacementNote = null
+  next.pendingRenewalNote = null
 
   // Age, natural growth/decline, and this year's growth allowance.
   ageOneYear(player, yearRng(next, 'ageing'))
@@ -112,9 +113,9 @@ export function startOffseason(state: GameState): GameState {
     return next
   }
 
-  const offers =
+  const slate =
     player.currentLeagueId === 'youth'
-      ? generateFirstOffers(player, country, yearRng(next, 'first-offers'))
+      ? { offers: generateFirstOffers(player, country, yearRng(next, 'first-offers')), renewalDeclined: null }
       : generateOffers(
           player,
           country,
@@ -123,12 +124,24 @@ export function startOffseason(state: GameState): GameState {
           next.seasons[next.seasons.length - 1] ?? null,
         )
 
-  if (offers.length === 0) {
+  next.pendingRenewalNote = slate.renewalDeclined
+
+  if (slate.offers.length === 0) {
     // Nobody called. Stay put rather than stall the career.
+    //
+    // The offers screen is skipped entirely on this path, so a renewal note
+    // set above would otherwise sit unread until the next offseason wipes it.
+    // That is exactly the year a player was dropped by their club and no one
+    // else wanted them — the one year they most need to be told why. Route
+    // it through the placement note instead, which buildHeadlines always
+    // folds into this season's results.
+    if (next.pendingRenewalNote) {
+      next.pendingPlacementNote = next.pendingRenewalNote
+    }
     return openPreseason(next)
   }
 
-  next.pendingOffers = offers
+  next.pendingOffers = slate.offers
   next.phase = 'offers'
   return next
 }
@@ -542,6 +555,10 @@ function finalizeSeason(state: GameState, season: Season): GameState {
 
   // The cup is a trophy in its own right, not a footnote of the league season.
   if (state.cupRun?.won) season.awards.unshift('cup_champion')
+  // Which cup and how it ended, so the trophy can be named once `cupRun` is
+  // gone. `won === false` is the only record a losing finalist ever gets.
+  season.cupId = state.cupRun?.cupId ?? null
+  season.cupWon = state.cupRun?.won ?? null
 
   season.salary = computeSalary(league, season.role, player.hidden.hype, rng)
   season.headlines = buildHeadlines(state, season)
