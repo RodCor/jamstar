@@ -75,11 +75,13 @@ function preWaveState(): GameState {
 describe('save compatibility across the wave', () => {
   // The canary. Bumping SAVE_VERSION makes loadRun() reject every save on
   // disk (state.version !== SAVE_VERSION), which ends every player's
-  // in-progress career the instant they reload. That is exactly what Wave 2
-  // does on purpose once the attribute merge lands — it must not happen here.
-  // Whoever trips this test should know immediately whether they meant it.
-  it('has not bumped SAVE_VERSION', () => {
-    expect(SAVE_VERSION).toBe(3)
+  // in-progress career the instant they reload. The attribute model changed
+  // shape in this wave (seven attributes → five), so a pre-wave save read by
+  // five-attribute code gives every player undefined for every attribute;
+  // arithmetic on undefined yields NaN and the career silently rots. The bump
+  // to 4 is deliberate and required.
+  it('has bumped SAVE_VERSION to 4', () => {
+    expect(SAVE_VERSION).toBe(4)
   })
 
   describe('loadRun / saveRun', () => {

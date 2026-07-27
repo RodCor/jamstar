@@ -23,7 +23,7 @@ import { startOffseason } from './engine'
  */
 export const START_AGE = 13
 export const START_YEAR = 2026
-export const SAVE_VERSION = 3
+export const SAVE_VERSION = 4
 
 export interface CreationChoices {
   name: string
