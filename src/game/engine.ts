@@ -208,7 +208,11 @@ function openPreseason(state: GameState): GameState {
     player.currentTeamId = 'youth_hs'
     player.currentLeagueId = 'youth'
   }
-  player.perkChoices = drawPerkChoices(player, new Rng(`${state.seed}::${state.year}::perks`))
+  player.perkChoices = drawPerkChoices(
+    player,
+    new Rng(`${state.seed}::${state.year}::perks`),
+    state.seasons[state.seasons.length - 1] ?? null,
+  )
   state.phase = 'preseason'
   return state
 }

@@ -15,6 +15,13 @@
 
 import type { AttributeKey, Position } from '@/game/types'
 
+/**
+ * Weakest to strongest. Optional on `Perk` for now — a later task tags all 24
+ * existing entries and makes it required. Until then, a perk with no rarity
+ * is treated as `basic` when drawn, so the current pool keeps working.
+ */
+export type PerkRarity = 'basic' | 'silver' | 'gold' | 'legend' | 'top1'
+
 export interface PerkEffects {
   /** Multiplies injury chance. Below 1 is protective. */
   injuryFactor?: number
@@ -53,6 +60,8 @@ export interface Perk {
   maxAge?: number
   /** Higher shows up more often. */
   weight: number
+  /** How rare this is to be offered. Absent means `basic`. */
+  rarity?: PerkRarity
 }
 
 export const PERKS: Perk[] = [
