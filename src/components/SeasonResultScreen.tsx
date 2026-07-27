@@ -7,6 +7,7 @@ import { getLeague } from '@/data/leagues'
 import { PLAYOFF_KEY, ROLE_KEY, TONE_CLASS, formatMoney, formatPct } from './display'
 import { AwardReveal } from './AwardReveal'
 import { TeamCrest } from './TeamCrest'
+import { LogoBadge } from './LogoBadge'
 
 interface Props {
   state: GameState
@@ -20,7 +21,7 @@ export function SeasonResultScreen({ state, onContinue }: Props) {
 
   return (
     <div className="space-y-3 animate-fade-up">
-      <AwardReveal awards={season.awards} />
+      <AwardReveal awards={season.awards} cupId={state.cupRun?.won ? state.cupRun.cupId : null} />
       <SeasonCard season={season} />
       <button type="button" onClick={onContinue} className="btn-primary w-full py-3.5 text-base">
         {t('continue')}
@@ -44,7 +45,10 @@ export function SeasonCard({ season }: { season: Season }) {
         <TeamCrest teamId={team.id} size={46} />
         <div className="min-w-0 flex-1">
           <p className="truncate font-bold text-slate-100">{L(team.name)}</p>
-          <p className="truncate text-xs text-slate-400">{L(league.name)}</p>
+          <p className="flex items-center gap-1.5 truncate text-xs text-slate-400">
+            <LogoBadge id={league.id} label={L(league.name)} size={14} />
+            {L(league.name)}
+          </p>
         </div>
         <div className="shrink-0 text-right">
           <p className="tnum text-sm font-bold text-slate-200">{season.year}</p>

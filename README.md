@@ -189,7 +189,7 @@ is not an NBA ring, and the legacy score says so.
 
 ---
 
-## Club badges
+## Badges
 
 Every club, academy and college gets a generated crest: one of six silhouettes
 (shield, disc, roundel, hexagon, diamond, pennant) picked deterministically from
@@ -198,39 +198,52 @@ abbreviation. Nothing is fetched at runtime — the badges are inline SVG, which
 also means they survive a strict CSP. The share card draws a canvas twin of the
 same crest so the PNG matches what you saw in the app.
 
-**To use real logos instead:**
+Leagues and cups have no colours to generate from, so they show a badge only
+once a real logo exists and plain text before that.
+
+**To use real logos:**
 
 ```bash
-npm run logos:fetch    # downloads into public/logos/
-npm run logos          # regenerates src/data/logos.ts from that folder
+npm run logos:fetch -- --list      # what will be fetched; touches no network
+npm run logos:fetch -- --dry-run   # resolve URLs, download nothing  ← read this
+npm run logos:fetch                # ~181 files into public/logos/
+npm run logos                      # regenerates src/data/logos.ts from that folder
 git add public/logos src/data/logos.ts && git commit && git push
 ```
 
 The logos have to be **committed** — Pages builds from the repository, so files
 that only exist on your machine will not reach the live site.
 
-`logos:fetch` resolves each club in three steps: a manual URL from
-`scripts/logo-sources.json` if one is set, then the NBA's own CDN (clean SVGs,
-keyed by franchise id), then Wikipedia's page image. Wikipedia is the only
-source covering every league here, but plain club names are ambiguous for the
-multi-sport clubs — searching "Real Madrid" or "Flamengo" lands on the football
-side — so ~70 of those are pinned to the right article by a hint table in the
-script.
+**Do the dry run and read the cup lines before a real run.** `logos:fetch`
+resolves each entry in three steps: a manual URL from `scripts/logo-sources.json`
+if one is set, then the NBA's own CDN (clean SVGs, keyed by franchise id, clubs
+only), then Wikipedia's page image. Wikipedia is the only source covering
+everything here, and an ambiguous name is the real risk: it does not fail, it
+succeeds with the wrong badge. "Real Madrid" and "Flamengo" land on the football
+side, and "Copa del Rey", "Coppa Italia" and "Coupe de France" are all football
+tournaments first. A hint table in the script pins ~100 of those to the right
+article, and the dry run prints the article each one resolved to — the only
+place a wrong match is visible.
 
 Useful flags:
 
 ```bash
-npm run logos:fetch -- --dry-run              # resolve URLs, download nothing
+npm run logos:fetch -- --kind=cup             # team | league | cup
 npm run logos:fetch -- --league=nba           # one league at a time
-npm run logos:fetch -- --only=lal,el_rma
+npm run logos:fetch -- --only=lal,copa_rey
 npm run logos:fetch -- --force                # re-download existing
 npm run logos:fetch -- --include-youth
 ```
 
 It skips anything already downloaded, so re-running only fills gaps. Whatever it
 cannot resolve gets listed in `public/logos/_report.json`; add a direct URL for
-those to `scripts/logo-sources.json` and re-run. Anything still missing simply
-keeps its generated crest, so a partial set is fine.
+those to `scripts/logo-sources.json` and re-run. Anything still missing keeps its
+generated crest (clubs) or stays text (leagues and cups), so a partial set is
+fine.
+
+Three ids are skipped by design, having no single real badge: `youth`,
+`conference_tournament` and `cba_allstar_cup`. `coupe_france_b` is aliased to
+`coupe_france`, since both French tiers enter the same trophy.
 
 > Club logos are copyrighted artwork as well as trademarks. Fine for a hobby
 > build; get permission before publishing one commercially.

@@ -1,38 +1,53 @@
 #!/usr/bin/env node
 /**
- * Fetch club logos into `public/logos/`.
+ * Fetch club, league and cup logos into `public/logos/`.
  *
  * Run it, then run `npm run logos` to regenerate the override map. Anything
- * that fails to download keeps its generated crest, so a partial run is fine.
+ * that fails to download simply has no badge, so a partial run is fine.
  *
  *   npm run logos:fetch                    # everything missing
- *   npm run logos:fetch -- --force         # re-download even if present
- *   npm run logos:fetch -- --only=lal,el_rma
- *   npm run logos:fetch -- --league=nba
+ *   npm run logos:fetch -- --list          # what would be fetched; no network
  *   npm run logos:fetch -- --dry-run       # resolve URLs, download nothing
+ *   npm run logos:fetch -- --kind=cup      # one kind at a time
+ *   npm run logos:fetch -- --league=nba
+ *   npm run logos:fetch -- --only=lal,copa_rey
+ *   npm run logos:fetch -- --force         # re-download even if present
  *   npm run logos:fetch -- --include-youth
  *
  * No dependencies — Node 22's built-in fetch is all it uses.
  *
- * Resolution order per club:
- *   1. `scripts/logo-sources.json`, if it maps this team id to a URL. This is
- *      the escape hatch: drop a URL in there for anything the automation gets
+ * Resolution order per entity:
+ *   1. `scripts/logo-sources.json`, if it maps this id to a URL. This is the
+ *      escape hatch: drop a URL in there for anything the automation gets
  *      wrong, and it wins over everything else.
  *   2. The NBA's own CDN, which serves clean SVGs keyed by franchise id.
- *   3. Wikipedia's page image for the club's article.
+ *      Clubs only.
+ *   3. Wikipedia's page image for the entity's article.
  *
- * Wikipedia is the only source with coverage across every league in the game,
- * but plain club names are ambiguous for the multi-sport clubs — searching
- * "Real Madrid" or "Flamengo" lands on the football side. SEARCH_HINTS below
- * pins those to the basketball article.
+ * Wikipedia is the only source with coverage across everything in the game, and
+ * a plain name search is the whole risk here: it does not fail on an ambiguous
+ * name, it succeeds with the wrong badge. "Real Madrid" and "Flamengo" land on
+ * the football side; "Copa del Rey", "Coppa Italia" and "Coupe de France" are
+ * all football tournaments first. SEARCH_HINTS pins every one of those to the
+ * basketball article — which is why `--dry-run` prints the resolved article
+ * title, and why it is worth reading before a real run.
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs'
+import {
+  readFileSync,
+  writeFileSync,
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+} from 'node:fs'
 import { join, extname } from 'node:path'
 
 const ROOT = process.cwd()
 const LOGO_DIR = join(ROOT, 'public', 'logos')
 const TEAMS_FILE = join(ROOT, 'src', 'data', 'teams.ts')
+const LEAGUES_FILE = join(ROOT, 'src', 'data', 'leagues.ts')
+const CUPS_FILE = join(ROOT, 'src', 'data', 'cups.ts')
 const SOURCES_FILE = join(ROOT, 'scripts', 'logo-sources.json')
 const REPORT_FILE = join(LOGO_DIR, '_report.json')
 
@@ -49,9 +64,11 @@ const value = (name) => {
 
 const FORCE = has('--force')
 const DRY_RUN = has('--dry-run')
+const LIST = has('--list')
 const INCLUDE_YOUTH = has('--include-youth')
 const ONLY = value('only')?.split(',').map((s) => s.trim()).filter(Boolean) ?? null
 const LEAGUE = value('league')
+const KIND = value('kind')
 const CONCURRENCY = Math.max(1, Math.min(6, Number(value('concurrency') ?? 3)))
 
 /** NBA franchise ids — their CDN serves crisp SVGs keyed by these. */
@@ -147,6 +164,62 @@ const SEARCH_HINTS = {
   gl_scw: 'Santa Cruz Warriors',
   leb_bur: 'San Pablo Burgos',
   leb_ovi: 'Oviedo Club Baloncesto',
+
+  // Leagues. Most are unambiguous, but the acronyms are not: "ACB", "LKL" and
+  // "BSL" all resolve to something else entirely without a full name.
+  nba: 'National Basketball Association',
+  euroleague: 'EuroLeague',
+  acb: 'Liga ACB',
+  lega_a: 'Lega Basket Serie A',
+  betclic: 'LNB Élite',
+  aba: 'ABA League',
+  lkl: 'Lietuvos krepšinio lyga',
+  gbl: 'Greek Basket League',
+  bsl: 'Basketbol Süper Ligi',
+  lnb_ar: 'Liga Nacional de Básquet',
+  nbb: 'Novo Basquete Brasil',
+  cba: 'Chinese Basketball Association',
+  nbl: 'National Basketball League (Australia)',
+  ncaa: 'NCAA Division I men’s basketball',
+  g_league: 'NBA G League',
+  leb_oro: 'LEB Oro',
+  pro_b: 'LNB Pro B',
+
+  // Cups. These are the dangerous ones: the three biggest names in here are all
+  // football tournaments first, and a plain search returns the wrong badge
+  // without erroring.
+  nba_cup: 'NBA Cup',
+  copa_rey: 'Copa del Rey de Baloncesto',
+  coppa_italia: 'Coppa Italia (basketball)',
+  coupe_france: 'Coupe de France (basketball)',
+  aba_supercup: 'ABA League Supercup',
+  kmt: 'King Mindaugas Cup',
+  greek_cup: 'Greek Basketball Cup',
+  turkish_cup: 'Turkish Basketball Cup',
+  copa_argentina: 'Copa Argentina de Básquet',
+  copa_super8: 'Copa Super 8',
+  copa_princesa: 'Copa Princesa de Asturias',
+  winter_showcase: 'NBA G League Winter Showcase',
+  nbl_blitz: 'NBL Blitz',
+}
+
+/**
+ * Entities with no single real badge to fetch. Skipped rather than guessed —
+ * a wrong logo is worse than none, because nothing downstream flags it.
+ */
+const SKIP = new Set([
+  // Generic by design.
+  'youth',
+  // Every NCAA conference runs its own; there is no one tournament logo.
+  'conference_tournament',
+  // Invented for the game — the CBA has no equivalent domestic cup.
+  'cba_allstar_cup',
+])
+
+/** Ids that share one real trophy: fetch the source, copy to the alias. */
+const ALIASES = {
+  // Both French tiers enter the same Coupe de France.
+  coupe_france_b: 'coupe_france',
 }
 
 /** High school basketball is generic by design — no real badge to fetch. */
@@ -157,11 +230,38 @@ function parseTeams() {
   // Matches: t('id', 'Name', 'ABBR', 'leagueId', ...)
   const re = /^\s*t\(\s*'([^']+)'\s*,\s*'([^']+)'\s*,\s*'([^']+)'\s*,\s*'([^']+)'/gm
   return [...source.matchAll(re)].map(([, id, name, abbr, leagueId]) => ({
+    kind: 'team',
     id,
     name,
     abbr,
     leagueId,
   }))
+}
+
+/**
+ * Leagues and cups share a shape: an object literal opening with `id`, with an
+ * `{ es, en }` name a few lines down. The English name is the one used for the
+ * search, since Wikipedia is searched in English.
+ *
+ * Both quote styles have to be accepted. A name containing an apostrophe is
+ * written with double quotes ("Turkish President's Cup"), and a single-quote
+ * regex does not merely miss it — it runs on to the *next* entry's name, so one
+ * cup is mislabelled and the one after it disappears entirely.
+ */
+function parseRecords(file, kind) {
+  const source = readFileSync(file, 'utf8')
+  const re =
+    /\bid:\s*['"]([^'"]+)['"][\s\S]{0,240}?\bname:\s*\{[^}]*?\ben:\s*(['"])((?:(?!\2).)*)\2/g
+  return [...source.matchAll(re)].map(([, id, , name]) => ({ kind, id, name, leagueId: null }))
+}
+
+/** Everything the scraper knows how to fetch, as one uniform list. */
+function collectEntities() {
+  return [
+    ...parseTeams(),
+    ...parseRecords(LEAGUES_FILE, 'league'),
+    ...parseRecords(CUPS_FILE, 'cup'),
+  ]
 }
 
 async function getJson(url) {
@@ -171,8 +271,8 @@ async function getJson(url) {
 }
 
 /** Wikipedia's lead image for the best-matching article. */
-async function wikipediaLogo(team) {
-  const query = SEARCH_HINTS[team.id] ?? `${team.name} basketball`
+async function wikipediaLogo(entity) {
+  const query = SEARCH_HINTS[entity.id] ?? `${entity.name} basketball`
   const searchUrl =
     'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*' +
     `&list=search&srlimit=1&srnamespace=0&srsearch=${encodeURIComponent(query)}`
@@ -192,9 +292,9 @@ async function wikipediaLogo(team) {
   return src ? { url: src, via: `wikipedia:${title}` } : null
 }
 
-function nbaCdnLogo(team) {
-  if (team.leagueId !== 'nba') return null
-  const franchise = NBA_CDN_IDS[team.id]
+function nbaCdnLogo(entity) {
+  if (entity.kind !== 'team' || entity.leagueId !== 'nba') return null
+  const franchise = NBA_CDN_IDS[entity.id]
   if (!franchise) return null
   return {
     url: `https://cdn.nba.com/logos/nba/${franchise}/global/L/logo.svg`,
@@ -234,22 +334,22 @@ function existingFileFor(id) {
   )
 }
 
-async function resolveAndFetch(team, manual) {
-  const existing = existingFileFor(team.id)
+async function resolveAndFetch(entity, manual) {
+  const existing = existingFileFor(entity.id)
   if (existing && !FORCE) {
-    return { id: team.id, status: 'skipped', detail: `already have ${existing}` }
+    return { id: entity.id, status: 'skipped', detail: `already have ${existing}` }
   }
 
   const candidates = []
-  if (manual[team.id]) candidates.push({ url: manual[team.id], via: 'logo-sources.json' })
-  const nba = nbaCdnLogo(team)
+  if (manual[entity.id]) candidates.push({ url: manual[entity.id], via: 'logo-sources.json' })
+  const nba = nbaCdnLogo(entity)
   if (nba) candidates.push(nba)
 
   // Wikipedia is the fallback for everything, so it is resolved lazily —
   // no point spending two API calls on a club the NBA CDN already covered.
   const resolvers = [
     ...candidates.map((c) => async () => c),
-    async () => wikipediaLogo(team),
+    async () => wikipediaLogo(entity),
   ]
 
   const problems = []
@@ -264,16 +364,16 @@ async function resolveAndFetch(team, manual) {
     if (!candidate) continue
 
     if (DRY_RUN) {
-      return { id: team.id, status: 'resolved', detail: `${candidate.via} -> ${candidate.url}` }
+      return { id: entity.id, status: 'resolved', detail: `${candidate.via} -> ${candidate.url}` }
     }
 
     try {
       const { buffer, ext } = await download(candidate.url)
-      writeFileSync(join(LOGO_DIR, `${team.id}${ext}`), buffer)
+      writeFileSync(join(LOGO_DIR, `${entity.id}${ext}`), buffer)
       return {
-        id: team.id,
+        id: entity.id,
         status: 'ok',
-        detail: `${team.id}${ext} (${Math.round(buffer.length / 1024)} kB) via ${candidate.via}`,
+        detail: `${entity.id}${ext} (${Math.round(buffer.length / 1024)} kB) via ${candidate.via}`,
       }
     } catch (error) {
       problems.push(`${candidate.via}: ${error.message}`)
@@ -281,11 +381,28 @@ async function resolveAndFetch(team, manual) {
   }
 
   return {
-    id: team.id,
+    id: entity.id,
     status: 'failed',
     detail: problems.join('; ') || 'no candidate URL found',
-    name: team.name,
+    name: entity.name,
+    kind: entity.kind,
   }
+}
+
+/** Copy each alias's source file into place, once the real fetches are done. */
+function applyAliases(selected) {
+  const wanted = new Set(selected.map((e) => e.id))
+  const copied = []
+  for (const [alias, source] of Object.entries(ALIASES)) {
+    if (!wanted.has(alias)) continue
+    if (existingFileFor(alias) && !FORCE) continue
+    const file = existingFileFor(source)
+    if (!file) continue
+    const ext = extname(file)
+    copyFileSync(join(LOGO_DIR, file), join(LOGO_DIR, `${alias}${ext}`))
+    copied.push(`${alias}${ext} (copied from ${source})`)
+  }
+  return copied
 }
 
 /** Simple worker pool — Wikimedia does not want a 160-way burst. */
@@ -305,21 +422,53 @@ async function pool(items, worker, size) {
 }
 
 async function main() {
-  let teams = parseTeams()
-  if (teams.length === 0) {
+  let entities = collectEntities()
+  const counts = (list) => ({
+    team: list.filter((e) => e.kind === 'team').length,
+    league: list.filter((e) => e.kind === 'league').length,
+    cup: list.filter((e) => e.kind === 'cup').length,
+  })
+
+  if (counts(entities).team === 0) {
     console.error('Could not parse any teams from src/data/teams.ts — has its shape changed?')
     process.exit(1)
   }
-
-  if (!INCLUDE_YOUTH) {
-    teams = teams.filter((t) => t.leagueId !== 'youth' || !PLACEHOLDER_YOUTH.has(t.id))
-  }
-  if (LEAGUE) teams = teams.filter((t) => t.leagueId === LEAGUE)
-  if (ONLY) teams = teams.filter((t) => ONLY.includes(t.id))
-
-  if (teams.length === 0) {
-    console.error('No teams matched those filters.')
+  if (counts(entities).league === 0 || counts(entities).cup === 0) {
+    console.error('Could not parse leagues or cups — has the shape of those files changed?')
     process.exit(1)
+  }
+
+  // Aliases are fetched through their source, then copied.
+  entities = entities.filter((e) => !ALIASES[e.id])
+  entities = entities.filter((e) => !SKIP.has(e.id))
+  if (!INCLUDE_YOUTH) {
+    entities = entities.filter((e) => e.leagueId !== 'youth' || !PLACEHOLDER_YOUTH.has(e.id))
+  }
+  if (KIND) entities = entities.filter((e) => e.kind === KIND)
+  if (LEAGUE) entities = entities.filter((e) => e.leagueId === LEAGUE)
+  if (ONLY) entities = entities.filter((e) => ONLY.includes(e.id))
+
+  if (entities.length === 0) {
+    console.error('Nothing matched those filters.')
+    process.exit(1)
+  }
+
+  const tally = counts(entities)
+  const summary = `${tally.team} club(s), ${tally.league} league(s), ${tally.cup} cup(s)`
+
+  // --list touches no network at all, so the parsers can be checked anywhere.
+  if (LIST) {
+    for (const e of entities) {
+      const hint = SEARCH_HINTS[e.id]
+      console.log(
+        `${e.kind.padEnd(7)} ${e.id.padEnd(22)} ${e.name.padEnd(32).slice(0, 32)}` +
+          `${hint ? ` → "${hint}"` : ''}`,
+      )
+    }
+    console.log(`\n${entities.length} total: ${summary}.`)
+    console.log(`Skipped by design: ${[...SKIP].join(', ')}.`)
+    console.log(`Aliased: ${Object.entries(ALIASES).map(([a, s]) => `${a}←${s}`).join(', ')}.`)
+    return
   }
 
   mkdirSync(LOGO_DIR, { recursive: true })
@@ -328,19 +477,25 @@ async function main() {
     : {}
 
   console.log(
-    `Fetching logos for ${teams.length} club(s)` +
+    `Fetching logos for ${summary}` +
       `${DRY_RUN ? ' (dry run)' : ''} with concurrency ${CONCURRENCY}.\n`,
   )
 
-  const results = await pool(teams, async (team) => {
-    const result = await resolveAndFetch(team, manual)
+  const results = await pool(entities, async (entity) => {
+    const result = await resolveAndFetch(entity, manual)
     const mark = { ok: '✓', skipped: '·', resolved: '?', failed: '✗' }[result.status]
-    console.log(`${mark} ${team.name.padEnd(30).slice(0, 30)} ${result.detail}`)
+    console.log(
+      `${mark} ${entity.kind.padEnd(7)} ${entity.name.padEnd(30).slice(0, 30)} ${result.detail}`,
+    )
     return result
   }, CONCURRENCY)
 
   const by = (status) => results.filter((r) => r.status === status)
   const failed = by('failed')
+
+  if (!DRY_RUN) {
+    for (const line of applyAliases(collectEntities())) console.log(`✓ alias   ${line}`)
+  }
 
   console.log(
     `\nDone. ${by('ok').length} downloaded, ${by('skipped').length} already present, ` +

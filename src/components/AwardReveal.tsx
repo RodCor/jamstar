@@ -3,6 +3,7 @@
 import { useT } from '@/i18n/LocaleProvider'
 import type { AwardId } from '@/game/types'
 import { AWARD_INFO } from '@/game/awards'
+import { LogoBadge } from './LogoBadge'
 
 /**
  * Winning something should feel like winning something.
@@ -11,7 +12,14 @@ import { AWARD_INFO } from '@/game/awards'
  * team record — an MVP season read exactly like a losing one. The heaviest
  * trophy gets the headline treatment; the rest sit under it.
  */
-export function AwardReveal({ awards }: { awards: AwardId[] }) {
+export function AwardReveal({
+  awards,
+  /** The cup just won, when there is one — so the trophy shows its own badge. */
+  cupId = null,
+}: {
+  awards: AwardId[]
+  cupId?: string | null
+}) {
   const { t, locale } = useT()
   if (awards.length === 0) return null
 
@@ -19,6 +27,7 @@ export function AwardReveal({ awards }: { awards: AwardId[] }) {
   const [headline, ...rest] = sorted
   const info = AWARD_INFO[headline]
   const major = info.weight >= 45
+  const badge = headline === 'cup_champion' && cupId ? cupId : null
 
   return (
     <div
@@ -29,7 +38,14 @@ export function AwardReveal({ awards }: { awards: AwardId[] }) {
       }`}
     >
       <div className="px-4 py-4">
-        <p className={major ? 'text-4xl' : 'text-2xl'}>{info.icon}</p>
+        {/* The real trophy when we have its badge, the emoji stand-in otherwise. */}
+        {badge ? (
+          <div className="flex justify-center">
+            <LogoBadge id={badge} label={info[locale]} size={major ? 52 : 40} />
+          </div>
+        ) : (
+          <p className={major ? 'text-4xl' : 'text-2xl'}>{info.icon}</p>
+        )}
         <p
           className={`mt-1.5 font-black leading-tight ${
             major ? 'text-xl text-flame-400' : 'text-base text-slate-100'
