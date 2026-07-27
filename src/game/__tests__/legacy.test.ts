@@ -195,7 +195,13 @@ describe('legacy verdicts', () => {
     const nbaRate = casual.filter((r) => r.reachedNba).length / casual.length
 
     expect(eliteRate).toBeLessThan(0.25)
-    expect(nbaRate).toBeLessThan(0.4)
+    // The NBA has two doors now — draft night, and a free-agent call for a
+    // player who put up a season somewhere visible — so this bound is looser
+    // than when the draft was the only way in. It is still a bound: free agency
+    // once escalated every career into the NBA and measured 85% here, which this
+    // continues to catch. The cohort takes the highest-tier offer every year, so
+    // what it measures is the ceiling rather than the average.
+    expect(nbaRate).toBeLessThan(0.65)
   })
 
   it('scales achievements by the level they were earned at', () => {

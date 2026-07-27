@@ -144,6 +144,7 @@ export const es = {
   offerSalary: 'Salario',
   offerYears: '{n} año(s)',
   offerRenewal: 'Renovación',
+  offerNbaCall: '🇺🇸 Te llama la NBA',
 
   // Draft
   draftNight: 'Noche del Draft',
@@ -326,6 +327,7 @@ export const en: Dictionary = {
   offerSalary: 'Salary',
   offerYears: '{n} year(s)',
   offerRenewal: 'Renewal',
+  offerNbaCall: '🇺🇸 The NBA is calling',
 
   draftNight: 'Draft Night',
   draftProjected: 'Mock drafts had you at',
