@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { useT } from '@/i18n/LocaleProvider'
-import type { GameState, Season } from '@/game/types'
+import type { GameState, Position, Season } from '@/game/types'
 import { getTeam } from '@/data/teams'
 import { getLeague } from '@/data/leagues'
 import { PLAYOFF_KEY, ROLE_KEY, TONE_CLASS, formatMoney, formatPct } from './display'
@@ -23,7 +24,7 @@ export function SeasonResultScreen({ state, onContinue }: Props) {
   return (
     <div className="space-y-3 animate-fade-up">
       <AwardReveal awards={season.awards} trophies={trophiesFor(season)} />
-      <SeasonCard season={season} />
+      <SeasonCard season={season} position={state.player.position} />
       <button type="button" onClick={onContinue} className="btn-primary w-full py-3.5 text-base">
         {t('continue')}
       </button>
@@ -31,11 +32,36 @@ export function SeasonResultScreen({ state, onContinue }: Props) {
   )
 }
 
-export function SeasonCard({ season }: { season: Season }) {
+type CountingStat = 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks'
+
+/** The three numbers that define each position, plus the two that define a season. */
+const BOX_LEAD: Record<Position, CountingStat[]> = {
+  PG: ['points', 'assists', 'steals'],
+  SG: ['points', 'assists', 'steals'],
+  SF: ['points', 'rebounds', 'steals'],
+  PF: ['points', 'rebounds', 'blocks'],
+  C: ['points', 'rebounds', 'blocks'],
+}
+
+const ALL_COUNTING_STATS: CountingStat[] = ['points', 'rebounds', 'assists', 'steals', 'blocks']
+
+const COUNTING_STAT_LABEL: Record<CountingStat, 'statPts' | 'statReb' | 'statAst' | 'statStl' | 'statBlk'> = {
+  points: 'statPts',
+  rebounds: 'statReb',
+  assists: 'statAst',
+  steals: 'statStl',
+  blocks: 'statBlk',
+}
+
+export function SeasonCard({ season, position }: { season: Season; position: Position }) {
   const { t, L, locale } = useT()
+  const [expanded, setExpanded] = useState(false)
   const team = getTeam(season.teamId)
   const league = getLeague(season.leagueId)
   const isYouth = league.id === 'youth'
+
+  const leadStats = BOX_LEAD[position]
+  const restStats = ALL_COUNTING_STATS.filter((stat) => !leadStats.includes(stat))
 
   return (
     <div className="panel overflow-hidden">
@@ -59,24 +85,35 @@ export function SeasonCard({ season }: { season: Season }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-px bg-white/10 sm:grid-cols-6">
-        <Stat label={t('statPts')} value={season.points.toFixed(1)} highlight />
-        <Stat label={t('statReb')} value={season.rebounds.toFixed(1)} />
-        <Stat label={t('statAst')} value={season.assists.toFixed(1)} />
-        <Stat label={t('statStl')} value={season.steals.toFixed(1)} />
-        <Stat label={t('statBlk')} value={season.blocks.toFixed(1)} />
-        <Stat label={t('statMin')} value={season.minutesPerGame.toFixed(0)} />
+      <div className="grid grid-cols-5 gap-px bg-white/10">
+        {leadStats.map((stat, i) => (
+          <Stat key={stat} label={t(COUNTING_STAT_LABEL[stat])} value={season[stat].toFixed(1)} highlight={i === 0} />
+        ))}
+        <Stat label={t('statGames')} value={String(season.gamesPlayed)} />
+        <Stat label={t('statTs')} value={formatPct(season.tsPct)} />
       </div>
 
-      <div className="grid grid-cols-4 gap-px bg-white/10">
-        <Stat label={t('statGames')} value={String(season.gamesPlayed)} small />
-        <Stat label={t('statFg')} value={formatPct(season.fgPct)} small />
-        <Stat label={t('statThree')} value={formatPct(season.threePct)} small />
-        <Stat label={t('statTs')} value={formatPct(season.tsPct)} small />
-      </div>
+      {expanded && (
+        <div className="grid grid-cols-5 gap-px bg-white/10">
+          {restStats.map((stat) => (
+            <Stat key={stat} label={t(COUNTING_STAT_LABEL[stat])} value={season[stat].toFixed(1)} small />
+          ))}
+          <Stat label={t('statMin')} value={season.minutesPerGame.toFixed(0)} small />
+          <Stat label={t('statFg')} value={formatPct(season.fgPct)} small />
+          <Stat label={t('statThree')} value={formatPct(season.threePct)} small />
+        </div>
+      )}
 
       <div className="space-y-3 p-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          className="text-xs font-semibold text-flame-400 hover:text-flame-300"
+        >
+          {expanded ? t('seasonLessStats') : t('seasonMoreStats')}
+        </button>
+
+        <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap text-xs">
           <span className="chip">
             {t('role')}: <span className="font-bold text-slate-100">{t(ROLE_KEY[season.role])}</span>
           </span>

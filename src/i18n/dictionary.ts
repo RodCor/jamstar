@@ -88,6 +88,8 @@ export const es = {
   noAwards: 'Sin premios esta temporada',
   salary: 'Salario',
   continue: 'Continuar',
+  seasonMoreStats: 'Ver más',
+  seasonLessStats: 'Ver menos',
 
   // Roles
   roleStar: 'Figura',
@@ -274,6 +276,8 @@ export const en: Dictionary = {
   noAwards: 'No awards this season',
   salary: 'Salary',
   continue: 'Continue',
+  seasonMoreStats: 'More',
+  seasonLessStats: 'Less',
 
   roleStar: 'Star',
   roleStarter: 'Starter',
