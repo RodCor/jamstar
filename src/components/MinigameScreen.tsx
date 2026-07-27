@@ -7,7 +7,7 @@ import { hashSeed } from '@/game/rng'
 import { tuningFor, type MinigameTuning } from '@/game/minigame'
 import { getTeam } from '@/data/teams'
 import { TeamCrest } from './TeamCrest'
-import { LogoBadge } from './LogoBadge'
+import { LeagueCrest, CupCrest } from './CompetitionCrest'
 import { FreeThrow } from './minigames/FreeThrow'
 import { ClutchThree } from './minigames/ClutchThree'
 import { DefensiveStop } from './minigames/DefensiveStop'
@@ -61,9 +61,12 @@ export function MinigameScreen({ state, onFinish }: Props) {
     <div className="space-y-4 animate-fade-up">
       <div className="panel overflow-hidden">
         <div className="flex items-center gap-2 border-b border-white/10 bg-flame-500/10 px-4 py-2">
-          {/* The trophy on the line, when it is a cup that has a badge. */}
+          {/* The trophy that is actually on the line, when it has a badge. */}
           {challenge.competition === 'cup' && state.cupRun && (
-            <LogoBadge id={state.cupRun.cupId} label={L(challenge.stake)} size={18} />
+            <CupCrest cupId={state.cupRun.cupId} size={18} />
+          )}
+          {challenge.competition === 'league' && (
+            <LeagueCrest leagueId={state.player.currentLeagueId} size={18} />
           )}
           <span className="label text-flame-400">{L(challenge.stake)}</span>
         </div>

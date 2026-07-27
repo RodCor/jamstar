@@ -3,7 +3,8 @@
 import { useT } from '@/i18n/LocaleProvider'
 import type { AwardId } from '@/game/types'
 import { AWARD_INFO } from '@/game/awards'
-import { LogoBadge } from './LogoBadge'
+import { cupLogoPathFor } from '@/data/logos'
+import { CupCrest } from './CompetitionCrest'
 
 /**
  * Winning something should feel like winning something.
@@ -27,7 +28,10 @@ export function AwardReveal({
   const [headline, ...rest] = sorted
   const info = AWARD_INFO[headline]
   const major = info.weight >= 45
-  const badge = headline === 'cup_champion' && cupId ? cupId : null
+  // Only when a real trophy badge exists. `CupCrest` would happily draw its
+  // generated plate here, but as the hero of the reveal the emoji trophy beats
+  // an abbreviation on a rectangle — the plate is for inline use beside a name.
+  const badge = headline === 'cup_champion' && cupId && cupLogoPathFor(cupId) ? cupId : null
 
   return (
     <div
@@ -41,7 +45,7 @@ export function AwardReveal({
         {/* The real trophy when we have its badge, the emoji stand-in otherwise. */}
         {badge ? (
           <div className="flex justify-center">
-            <LogoBadge id={badge} label={info[locale]} size={major ? 52 : 40} />
+            <CupCrest cupId={badge} size={major ? 52 : 40} />
           </div>
         ) : (
           <p className={major ? 'text-4xl' : 'text-2xl'}>{info.icon}</p>

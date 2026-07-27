@@ -1,32 +1,34 @@
-# Logos
+# Badges
 
-Drop real logo files here, named after the id they belong to. Three kinds live
-in this one folder — clubs, leagues and cups — which is safe because no id is
-shared between them:
+Real logo files, named after the id they belong to, in the folder for their kind:
 
-    lal.svg          Los Angeles Lakers        (club)
-    el_rma.png       Real Madrid, EuroLeague   (club)
-    nba.svg          NBA                       (league)
-    acb.png          Liga ACB                  (league)
-    copa_rey.png     Copa del Rey              (cup)
+    lal.svg                 team id     — first argument of each `t(...)` in `src/data/teams.ts`
+    el_rma.png              team id
+    leagues/acb.svg         league id   — `id:` of each entry in `src/data/leagues.ts`
+    cups/copa_rey.png       cup id      — `id:` of each entry in `src/data/cups.ts`
 
-Ids come from the first argument of each `t(...)` call in `src/data/teams.ts`,
-and from the `id` field of each entry in `src/data/leagues.ts` and
-`src/data/cups.ts`. Accepted formats: `.svg`, `.png`, `.webp`, `.jpg`, `.avif`.
+Accepted formats: `.svg`, `.png`, `.webp`, `.jpg`, `.avif`.
 
-To fetch them automatically instead of by hand:
+## Filling this folder
 
-    npm run logos:fetch -- --list      # what would be fetched, no network
-    npm run logos:fetch -- --dry-run   # resolve URLs, download nothing
-    npm run logos:fetch                # download
+    npm run logos:fetch     # download from Wikipedia into these folders
+    npm run logos           # regenerate src/data/logos.ts from what is here
 
-Either way, finish with:
+`logos:fetch` writes `_report.json` listing everything it could not resolve. Fix
+those by putting a direct URL in `scripts/logo-sources.json`, then re-run it with
+`--only=<id> --force`.
 
-    npm run logos
+Anything without a file here keeps its generated crest, so a partial set works
+fine. A handful of competitions are deliberately left generated because they have
+no badge of their own — see `NO_REAL_BADGE` in `scripts/fetch-logos.mjs`.
 
-That regenerates `src/data/logos.ts`. Anything without a file here falls back
-gracefully — clubs keep their generated crest, leagues and cups stay as plain
-text — so a partial set works fine.
+## Check what you got
 
-These are copyrighted artwork as well as trademarks. Make sure you have
-permission before publishing a build that includes them.
+The scraper reports what it *downloaded*, not whether the picture is right — a
+club whose article search drifts one place lands a real logo belonging to someone
+else. Look at the files before shipping them.
+
+## Rights
+
+Club, league and cup logos are copyrighted artwork as well as trademarks — make
+sure you have permission before publishing a build that includes them.

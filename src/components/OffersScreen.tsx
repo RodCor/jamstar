@@ -6,7 +6,7 @@ import { getTeam } from '@/data/teams'
 import { getLeague } from '@/data/leagues'
 import { ROLE_KEY, formatMoney } from './display'
 import { TeamCrest } from './TeamCrest'
-import { LogoBadge } from './LogoBadge'
+import { LeagueCrest } from './CompetitionCrest'
 
 interface Props {
   state: GameState
@@ -53,7 +53,7 @@ export function OffersScreen({ state, onAccept }: Props) {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-bold text-slate-100">{L(team.name)}</p>
                   <p className="flex items-center gap-1.5 truncate text-xs text-slate-400">
-                    <LogoBadge id={league.id} label={L(league.name)} size={14} />
+                    <LeagueCrest leagueId={league.id} size={16} />
                     {L(league.name)}
                   </p>
                 </div>

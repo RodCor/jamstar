@@ -5,9 +5,9 @@ import { useT } from '@/i18n/LocaleProvider'
 import type { GameState } from '@/game/types'
 import { getTeam } from '@/data/teams'
 import { getLeague } from '@/data/leagues'
+import { LeagueCrest } from './CompetitionCrest'
 import { flagFor } from '@/data/countries'
 import { TeamCrest } from './TeamCrest'
-import { LogoBadge } from './LogoBadge'
 
 interface Props {
   state: GameState
@@ -105,7 +105,7 @@ export function DraftScreen({ state, onContinue }: Props) {
                     <div className="text-left">
                       <p className="font-black text-slate-50">{L(team.name)}</p>
                       <p className="flex items-center gap-1.5 text-xs text-slate-400">
-                        <LogoBadge id={league.id} label={L(league.name)} size={14} />
+                        <LeagueCrest leagueId={league.id} size={16} />
                         {L(league.name)}
                       </p>
                     </div>
@@ -123,7 +123,7 @@ export function DraftScreen({ state, onContinue }: Props) {
                     <div className="text-left">
                       <p className="font-bold text-slate-100">{L(team.name)}</p>
                       <p className="flex items-center gap-1.5 text-xs text-slate-400">
-                        <LogoBadge id={league.id} label={L(league.name)} size={14} />
+                        <LeagueCrest leagueId={league.id} size={16} />
                         {L(league.name)}
                       </p>
                     </div>

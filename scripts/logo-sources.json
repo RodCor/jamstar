@@ -1,3 +1,13 @@
 {
-  "_comment": "Manual logo URLs, keyed by team id from src/data/teams.ts. Anything listed here wins over the automatic resolvers in fetch-logos.mjs. Use it for clubs the scraper gets wrong or cannot find — check public/logos/_report.json after a run for the list."
+  "_comment": "Manual logo URLs that beat everything fetch-logos.mjs works out on its own. Grouped by kind and keyed by the id from src/data/teams.ts, leagues.ts or cups.ts. Use it for anything the scraper gets wrong or cannot find — public/logos/_report.json lists the misses after a run, and the wrong-picture cases only show up by looking at the files.",
+
+  "teams": {
+    "_comment": "en.wikipedia has no article for either club, so the search falls through to something else entirely: Pato Branco to the NBB league page, Platense to Independiente's Wikidata item.",
+    "nbb_pat": "https://upload.wikimedia.org/wikipedia/pt/b/b5/Logo-patobasquete-1.png",
+    "lnb_pla": "https://upload.wikimedia.org/wikipedia/commons/d/db/Club_Alt%C3%A9tico_Platense_crest_%282025%29.svg"
+  },
+
+  "leagues": {},
+
+  "cups": {}
 }

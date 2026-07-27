@@ -189,7 +189,7 @@ is not an NBA ring, and the legacy score says so.
 
 ---
 
-## Badges
+## Club badges
 
 Every club, academy and college gets a generated crest: one of six silhouettes
 (shield, disc, roundel, hexagon, diamond, pennant) picked deterministically from
@@ -198,75 +198,68 @@ abbreviation. Nothing is fetched at runtime — the badges are inline SVG, which
 also means they survive a strict CSP. The share card draws a canvas twin of the
 same crest so the PNG matches what you saw in the app.
 
-Leagues and cups have no colours to generate from, so they show a badge only
-once a real logo exists and plain text before that.
+Leagues and cups work the same way through `LeagueCrest` / `CupCrest`, with a
+flat plate instead of a shield so a competition never reads as a club.
 
-**To use real logos:**
+**To use real logos instead:**
 
 ```bash
-npm run logos:fetch -- --list      # what will be fetched; touches no network
-npm run logos:fetch -- --dry-run   # resolve URLs, download nothing  ← read this
-npm run logos:fetch                # ~181 files into public/logos/
-npm run logos                      # regenerates src/data/logos.ts from that folder
+npm run logos:fetch    # downloads into public/logos/
+npm run logos          # regenerates src/data/logos.ts from that folder
 git add public/logos src/data/logos.ts && git commit && git push
 ```
 
 The logos have to be **committed** — Pages builds from the repository, so files
 that only exist on your machine will not reach the live site.
 
-**Do the dry run and read the lines before a real run.** `logos:fetch` resolves
-each entry in order:
+It covers clubs, leagues and cups — `public/logos/<team>.svg`,
+`public/logos/leagues/<league>.svg`, `public/logos/cups/<cup>.png`.
 
-1. a manual URL from `scripts/logo-sources.json`, if one is set;
-2. the NBA's own CDN — clean SVGs keyed by franchise id, clubs only;
-3. **the logo named in the article's infobox**;
-4. Wikidata's structured "logo image" (P154);
-5. the article's lead image, and only if it looks like a badge at all.
+`logos:fetch` tries, in order: a manual URL from `scripts/logo-sources.json`,
+the NBA's own CDN (clean SVGs keyed by franchise id), then Wikipedia — the only
+source with coverage across every league here. Wikipedia is read in four passes:
 
-Steps 3–5 are all Wikipedia, in decreasing order of *is this actually the badge*.
-The order is the whole point. Relying on the lead image alone — which is all this
-script did originally — fails on most club crests and quietly succeeds with an
-arena photograph on the rest, because that API returns only **freely licensed**
-images and a club crest is almost always non-free, uploaded under fair use. The
-infobox names the real crest either way.
+1. the **infobox's own `logo=` parameter**, taken from the article wikitext,
+2. the linked Wikidata item's P154 (logo image),
+3. any file on the page whose name scores as this club's badge,
+4. the article's page image.
 
-The other risk is the search itself: an ambiguous name does not fail, it succeeds
-with the wrong badge. "Real Madrid" and "Flamengo" land on the football side;
-"Copa del Rey", "Coppa Italia" and "Coupe de France" are all football tournaments
-first; and every NCAA program's plain name is its football article. A hint table
-pins ~130 of those to the right article, and the dry run prints where each one
-resolved — the only place a wrong match is visible before it is on screen.
+Pass 1 leads for a reason worth knowing: `prop=pageimages` **excludes non-free
+files**, and nearly every European club crest is a fair-use upload. The API will
+tell you the article has no image while the article is displaying the crest. An
+earlier version of this script asked only that question and failed on half the
+game.
+
+If English Wikipedia has the article but no badge — common for competitions it
+covers as a stub — it follows the Wikidata sitelinks and reads the Italian,
+Serbian, Greek or Spanish article instead.
+
+Plain names are ambiguous for multi-sport clubs ("Real Madrid" and "Flamengo"
+land on the football side; "Coupe de France" is a football trophy first), so ~80
+ids are pinned to the right article by the hint tables in the script.
 
 Useful flags:
 
 ```bash
-npm run logos:fetch -- --kind=cup             # team | league | cup
+npm run logos:fetch -- --dry-run              # resolve URLs, download nothing
+npm run logos:fetch -- --kind=leagues,cups    # teams | leagues | cups
 npm run logos:fetch -- --league=nba           # one league at a time
-npm run logos:fetch -- --only=lal,copa_rey
-npm run logos:fetch -- --retry-failed         # just the ids in _report.json
+npm run logos:fetch -- --only=lal,el_rma
 npm run logos:fetch -- --force                # re-download existing
 npm run logos:fetch -- --include-youth
 ```
 
-It skips anything already downloaded, so re-running only fills gaps.
+It skips anything already downloaded, so re-running only fills gaps. Whatever it
+cannot resolve gets listed in `public/logos/_report.json`; add a direct URL for
+those to `scripts/logo-sources.json` and re-run. Anything still missing simply
+keeps its generated crest, so a partial set is fine — and a few competitions are
+deliberately left generated because no badge exists for them (`NO_REAL_BADGE` in
+the script says which, and why).
 
-**When something comes back wrong.** Every download is recorded in
-`public/logos/_sources.json` with the URL and the resolver that found it, and the
-run prints a list of anything that came from step 5 — those are the ones worth
-looking at. Fix one by putting a direct URL in `scripts/logo-sources.json`, which
-beats every resolver, then re-run with `--force --only=<id>`.
-
-Whatever cannot be resolved lands in `public/logos/_report.json`; `--retry-failed`
-re-runs exactly those, which is usually what you want after a batch is lost to
-rate limiting. The script backs off and retries on a 429 rather than giving up,
-but Wikimedia throttles hard enough that a large run can still lose a tail.
-
-Anything still missing keeps its generated crest (clubs) or stays text (leagues
-and cups), so a partial set is fine.
-
-Three ids are skipped by design, having no single real badge: `youth`,
-`conference_tournament` and `cba_allstar_cup`. `coupe_france_b` is aliased to
-`coupe_france`, since both French tiers enter the same trophy.
+**Look at what you got.** The script reports what downloaded, not whether the
+picture is right: a search that drifts one place still returns a real logo, just
+somebody else's. Unicaja resolved to the bank, Platense to Independiente, Pato
+Basquete to the league's own mark — all three "succeeded".
 
 > Club logos are copyrighted artwork as well as trademarks. Fine for a hobby
 > build; get permission before publishing one commercially.

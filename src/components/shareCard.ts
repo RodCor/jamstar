@@ -8,6 +8,8 @@
 
 import type { CareerTotals, Legacy, Locale, Player, Rival, Team } from '@/game/types'
 import { flagFor } from '@/data/countries'
+import { logoPathFor } from '@/data/logos'
+import { withBasePath } from '@/lib/basePath'
 import { formatMoney } from './display'
 import { drawCrest } from './TeamCrest'
 
@@ -60,9 +62,23 @@ const COPY = {
   },
 } as const
 
-export function drawShareCard(canvas: HTMLCanvasElement, data: ShareData): void {
+/**
+ * Async because of one pixel of the card: the club badge.
+ *
+ * A real logo is a file that has to decode before `drawImage` will put anything
+ * on the canvas — drawing it synchronously leaves a hole where the crest was.
+ * Everything else here is still drawn in one pass; only the badge waits.
+ */
+export async function drawShareCard(
+  canvas: HTMLCanvasElement,
+  data: ShareData,
+): Promise<void> {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
+
+  // Resolved before any drawing so a slow decode cannot land on top of text.
+  const logo = data.lastTeam ? logoPathFor(data.lastTeam.id) : null
+  const badge = logo ? await loadImage(withBasePath(logo)) : null
 
   canvas.width = WIDTH
   canvas.height = HEIGHT
@@ -91,8 +107,12 @@ export function drawShareCard(canvas: HTMLCanvasElement, data: ShareData): void 
   ctx.font = `500 26px ${sans}`
   ctx.fillText(c.tagline, center, 134)
 
-  // Final club crest, with the jersey number beside it.
-  if (data.lastTeam) {
+  // Final club badge, with the jersey number beside it. The generated crest is
+  // the fallback for a club with no logo file, and for one whose file fails to
+  // decode — a share card with a hole in it would be worse than a plain crest.
+  if (badge) {
+    drawContained(ctx, badge, center - 96, 276, 152)
+  } else if (data.lastTeam) {
     drawCrest(ctx, data.lastTeam, center - 96, 276, 152)
   }
   ctx.fillStyle = 'rgba(255,255,255,0.06)'
@@ -210,6 +230,36 @@ export function drawShareCard(canvas: HTMLCanvasElement, data: ShareData): void 
   ctx.fillStyle = '#334155'
   ctx.font = `600 20px ${sans}`
   ctx.fillText(`${c.seed}: ${data.seed}`, center, 1318)
+}
+
+/** Resolves to null rather than rejecting — a missing badge must not kill the card. */
+function loadImage(src: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = () => resolve(null)
+    image.src = src
+  })
+}
+
+/**
+ * Draw an image centred on (cx, cy), scaled to fit a `size` square without
+ * distorting it. Badges are every shape from a circle to a wide wordmark, so
+ * stretching them to a square would be immediately obvious.
+ */
+function drawContained(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  cx: number,
+  cy: number,
+  size: number,
+): void {
+  const width = image.naturalWidth || size
+  const height = image.naturalHeight || size
+  const scale = Math.min(size / width, size / height)
+  const drawWidth = width * scale
+  const drawHeight = height * scale
+  ctx.drawImage(image, cx - drawWidth / 2, cy - drawHeight / 2, drawWidth, drawHeight)
 }
 
 function roundRect(

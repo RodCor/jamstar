@@ -51,10 +51,11 @@ export function RetirementScreen({ state, onPlayAgain }: Props) {
     )
   }, [state.seasons])
 
-  function handleDownload() {
+  async function handleDownload() {
     const canvas = canvasRef.current
     if (!canvas) return
-    drawShareCard(canvas, shareData)
+    // The badge has to decode before the canvas is worth reading back.
+    await drawShareCard(canvas, shareData)
     canvas.toBlob((blob) => {
       if (!blob) return
       const url = URL.createObjectURL(blob)
