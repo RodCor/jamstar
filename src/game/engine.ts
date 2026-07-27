@@ -555,6 +555,10 @@ function finalizeSeason(state: GameState, season: Season): GameState {
 
   // The cup is a trophy in its own right, not a footnote of the league season.
   if (state.cupRun?.won) season.awards.unshift('cup_champion')
+  // Which cup and how it ended, so the trophy can be named once `cupRun` is
+  // gone. `won === false` is the only record a losing finalist ever gets.
+  season.cupId = state.cupRun?.cupId ?? null
+  season.cupWon = state.cupRun?.won ?? null
 
   season.salary = computeSalary(league, season.role, player.hidden.hype, rng)
   season.headlines = buildHeadlines(state, season)
