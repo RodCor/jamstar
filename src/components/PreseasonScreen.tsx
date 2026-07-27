@@ -1,9 +1,18 @@
 'use client'
 
 import { useT } from '@/i18n/LocaleProvider'
-import { ATTRIBUTE_KEYS, type GameState } from '@/game/types'
+import type { AttributeKey, GameState, Position } from '@/game/types'
 import { getPerk } from '@/data/perks'
 import { ATTRIBUTE_KEY } from './display'
+
+/** Which attributes matter most where, so the two that define you read first. */
+const POSITION_ORDER: Record<Position, AttributeKey[]> = {
+  PG: ['playmaking', 'scoring', 'mental', 'physical', 'defense'],
+  SG: ['scoring', 'playmaking', 'physical', 'defense', 'mental'],
+  SF: ['physical', 'scoring', 'defense', 'playmaking', 'mental'],
+  PF: ['physical', 'defense', 'scoring', 'playmaking', 'mental'],
+  C: ['physical', 'defense', 'scoring', 'mental', 'playmaking'],
+}
 
 interface Props {
   state: GameState
@@ -93,29 +102,42 @@ function EFFECT_LABELS(effects: NonNullable<ReturnType<typeof getPerk>['effects'
 
 function AttributePanel({ state }: { state: GameState }) {
   const { t } = useT()
-  const { attributes } = state.player
+  const { player } = state
+  const { attributes, attributesLastYear, position } = player
+  const order = POSITION_ORDER[position]
 
   return (
     <div className="panel p-4">
       <span className="label">{t('attributes')}</span>
       <ul className="mt-2 space-y-1.5">
-        {ATTRIBUTE_KEYS.map((key) => {
+        {order.map((key, index) => {
           const value = Math.round(attributes[key])
+          const delta = attributesLastYear ? value - Math.round(attributesLastYear[key]) : 0
+          const emphasized = index < 2
+
           return (
-            <li key={key}>
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="text-xs font-semibold text-slate-300">
-                  {t(ATTRIBUTE_KEY[key])}
-                </span>
+            <li key={key} className="flex items-baseline justify-between gap-2">
+              <span
+                className={
+                  emphasized
+                    ? 'text-xs font-bold text-slate-100'
+                    : 'text-xs font-semibold text-slate-400'
+                }
+              >
+                {t(ATTRIBUTE_KEY[key])}
+              </span>
+              <span className="flex items-baseline gap-1.5">
                 <span className="tnum text-xs font-bold text-slate-300">{value}</span>
-              </div>
-              <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-flame-600 to-flame-400
-                             transition-[width] duration-500"
-                  style={{ width: `${Math.min(100, value)}%` }}
-                />
-              </div>
+                {attributesLastYear && delta !== 0 && (
+                  <span
+                    className={`tnum text-[10px] font-bold ${
+                      delta > 0 ? 'text-emerald-400' : 'text-rose-400'
+                    }`}
+                  >
+                    {delta > 0 ? `+${delta}` : delta}
+                  </span>
+                )}
+              </span>
             </li>
           )
         })}

@@ -386,6 +386,12 @@ export interface Player {
   age: number
   stage: CareerStage
   attributes: Attributes
+  /**
+   * Attributes as they stood at the previous preseason, so the screen can show
+   * what a year actually bought. Absent in a player's first preseason, when
+   * there is nothing to compare against.
+   */
+  attributesLastYear?: Attributes
   hidden: HiddenStats
   currentTeamId: string
   currentLeagueId: string

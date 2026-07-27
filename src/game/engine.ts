@@ -95,6 +95,10 @@ export function startOffseason(state: GameState): GameState {
   next.pendingPlacementNote = null
   next.pendingRenewalNote = null
 
+  // Snapshot before ageing and growth, so the preseason screen can show the
+  // year's net movement rather than only what the player chose to spend.
+  player.attributesLastYear = { ...player.attributes }
+
   // Age, natural growth/decline, and this year's growth allowance.
   ageOneYear(player, yearRng(next, 'ageing'))
   player.stage = stageForAge(player.age, player.currentLeagueId !== 'youth')
