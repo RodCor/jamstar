@@ -130,8 +130,19 @@ export function spendGrowthPoint(player: Player, key: AttributeKey): boolean {
   const current = player.attributes[key]
   if (current >= 96) return false
 
+  // Every rung is the seven-attribute ladder (0.15 / 0.4 / 0.85 / 1.5 / 2.3)
+  // scaled by 0.675. The budget in `growthPointsFor` was tuned when a growth
+  // point was one of seven attributes: since `overallRating` is a weighted
+  // *average*, the same budget spread over five moves it about 7/5 as fast, and
+  // careers inflated across the board. Scaling here rather than cutting the
+  // budget keeps the diminishing-returns shape — and the choice between
+  // specialising and spreading — exactly as it was. 0.675 rather than the
+  // arithmetic 5/7 = 0.714 because development feeds back on itself: a better
+  // season earns more points in `developFromSeason`, so the inflation compounds
+  // beyond what the averaging alone predicts. Measured against
+  // `__fixtures__/career-baseline.json`, not derived.
   const gain =
-    current >= 90 ? 0.15 : current >= 84 ? 0.4 : current >= 76 ? 0.85 : current >= 64 ? 1.5 : 2.3
+    current >= 90 ? 0.101 : current >= 84 ? 0.27 : current >= 76 ? 0.574 : current >= 64 ? 1.013 : 1.552
 
   player.attributes[key] = clamp(current + gain, 5, 96)
   player.growthPoints -= 1
