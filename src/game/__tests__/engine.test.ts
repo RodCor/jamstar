@@ -20,6 +20,7 @@ import type { GameState, Position, PlayStyleId } from '../types'
 import { ALL_TEAMS, getTeam } from '@/data/teams'
 import { LEAGUES, getLeague } from '@/data/leagues'
 import { COUNTRIES } from '@/data/countries'
+import { CUPS } from '@/data/cups'
 import { PLAY_STYLES } from '@/data/styles'
 
 /**
@@ -208,6 +209,17 @@ describe('data integrity', () => {
   it('has no duplicate event ids', () => {
     const ids = ALL_EVENTS.map((e) => e.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('gives every cup a unique id, a real league and both languages', () => {
+    expect(new Set(CUPS.map((c) => c.id)).size).toBe(CUPS.length)
+    // One cup per league, or `cupForLeague` would silently drop the others.
+    expect(new Set(CUPS.map((c) => c.leagueId)).size).toBe(CUPS.length)
+    for (const cup of CUPS) {
+      expect(() => getLeague(cup.leagueId), cup.id).not.toThrow()
+      expect(cup.name.es.length, cup.id).toBeGreaterThan(0)
+      expect(cup.name.en.length, cup.id).toBeGreaterThan(0)
+    }
   })
 })
 

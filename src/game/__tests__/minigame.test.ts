@@ -21,6 +21,7 @@ import { COUNTRIES } from '@/data/countries'
 import { PLAY_STYLES } from '@/data/styles'
 import { getLeague } from '@/data/leagues'
 import { getTeam } from '@/data/teams'
+import { cupForLeague } from '@/data/cups'
 
 const POSITIONS: Position[] = ['PG', 'SG', 'SF', 'PF', 'C']
 
@@ -230,9 +231,49 @@ describe('minigames in a career', () => {
     const state = play('mg-cleanup', ALWAYS_WIN)
     expect(state.pendingMinigame).toBeNull()
     expect(state.draftSeason).toBeNull()
+    expect(state.pendingFinals).toHaveLength(0)
     // Every season that was drafted made it into the log exactly once.
     const years = state.seasons.map((s) => s.year)
     expect(new Set(years).size).toBe(years.length)
+  })
+
+  it('hands over both finals when a club reaches its cup final and its league final', () => {
+    // The two are decided months apart, so neither may swallow the other.
+    let doubles = 0
+    for (let i = 0; i < 40; i++) {
+      const state = play(`double-${i}`, ALWAYS_WIN)
+      for (const season of state.seasons) {
+        if (
+          season.awards.includes('cup_champion') &&
+          season.playoffResult === 'champion' &&
+          getLeague(season.leagueId).tier <= 3
+        ) {
+          doubles++
+        }
+      }
+    }
+    expect(doubles).toBeGreaterThan(0)
+  })
+
+  it('only awards a cup to a player whose club actually reached the cup final', () => {
+    for (let i = 0; i < 30; i++) {
+      const state = play(`cup-honest-${i}`, ALWAYS_WIN)
+      for (const season of state.seasons) {
+        if (!season.awards.includes('cup_champion')) continue
+        // Cups only exist where the data layer defines one for the league.
+        expect(cupForLeague(season.leagueId), `${season.leagueId} has no cup`).not.toBeNull()
+      }
+    }
+  })
+
+  it('lets the player decide cups too: winning finals yields more of them', () => {
+    let won = 0
+    let lost = 0
+    for (let i = 0; i < 50; i++) {
+      won += computeTotals(play(`cups-${i}`, ALWAYS_WIN).seasons).cups
+      lost += computeTotals(play(`cups-${i}`, ALWAYS_LOSE).seasons).cups
+    }
+    expect(won).toBeGreaterThan(lost)
   })
 
   it('only ever offers a final the player was actually on the floor for', () => {
@@ -258,7 +299,12 @@ describe('minigames in a career', () => {
           const draft = s.draftSeason
           expect(draft.gamesPlayed).toBeGreaterThan(0)
           expect(draft.role).not.toBe('injured')
-          expect(getLeague(draft.leagueId).tier).toBeLessThanOrEqual(3)
+          // League finals are only played in the top three tiers. Domestic cups
+          // are playable wherever they exist, which is the point of them: a
+          // fourth-tier career still has a trophy it can win.
+          if (s.pendingMinigame.competition === 'league') {
+            expect(getLeague(draft.leagueId).tier).toBeLessThanOrEqual(3)
+          }
           expect(draft.teamId).not.toBe(s.pendingMinigame.opponentTeamId)
           s = resolveMinigame(s, s.pendingMinigame.required)
           continue

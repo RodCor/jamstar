@@ -34,6 +34,7 @@ export function computeTotals(seasons: Season[]): CareerTotals {
     rpg: round(played.reduce((sum, s) => sum + s.rebounds, 0) / counted, 1),
     apg: round(played.reduce((sum, s) => sum + s.assists, 0) / counted, 1),
     rings: countAward('league_champion'),
+    cups: countAward('cup_champion'),
     mvps: countAward('mvp'),
     finalsMvps: countAward('finals_mvp'),
     allStars: countAward('all_star'),
@@ -80,6 +81,9 @@ export function computeLegacy(totals: CareerTotals, seasons: Season[], rival: Ri
   // scores well. Roughly calibrated so an all-time great lands near 1000.
   const onCourt =
     totals.rings * 95 +
+    // A cup is a real trophy and a real night, but nobody has ever been called
+    // an all-time great for winning one.
+    totals.cups * 20 +
     totals.mvps * 130 +
     totals.finalsMvps * 70 +
     totals.dpoys * 45 +
@@ -201,6 +205,12 @@ function buildHighlights(
     out.push({
       es: `${totals.mvps} ${totals.mvps === 1 ? 'MVP' : 'MVPs'} de la temporada regular.`,
       en: `${totals.mvps} regular season ${totals.mvps === 1 ? 'MVP' : 'MVPs'}.`,
+    })
+  }
+  if (totals.cups > 0) {
+    out.push({
+      es: `${totals.cups} ${totals.cups === 1 ? 'copa nacional' : 'copas nacionales'}.`,
+      en: `${totals.cups} domestic ${totals.cups === 1 ? 'cup' : 'cups'}.`,
     })
   }
   if (totals.internationalGolds > 0) {

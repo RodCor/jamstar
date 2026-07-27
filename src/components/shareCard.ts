@@ -31,6 +31,7 @@ const COPY = {
     career: 'CARRERA',
     seasons: 'TEMP.',
     titles: 'TÍTULOS',
+    cups: 'COPAS',
     mvps: 'MVP',
     allStar: 'ALL-STAR',
     earnings: 'GANANCIAS',
@@ -46,6 +47,7 @@ const COPY = {
     career: 'CAREER',
     seasons: 'SEASONS',
     titles: 'TITLES',
+    cups: 'CUPS',
     mvps: 'MVP',
     allStar: 'ALL-STAR',
     earnings: 'EARNINGS',
@@ -148,12 +150,14 @@ export function drawShareCard(canvas: HTMLCanvasElement, data: ShareData): void 
   const stats: [string, string][] = [
     [c.seasons, String(totals.seasons)],
     [c.titles, String(totals.rings)],
+    [c.cups, String(totals.cups)],
     [c.mvps, String(totals.mvps)],
     [c.allStar, String(totals.allStars)],
   ]
-  const boxWidth = (WIDTH - 180 - 3 * 18) / 4
+  const gap = 14
+  const boxWidth = (WIDTH - 180 - (stats.length - 1) * gap) / stats.length
   stats.forEach(([label, value], i) => {
-    const x = 90 + i * (boxWidth + 18)
+    const x = 90 + i * (boxWidth + gap)
     ctx.fillStyle = 'rgba(255,255,255,0.05)'
     roundRect(ctx, x, 846, boxWidth, 128, 20)
     ctx.fill()
@@ -235,7 +239,7 @@ export function buildShareText(data: ShareData): string {
       `🏀 HOOP GLORY — ${player.name || 'Anónimo'} ${flag} #${player.number} (${player.position})`,
       `${legacy.title.es.toUpperCase()} · ${legacy.score} pts de legado`,
       `${totals.ppg} PTS / ${totals.rpg} REB / ${totals.apg} AST en ${totals.seasons} temporadas`,
-      `🏆 ${totals.rings} títulos · 👑 ${totals.mvps} MVP · ⭐ ${totals.allStars} All-Star`,
+      `🏆 ${totals.rings} títulos · 🥇 ${totals.cups} copas · 👑 ${totals.mvps} MVP · ⭐ ${totals.allStars} All-Star`,
       legacy.beatRival
         ? `Le gané la pulseada a ${rival.name}.`
         : `${rival.name} terminó por delante mío.`,
@@ -247,7 +251,7 @@ export function buildShareText(data: ShareData): string {
     `🏀 HOOP GLORY — ${player.name || 'Anonymous'} ${flag} #${player.number} (${player.position})`,
     `${legacy.title.en.toUpperCase()} · ${legacy.score} legacy points`,
     `${totals.ppg} PTS / ${totals.rpg} REB / ${totals.apg} AST across ${totals.seasons} seasons`,
-    `🏆 ${totals.rings} titles · 👑 ${totals.mvps} MVP · ⭐ ${totals.allStars} All-Star`,
+    `🏆 ${totals.rings} titles · 🥇 ${totals.cups} cups · 👑 ${totals.mvps} MVP · ⭐ ${totals.allStars} All-Star`,
     legacy.beatRival
       ? `I finished ahead of ${rival.name}.`
       : `${rival.name} finished ahead of me.`,

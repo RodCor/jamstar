@@ -131,9 +131,10 @@ export function RetirementScreen({ state, onPlayAgain }: Props) {
           <Big label={t('statReb')} value={totals.rpg.toFixed(1)} />
           <Big label={t('statAst')} value={totals.apg.toFixed(1)} />
         </div>
-        <div className="mt-2 grid grid-cols-4 gap-2 text-center">
+        <div className="mt-2 grid grid-cols-5 gap-1.5 text-center">
           <Big label={t('seasonsPlayed')} value={String(totals.seasons)} small />
           <Big label={t('rings')} value={String(totals.rings)} small />
+          <Big label={t('cups')} value={String(totals.cups)} small />
           <Big label={t('mvps')} value={String(totals.mvps)} small />
           <Big label={t('allStars')} value={String(totals.allStars)} small />
         </div>
