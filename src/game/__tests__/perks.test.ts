@@ -143,10 +143,12 @@ describe('perk bonus budgets', () => {
    * check the real content, so it reaches past the mock with `importActual`
    * rather than asserting against `FIXTURE_PERKS`.
    *
-   * This is what stops the pool drifting as it grows from 23 perks toward
-   * ~53 in the next task — a single perk with an out-of-band `bonus` total
-   * fails here immediately, rather than surfacing only as a distribution
-   * shift many careers later.
+   * This is what stops the pool drifting now that it holds 53 perks — a
+   * single perk with an out-of-band `bonus` total fails here immediately,
+   * rather than surfacing only as a distribution shift many careers later.
+   * The bands themselves are load-bearing: an earlier pass scaled them up by
+   * 1/0.675 and that alone moved five of the nine metrics in
+   * `career-distribution.test.ts` out of band.
    */
   it('gives every real perk a bonus total inside its rarity\'s budget', async () => {
     const real = await vi.importActual<typeof import('@/data/perks')>('@/data/perks')
