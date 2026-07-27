@@ -35,7 +35,7 @@ export const LIFE_EVENTS: GameEvent[] = [
             'Rechazaste todo. El entrenador lo mencionó en la charla de equipo como ejemplo.',
             'You turned it all down. The coach mentioned it in a team meeting as an example.',
             'good',
-            { attributes: { shooting: 3, defense: 2 }, hidden: { coachTrust: 12, hype: 4 } },
+            { attributes: { scoring: 3, defense: 2 }, hidden: { coachTrust: 12, hype: 4 } },
           ),
       },
     ],
@@ -61,7 +61,7 @@ export const LIFE_EVENTS: GameEvent[] = [
             'Te perdiste seis partidos y ninguna primera vez. Volviste con otra cabeza.',
             'You missed six games and no first moments. You came back a different person.',
             'good',
-            { attributes: { iq: 3, leadership: 3 }, hidden: { morale: 20, coachTrust: -8 } },
+            { attributes: { mental: 6 }, hidden: { morale: 20, coachTrust: -8 } },
           ),
       },
       {
@@ -97,7 +97,7 @@ export const LIFE_EVENTS: GameEvent[] = [
             'Cuatrocientos chicos juegan ahí todas las semanas. Es lo mejor que hiciste con la plata del básquet.',
             'Four hundred kids play there every week. It is the best thing you ever did with basketball money.',
             'epic',
-            { money: -500_000, attributes: { leadership: 6 }, hidden: { morale: 20, hype: 10 } },
+            { money: -500_000, attributes: { mental: 6 }, hidden: { morale: 20, hype: 10 } },
           ),
       },
       {
@@ -107,7 +107,7 @@ export const LIFE_EVENTS: GameEvent[] = [
             'Se enteraron igual, tres años después, por un vecino. Pesó más así.',
             'They found out anyway, three years later, from a neighbour. It landed harder that way.',
             'good',
-            { money: -500_000, attributes: { leadership: 5 }, hidden: { morale: 22, hype: 4 } },
+            { money: -500_000, attributes: { mental: 5 }, hidden: { morale: 22, hype: 4 } },
           ),
       },
       {
@@ -174,7 +174,7 @@ export const LIFE_EVENTS: GameEvent[] = [
     weight: 16,
     stages: ['twilight'],
     category: 'business',
-    requires: gate.all(gate.minAge(35), (ctx) => ctx.player.attributes.iq > 62),
+    requires: gate.all(gate.minAge(35), (ctx) => ctx.player.attributes.mental > 62),
     title: loc('La oferta del banco', 'The Offer From the Bench'),
     body: (ctx) =>
       loc(
@@ -245,7 +245,7 @@ export const LIFE_EVENTS: GameEvent[] = [
             'Los suplentes jugaron cuatro minutos que se acuerdan toda la vida. El récord puede esperar.',
             'The bench got four minutes they will remember forever. The record can wait.',
             'good',
-            { attributes: { leadership: 5 }, hidden: { coachTrust: 12, morale: 8 } },
+            { attributes: { mental: 5 }, hidden: { coachTrust: 12, morale: 8 } },
           ),
       },
     ],
@@ -271,7 +271,7 @@ export const LIFE_EVENTS: GameEvent[] = [
             'Entregaste todo y quedaste limpio en cuatro meses. Perdiste un amigo y ganaste una lección.',
             'You handed over everything and were cleared in four months. You lost a friend and gained a lesson.',
             'good',
-            { attributes: { iq: 3 }, hidden: { hype: -6, morale: -6 } },
+            { attributes: { mental: 3 }, hidden: { hype: -6, morale: -6 } },
           ),
       },
       {
@@ -318,7 +318,7 @@ export const LIFE_EVENTS: GameEvent[] = [
             'Le acortaste tres años de aprendizaje. Te sacó el puesto antes, y aun así fue lo correcto.',
             'You cut three years off their learning curve. They took your spot sooner, and it was still the right thing.',
             'good',
-            { attributes: { leadership: 7, iq: 3 }, hidden: { coachTrust: 14, morale: 8 } },
+            { attributes: { mental: 10 }, hidden: { coachTrust: 14, morale: 8 } },
           ),
       },
       {
@@ -331,7 +331,7 @@ export const LIFE_EVENTS: GameEvent[] = [
               'Le ganaste el puesto dos años más. La competencia te mantuvo joven.',
               'You held them off for two more years. The competition kept you young.',
               'good',
-              { attributes: { athleticism: 2, defense: 3 }, hidden: { coachTrust: 6 } },
+              { attributes: { physical: 2, defense: 3 }, hidden: { coachTrust: 6 } },
             ),
             outcome(
               'Te pasó por encima igual, y encima quedaste como el veterano amargado.',

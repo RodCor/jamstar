@@ -90,8 +90,8 @@ export function generateStats(input: SeasonStatsInput): GeneratedStats {
   // top of the cap and produce 45-point seasons.
 
   // --- Scoring -------------------------------------------------------------
-  // Per-36 points come off shooting and athleticism, bent by style and league.
-  const scoringBase = a.shooting * 0.3 + a.athleticism * 0.16 + a.handling * 0.08
+  // Per-36 points come off scoring and physical, bent by style and league.
+  const scoringBase = a.scoring * 0.3 + a.physical * 0.16 + a.playmaking * 0.08
   const positionScoring = player.position === 'C' ? 0.92 : player.position === 'PG' ? 1.0 : 1.06
   const per36Points = clamp(
     scoringBase * 0.5 * style.scoringBias * positionScoring * (0.72 + difficulty * 0.34),
@@ -103,7 +103,7 @@ export function generateStats(input: SeasonStatsInput): GeneratedStats {
   // --- Rebounding ----------------------------------------------------------
   const reboundPositional: Record<string, number> = { PG: 0.42, SG: 0.6, SF: 0.85, PF: 1.22, C: 1.5 }
   const per36Rebounds = clamp(
-    (a.strength * 0.1 + a.athleticism * 0.055) * reboundPositional[player.position] * (0.78 + difficulty * 0.28),
+    a.physical * 0.155 * reboundPositional[player.position] * (0.78 + difficulty * 0.28),
     0.8,
     14.5,
   )
@@ -112,7 +112,7 @@ export function generateStats(input: SeasonStatsInput): GeneratedStats {
   // --- Playmaking ----------------------------------------------------------
   const assistPositional: Record<string, number> = { PG: 1.6, SG: 1.0, SF: 0.8, PF: 0.6, C: 0.55 }
   const per36Assists = clamp(
-    (a.handling * 0.075 + a.iq * 0.05) *
+    a.playmaking * 0.125 *
       assistPositional[player.position] *
       style.playmakingBias *
       (0.78 + difficulty * 0.28),
@@ -123,31 +123,31 @@ export function generateStats(input: SeasonStatsInput): GeneratedStats {
 
   // --- Defence -------------------------------------------------------------
   const per36Steals =
-    clamp((a.defense * 0.022 + a.athleticism * 0.012) * (player.position === 'C' ? 0.6 : 1.15), 0.1, 3.2) *
+    clamp((a.defense * 0.022 + a.physical * 0.012) * (player.position === 'C' ? 0.6 : 1.15), 0.1, 3.2) *
     style.defenseBias
   const blockPositional: Record<string, number> = { PG: 0.18, SG: 0.28, SF: 0.55, PF: 1.05, C: 1.6 }
   const per36Blocks =
-    clamp((a.defense * 0.016 + a.athleticism * 0.012) * blockPositional[player.position], 0.05, 4) *
+    clamp((a.defense * 0.016 + a.physical * 0.012) * blockPositional[player.position], 0.05, 4) *
     style.defenseBias
 
   const steals = round(Math.max(0, rng.gauss(per36Steals * minuteScale, 0.25)), 1)
   const blocks = round(Math.max(0, rng.gauss(per36Blocks * minuteScale, 0.25)), 1)
 
-  // Turnovers scale with usage and fall with IQ and handling.
-  const per36Turnovers = clamp(points * 0.09 + assists * 0.22 - a.iq * 0.012 - a.handling * 0.008, 0.3, 5.5)
+  // Turnovers scale with usage and fall with playmaking.
+  const per36Turnovers = clamp(points * 0.09 + assists * 0.22 - a.playmaking * 0.02, 0.3, 5.5)
   const turnovers = round(Math.max(0, rng.gauss(per36Turnovers * Math.max(minuteScale, 0.3), 0.3)), 1)
 
   // --- Efficiency ----------------------------------------------------------
-  // Volume costs efficiency; IQ and shooting buy it back.
+  // Volume costs efficiency; scoring buys it back, and mental is composure.
   const volumePenalty = Math.max(0, points - 18) * 0.24
   const fgPct = round(
-    clamp(rng.gauss(38 + a.shooting * 0.14 + a.iq * 0.05 - volumePenalty * 0.1, 1.6), 28, 66) / 100,
+    clamp(rng.gauss(38 + a.scoring * 0.14 + a.mental * 0.05 - volumePenalty * 0.1, 1.6), 28, 66) / 100,
     3,
   )
   const threePct = round(
     clamp(
       rng.gauss(
-        24 + a.shooting * 0.16 - (player.position === 'C' ? 6 : 0) - volumePenalty * 0.08,
+        24 + a.scoring * 0.16 - (player.position === 'C' ? 6 : 0) - volumePenalty * 0.08,
         2.2,
       ),
       0,
@@ -156,7 +156,7 @@ export function generateStats(input: SeasonStatsInput): GeneratedStats {
     3,
   )
   const ftPct = round(
-    clamp(rng.gauss(52 + a.shooting * 0.28 - (player.position === 'C' ? 8 : 0), 3), 34, 95) / 100,
+    clamp(rng.gauss(52 + a.scoring * 0.28 - (player.position === 'C' ? 8 : 0), 3), 34, 95) / 100,
     3,
   )
   // TS% built from the shot mix rather than invented, so it stays consistent.
@@ -256,7 +256,7 @@ export function rollFinal(team: Team, rng: Rng): PlayoffResult {
 }
 
 /**
- * How many games the player actually appears in, after injury risk. Athleticism
+ * How many games the player actually appears in, after injury risk. Physical
  * and wear are the two dials — which is the Highlight Athlete's whole bargain.
  */
 export function simulateAvailability(
@@ -268,7 +268,7 @@ export function simulateAvailability(
   const style = getStyle(player.styleId)
   const wearRisk = player.hidden.wear / 260
   const ageRisk = Math.max(0, player.age - 30) * 0.011
-  const durability = (player.attributes.strength - 50) / 700
+  const durability = (player.attributes.physical - 50) / 700
   const injuryChance = clamp(0.16 * style.injuryFactor + wearRisk + ageRisk - durability, 0.03, 0.72)
 
   let missed = 0

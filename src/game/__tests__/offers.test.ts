@@ -266,12 +266,12 @@ describe('free agency inside the NBA', () => {
     p.currentLeagueId = 'nba'
     p.currentTeamId = 'bos'
     p.age = 27
-    p.attributes.shooting = 88
-    p.attributes.athleticism = 86
+    p.attributes.scoring = 88
+    p.attributes.playmaking = 82
     p.attributes.defense = 84
-    p.attributes.iq = 84
-    p.attributes.handling = 82
-    p.attributes.strength = 80
+    p.attributes.mental = 84
+    // Physical is the mean of the old athleticism 86 and strength 80.
+    p.attributes.physical = 83
     p.hidden.hype = 80
     return p
   }

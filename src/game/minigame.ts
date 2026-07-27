@@ -31,14 +31,16 @@ function chooseType(player: Player, rng: Rng): MinigameType {
 
   const weights: Record<MinigameType, number> = {
     // Shooters get the shot; everyone can be sent to the line.
-    clutch_three: a.shooting * 1.2 * (style.id === 'sharpshooter' ? 2.2 : 1),
-    free_throw: 55 + a.shooting * 0.35,
+    // The two-term shape is deliberate: the style multiplier must keep hitting
+    // only the term it hit before the merge, so these do not fold into one.
+    clutch_three: a.scoring * 1.2 * (style.id === 'sharpshooter' ? 2.2 : 1),
+    free_throw: 55 + a.scoring * 0.35,
     defensive_stop: a.defense * 1.1 * (style.id === 'lockdown' ? 2.4 : 1) + (isBig ? 35 : 0),
     // Finishing through contact on the break — the athlete's ending.
     fast_break:
-      a.athleticism * 1.0 * (style.id === 'highlight' ? 2.4 : 1) + a.strength * 0.35,
+      a.physical * 1.0 * (style.id === 'highlight' ? 2.4 : 1) + a.physical * 0.35,
     // Executing the set play out of a timeout — the thinker's ending.
-    play_recall: a.iq * 1.1 * (style.id === 'floor_general' ? 2.2 : 1) + a.leadership * 0.4,
+    play_recall: a.mental * 1.1 * (style.id === 'floor_general' ? 2.2 : 1) + a.mental * 0.4,
   }
 
   return rng.weighted(MINIGAME_TYPES, (type) => weights[type])
@@ -57,15 +59,15 @@ function relevantAttribute(type: MinigameType, player: Player): number {
   const a = player.attributes
   switch (type) {
     case 'clutch_three':
-      return a.shooting * 0.8 + a.iq * 0.2
+      return a.scoring * 0.8 + a.mental * 0.2
     case 'free_throw':
-      return a.shooting * 0.7 + a.iq * 0.3
+      return a.scoring * 0.7 + a.mental * 0.3
     case 'defensive_stop':
-      return a.defense * 0.6 + a.iq * 0.4
+      return a.defense * 0.6 + a.mental * 0.4
     case 'fast_break':
-      return a.athleticism * 0.6 + a.strength * 0.4
+      return a.physical * 1.0
     case 'play_recall':
-      return a.iq * 0.7 + a.leadership * 0.3
+      return a.mental * 1.0
   }
 }
 

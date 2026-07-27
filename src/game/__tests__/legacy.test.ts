@@ -29,11 +29,11 @@ const POSITIONS: Position[] = ['PG', 'SG', 'SF', 'PF', 'C']
  * the player's view of the game, and it should win on its own merits.
  */
 const FOCUS: Record<Position, AttributeKey[]> = {
-  PG: ['handling', 'shooting', 'iq'],
-  SG: ['shooting', 'athleticism', 'handling'],
-  SF: ['shooting', 'athleticism', 'defense'],
-  PF: ['strength', 'defense', 'athleticism'],
-  C: ['strength', 'defense', 'athleticism'],
+  PG: ['playmaking', 'scoring', 'mental'],
+  SG: ['scoring', 'physical', 'playmaking'],
+  SF: ['scoring', 'physical', 'defense'],
+  PF: ['physical', 'defense', 'scoring'],
+  C: ['physical', 'defense', 'scoring'],
 }
 
 

@@ -158,9 +158,9 @@ describe('minigame challenge', () => {
       'career',
     )
 
-    function difficultyWithShooting(shooting: number) {
+    function difficultyWithScoring(scoring: number) {
       const player = structuredClone(base.player)
-      player.attributes.shooting = shooting
+      player.attributes.scoring = scoring
       // Force the same challenge type on both sides of the comparison.
       const challenge = buildChallenge({
         player,
@@ -175,8 +175,8 @@ describe('minigame challenge', () => {
       return { type: challenge.type, difficulty: challenge.difficulty }
     }
 
-    const weak = difficultyWithShooting(35)
-    const strong = difficultyWithShooting(92)
+    const weak = difficultyWithScoring(35)
+    const strong = difficultyWithScoring(92)
     if (weak.type === strong.type) {
       expect(strong.difficulty).toBeLessThan(weak.difficulty)
     }

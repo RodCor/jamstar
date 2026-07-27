@@ -47,7 +47,7 @@ export const RIVAL_EVENTS: GameEvent[] = [
             'Ignoraste el circo y jugaste tu partido. Ganaron, que era lo único que importaba.',
             'You ignored the circus and played your game. You won, which was the only thing that mattered.',
             'good',
-            { attributes: { iq: 3 }, hidden: { coachTrust: 8, morale: 6 } },
+            { attributes: { mental: 3 }, hidden: { coachTrust: 8, morale: 6 } },
           ),
       },
     ],
@@ -72,12 +72,12 @@ export const RIVAL_EVENTS: GameEvent[] = [
         resolve: (ctx) =>
           gamble(
             ctx,
-            0.38 + ctx.player.attributes.shooting / 380,
+            0.38 + ctx.player.attributes.scoring / 380,
             outcome(
               'Cuarenta y un puntos en el séptimo. Le ganaste el mano a mano cuando más pesaba.',
               'Forty-one points in game seven. You beat them head to head when it counted most.',
               'epic',
-              { attributes: { leadership: 5 }, hidden: { hype: 24, morale: 20, coachTrust: 14 } },
+              { attributes: { mental: 5 }, hidden: { hype: 24, morale: 20, coachTrust: 14 } },
             ),
             outcome(
               'Tiraste treinta veces y metiste nueve. Perdieron y todos señalaron al mismo lugar.',
@@ -97,7 +97,7 @@ export const RIVAL_EVENTS: GameEvent[] = [
               'Ganaron por equipo. Él metió más puntos y volvió a casa de vacaciones.',
               'You won as a team. They scored more and went home on holiday.',
               'good',
-              { attributes: { iq: 4, leadership: 3 }, hidden: { morale: 16, coachTrust: 12 } },
+              { attributes: { mental: 7 }, hidden: { morale: 16, coachTrust: 12 } },
             ),
             outcome(
               'Perdieron ajustado. Nadie te culpa, pero él pasó de ronda y vos no.',
@@ -151,7 +151,7 @@ export const RIVAL_EVENTS: GameEvent[] = [
             'Guardaste la frase. La usaste de combustible durante toda la temporada.',
             'You filed the quote away. You ran on it all season.',
             'good',
-            { attributes: { defense: 3, athleticism: 2, leadership: 2 }, hidden: { morale: 4 } },
+            { attributes: { defense: 3, physical: 2, mental: 2 }, hidden: { morale: 4 } },
           ),
       },
     ],
@@ -180,7 +180,7 @@ export const RIVAL_EVENTS: GameEvent[] = [
               'Funcionó de una manera que ninguno de los dos esperaba. Se hicieron amigos a los treinta y cuatro.',
               'It worked in a way neither of you expected. You became friends at thirty-four.',
               'epic',
-              { attributes: { iq: 4, leadership: 4 }, hidden: { morale: 18, coachTrust: 10 } },
+              { attributes: { mental: 8 }, hidden: { morale: 18, coachTrust: 10 } },
             ),
             outcome(
               'Diez años de rivalidad no se borran con un apretón de manos. El vestuario se partió al medio.',
@@ -223,7 +223,7 @@ export const RIVAL_EVENTS: GameEvent[] = [
             'Fue el mejor discurso que diste en tu vida. Él lo compartió sin decir nada.',
             'It was the best thing you ever said publicly. They shared it without adding a word.',
             'good',
-            { attributes: { leadership: 5, iq: 3 }, hidden: { morale: 16, hype: 10 } },
+            { attributes: { mental: 8 }, hidden: { morale: 16, hype: 10 } },
           ),
       },
       {
