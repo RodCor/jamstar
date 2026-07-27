@@ -225,10 +225,12 @@ function candidateLeagues(player: Player, country: Country, rng: Rng): League[] 
     if (league.id === 'youth') return false
     // The NCAA route runs one way; a professional never goes back to college.
     if (league.id === 'ncaa') return false
-    // NBA interest is handled on its own terms below, never through the tier
-    // pool — left in the pool it becomes an escalator that quietly turns free
-    // agency into the main route to the best league in the world.
-    if (league.tier === 1) return false
+    // The escalator this blocks is the one *into* the NBA: left open, free
+    // agency becomes the reliable route to the best league in the world and
+    // draft night stops mattering. A player already there is not climbing
+    // anything by re-signing, and shutting them out produced the opposite
+    // absurdity — an NBA starter whose every option was in Europe.
+    if (league.tier === 1 && player.currentLeagueId !== 'nba') return false
     return wanted.has(league.tier)
   })
 }

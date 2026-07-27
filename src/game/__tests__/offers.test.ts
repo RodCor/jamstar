@@ -200,3 +200,60 @@ describe('NBA interest outside the draft', () => {
     expect(called).toBe(0)
   })
 })
+
+describe('free agency inside the NBA', () => {
+  /** An NBA-calibre player already on an NBA roster. */
+  function nbaPlayer() {
+    const p = player()
+    p.currentLeagueId = 'nba'
+    p.currentTeamId = 'bos'
+    p.age = 27
+    p.attributes.shooting = 88
+    p.attributes.athleticism = 86
+    p.attributes.defense = 84
+    p.attributes.iq = 84
+    p.attributes.handling = 82
+    p.attributes.strength = 80
+    p.hidden.hype = 80
+    return p
+  }
+
+  it('offers an NBA player mostly NBA clubs', () => {
+    let nba = 0
+    let total = 0
+    for (let i = 0; i < 60; i++) {
+      const offers = generateOffers(
+        nbaPlayer(),
+        getCountry('US'),
+        new Rng(`stay-${i}`),
+        season({ leagueId: 'nba', teamId: 'bos', rating: 80 }),
+      )
+      for (const offer of offers) {
+        total++
+        if (offer.leagueId === 'nba') nba++
+      }
+    }
+    expect(total).toBeGreaterThan(0)
+    // Not "all" — a declining NBA player should still hear from Europe.
+    expect(nba / total).toBeGreaterThan(0.6)
+  })
+
+  it('still refuses to let free agency be the way into the NBA', () => {
+    // A solid third-tier player is exactly who this guard protects the draft from.
+    const p = player()
+    p.currentLeagueId = 'acb'
+    p.currentTeamId = 'acb_bas'
+    p.age = 29
+    p.hidden.hype = 20
+
+    for (let i = 0; i < 80; i++) {
+      const offers = generateOffers(
+        p,
+        getCountry('ES'),
+        new Rng(`gate-${i}`),
+        season({ rating: 62 }),
+      )
+      expect(offers.every((o) => o.leagueId !== 'nba')).toBe(true)
+    }
+  })
+})
