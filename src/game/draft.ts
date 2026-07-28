@@ -12,6 +12,7 @@ import { getTeam, teamsInLeague } from '@/data/teams'
 import { overallRating } from './progression'
 import { namePool } from '@/data/people'
 import { COUNTRIES } from '@/data/countries'
+import { stageForAge } from './ladder'
 
 /** Picks in a draft. Two rounds, thirty apiece, minus a couple for realism. */
 const TOTAL_PICKS = 58
@@ -97,6 +98,27 @@ export function isDraftEligible(player: Player, seasonsPlayed: number): boolean 
  */
 const FORCED_DRAFT_AGE = 22
 
+/**
+ * Age at which `draftOutlook` starts handing out real numbers instead of
+ * just noting the draft exists and naming it a while off.
+ *
+ * Below this, a fresh character and a well-developed one look almost
+ * identical — everyone starts around the same low rating and hype — so a
+ * precise range/tier/likelihood is confidently describing a state that is
+ * universal, not diagnostic of *this* build. Derived from `stageForAge`
+ * (`ladder.ts`) rather than a second hardcoded 17 here: that function's own
+ * youth -> breakout boundary is the point the ladder moves a player out of
+ * the youth league and builds genuinely start to diverge, which is exactly
+ * when a number starts meaning something. If that boundary ever moves, this
+ * moves with it.
+ */
+const DETAILED_OUTLOOK_AGE = (() => {
+  for (let age = 0; age <= 100; age++) {
+    if (stageForAge(age) === 'breakout') return age
+  }
+  throw new Error('stageForAge never reaches breakout — DETAILED_OUTLOOK_AGE cannot be derived')
+})()
+
 /** Where scouts are projecting you before the draft, or how far off it still
  *  is. Purely a read of state — call it every render, it never mutates
  *  anything and never touches an `Rng`. */
@@ -131,6 +153,11 @@ export interface DraftOutlook {
   likelihood: DraftLikelihood
   /** Which side of the stock formula is furthest behind, or null when balanced. */
   limiter: DraftLimiter
+  /** False below `DETAILED_OUTLOOK_AGE`: the draft still looms, but nothing
+   *  below is yet a read on *this* player rather than on every fresh
+   *  character alike. Every other field above is still populated regardless
+   *  — this function states the rule, the surfaces decide what to render. */
+  detailed: boolean
 }
 
 /**
@@ -326,6 +353,7 @@ export function draftOutlook(player: Player, country: Country, seasonsPlayed: nu
     tier: draftTier(centre, stock),
     likelihood: draftLikelihood(draftProbability(stock)),
     limiter: draftLimiter(player, country),
+    detailed: player.age >= DETAILED_OUTLOOK_AGE,
   }
 }
 

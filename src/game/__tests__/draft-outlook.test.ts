@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { draftOutlook, runDraft } from '../draft'
+import { stageForAge } from '../ladder'
 import { getCountry } from '@/data/countries'
 import { Rng } from '../rng'
 import type { Player } from '../types'
@@ -224,6 +225,46 @@ describe('draftOutlook', () => {
     const young = makePlayer({ age: 18, rating: 80, hype: 12, currentLeagueId: 'acb' })
     const outlook = draftOutlook(young, ES, 0)
     expect(outlook?.couldDeclareEarly).toBe(false)
+  })
+
+  it('is not detailed just below the stage boundary that moves a player out of youth, and is detailed from it onward', () => {
+    // Find the boundary by asking `stageForAge` itself, not by hardcoding 17
+    // here — this is the same derivation `draft.ts` uses for
+    // `DETAILED_OUTLOOK_AGE`, so the test tracks the real boundary rather
+    // than a copy of today's number.
+    let breakoutAge = 0
+    while (stageForAge(breakoutAge) !== 'breakout') breakoutAge++
+
+    const justBelow = draftOutlook(makePlayer({ age: breakoutAge - 1 }), ES, 0)
+    const at = draftOutlook(makePlayer({ age: breakoutAge }), ES, 0)
+    const above = draftOutlook(makePlayer({ age: breakoutAge + 1 }), ES, 0)
+
+    expect(justBelow?.detailed).toBe(false)
+    expect(at?.detailed).toBe(true)
+    expect(above?.detailed).toBe(true)
+  })
+
+  it('still populates every field below the detailed threshold — the components decide what to render, not draftOutlook', () => {
+    let breakoutAge = 0
+    while (stageForAge(breakoutAge) !== 'breakout') breakoutAge++
+
+    const early = draftOutlook(makePlayer({ age: breakoutAge - 1, rating: 60, hype: 12 }), ES, 0)
+    expect(early?.detailed).toBe(false)
+    expect(early?.projectedRange).toEqual(expect.arrayContaining([expect.any(Number)]))
+    expect(early?.tier).toEqual(expect.any(String))
+    expect(early?.likelihood).toEqual(expect.any(String))
+    expect(early).toHaveProperty('limiter')
+    expect(early).toHaveProperty('eligibleNow')
+    expect(early).toHaveProperty('seasonsUntilForced')
+    expect(early).toHaveProperty('couldDeclareEarly')
+
+    const later = draftOutlook(makePlayer({ age: breakoutAge, rating: 60, hype: 12 }), ES, 0)
+    expect(later?.detailed).toBe(true)
+    // Same inputs bar age — the underlying projection is unaffected by `detailed`.
+    expect(later?.projectedRange).toEqual(early?.projectedRange)
+    expect(later?.tier).toEqual(early?.tier)
+    expect(later?.likelihood).toEqual(early?.likelihood)
+    expect(later?.limiter).toEqual(early?.limiter)
   })
 
   it('is pure: two calls on the same player return deep-equal results and leave the player untouched', () => {

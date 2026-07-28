@@ -27,6 +27,18 @@ export function DraftOutlookPanel({ state }: { state: GameState }) {
   const outlook = getDraftOutlook(state)
   if (!outlook) return null
 
+  // Soft start: below the threshold, every fresh build reads almost
+  // identically, so the numbers below aren't yet about *this* player.
+  // Name the draft, place it a while off, stop there.
+  if (!outlook.detailed) {
+    return (
+      <div className="panel p-4">
+        <span className="label">{t('draftOutlookTitle')}</span>
+        <p className="mt-2 text-xs leading-relaxed text-slate-400">{t('draftOutlookFarOff')}</p>
+      </div>
+    )
+  }
+
   const range = `#${outlook.projectedRange[0]}–#${outlook.projectedRange[1]}`
   const tierLabel = t(DRAFT_TIER_KEY[outlook.tier])
   // eligibleNow already implies "this season" — seasonsUntilForced only
