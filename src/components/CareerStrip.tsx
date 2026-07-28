@@ -37,39 +37,45 @@ export function CareerStrip({ state }: { state: GameState }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={!hasHistory}
-        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left disabled:cursor-default"
+        className="flex w-full flex-col gap-1.5 px-3 py-2.5 text-left disabled:cursor-default"
       >
-        <TeamCrest teamId={team.id} size={32} />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold leading-tight text-slate-100">
-            {flagFor(state.player.countryCode)} {state.player.name || '—'}
-          </p>
-          <p className="flex items-center gap-1 truncate text-[11px] leading-tight text-slate-500">
-            {league.id !== 'youth' && (
-              <LeagueCrest leagueId={league.id} size={12} />
-            )}
-            {league.id === 'youth' ? L(team.name) : `${team.abbr} · ${league.abbr}`} ·{' '}
-            {state.year} · {state.player.age}
-          </p>
-          {draftOutlook && (
-            <p className="truncate text-[11px] font-semibold leading-tight text-flame-400">
-              {t('draftStripLabel')} ·{' '}
-              {draftOutlook.eligibleNow || draftOutlook.seasonsUntilForced === 0
-                ? t('draftStripSoon')
-                : t('draftStripIn', { n: draftOutlook.seasonsUntilForced })}{' '}
-              · {t(DRAFT_TIER_KEY[draftOutlook.tier])} (#{draftOutlook.projectedRange[0]}–#
-              {draftOutlook.projectedRange[1]})
+        <div className="flex w-full items-center gap-2.5">
+          <TeamCrest teamId={team.id} size={32} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold leading-tight text-slate-100">
+              {flagFor(state.player.countryCode)} {state.player.name || '—'}
             </p>
+            <p className="flex items-center gap-1 truncate text-[11px] leading-tight text-slate-500">
+              {league.id !== 'youth' && (
+                <LeagueCrest leagueId={league.id} size={12} />
+              )}
+              {league.id === 'youth' ? L(team.name) : `${team.abbr} · ${league.abbr}`} ·{' '}
+              {state.year} · {state.player.age}
+            </p>
+          </div>
+
+          {hasHistory && (
+            <div className="tnum flex shrink-0 items-center gap-2.5 text-right">
+              <Stat label={t('statPts')} value={totals.ppg.toFixed(1)} />
+              <Stat label={t('statReb')} value={totals.rpg.toFixed(1)} />
+              <Stat label={t('statAst')} value={totals.apg.toFixed(1)} />
+              <span className="text-xs text-slate-600">{open ? '▲' : '▼'}</span>
+            </div>
           )}
         </div>
 
-        {hasHistory && (
-          <div className="tnum flex shrink-0 items-center gap-2.5 text-right">
-            <Stat label={t('statPts')} value={totals.ppg.toFixed(1)} />
-            <Stat label={t('statReb')} value={totals.rpg.toFixed(1)} />
-            <Stat label={t('statAst')} value={totals.apg.toFixed(1)} />
-            <span className="text-xs text-slate-600">{open ? '▲' : '▼'}</span>
-          </div>
+        {/* Own full-width row rather than sharing the name column — that
+            column is only ~180px wide once the crest and stat block take
+            their share, well under the ~320px this line can run to. */}
+        {draftOutlook && (
+          <p className="truncate text-[11px] font-semibold leading-tight text-flame-400">
+            {t('draftStripLabel')} ·{' '}
+            {draftOutlook.eligibleNow || draftOutlook.seasonsUntilForced === 0
+              ? t('draftStripSoon')
+              : t('draftStripIn', { n: draftOutlook.seasonsUntilForced })}{' '}
+            · {t(DRAFT_TIER_KEY[draftOutlook.tier])} (#{draftOutlook.projectedRange[0]}–#
+            {draftOutlook.projectedRange[1]})
+          </p>
         )}
       </button>
 
