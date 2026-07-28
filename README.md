@@ -1,333 +1,138 @@
-# 🏀 Hoop Glory
+# La Naranja
 
-A browser career simulator for basketball, in Spanish and English. Pick an origin
-country, a jersey number and a position, then live one basketball life — from a
-youth academy at fourteen through retirement and a Hall of Fame verdict.
+Tenés catorce años y una pelota. Veinte temporadas después, alguien decide si
+entrás al Salón de la Fama.
 
-No account, no backend, no install. It runs entirely in the browser and saves to
-`localStorage`.
+Simulador de carrera de básquet. Corre en el navegador, no hay cuenta que crear
+y la partida se guarda en tu máquina.
 
-Inspired by [Copero](https://copero.com.ar/juegos/simulador-carrera),
-[El Ídolo](https://www.potrerofutbol.ar/el-idolo) and
-[F1 Glory](https://f1-glory.vercel.app) — the same "choose your own adventure with
-a stat sheet" genre, rebuilt for basketball.
+**[Jugar](https://rodcor.github.io/jamstar/)**
 
 ---
 
-## What it does
+## De dónde sos decide por dónde vas
 
-**Your origin country sets your ladder.** This is a real strategic choice, not a
-flag. A player from the United States goes High School → NCAA → Draft → NBA. An
-Argentine goes cantera → Liga Nacional → Europe → NBA. A Serbian goes academy →
-ABA → EuroLeague → NBA. Twenty-one countries, each with its own route.
+Elegís el país en la pantalla de creación, y con eso elegís la escalera.
 
-**Every attribute is a trade-off.** *Físico/Physical* buys explosion, rebounding
-and durability but owns the steepest decline of the five and the injuries that
-come with it after 30. *Mentalidad/Mental* is the one attribute still climbing
-in your late 30s. *Anotación/Scoring* ages the best of the rest; *Generación/
-Playmaking* and *Defensa/Defense* round the five out, weighted differently by
-position. Same for the six play styles — the creation screen states each
-gamble plainly rather than hiding it.
+Un argentino sale de la cantera, debuta en la Liga Nacional y, si crece lo
+suficiente, se cruza a Europa. Un serbio entra a una academia con cuchetas al
+lado del gimnasio, juega la ABA y apunta a la Euroliga. Un estadounidense pasa
+por el circuito de verano, la NCAA y el draft, o por la G League si ninguna
+universidad grande lo llama.
 
-**Development is layered, not allocated.** Every attribute grows and fades on its
-own age curve — teenagers improve fast, most things peak around 26-30, and the
-decline afterward depends on what you built (physical falls off a cliff; mental
-keeps rising). How your season actually went adds to that: a breakout year
-genuinely changes your trajectory, a lost one barely moves you. On top of both,
-one perk is added each preseason from three on offer, so the build diverges by
-what you passed on as much as by what you took — and skipping the choice still
-takes one for you rather than costing a year.
+Veintiún países, veintiuna escaleras. La escalera también baja: cuando a los
+treinta y cuatro ya no das para la liga en la que estás, te mandan a una más
+chica sin preguntarte.
 
-**Decisions with consequences.** Around fifty event cards across every career
-stage — injuries and rehab choices, contract offers, the lucrative-but-career-
-stalling move abroad, coach conflicts, national team call-ups and snubs, media
-storms, family, burnout, and the long goodbye. Many resolve on a hidden roll, so
-the safe choice is not always the right one.
+## Cartas que solo te tocan si sos de donde sos
 
-**A rival for twenty years.** Picked at creation from the real-player pool and
-position-matched, simulated in parallel on their own stream. You are measured
-against them in points, rings and MVPs for your entire career, with event beats at
-the first meeting, playoff series and retirement.
+Hay un mazo de eventos que se abre según tu pasaporte.
 
-**Finals you have to actually win.** Reaching the last round is simulated;
-winning it is not. Get to a final and you play for it — free throws with the
-arena screaming, the last shot with the ring collapsing on you, or reading the
-inbound pass with six seconds left. Which challenge you get depends on who you
-built: a lockdown centre defends the last possession, a sharpshooter takes the
-shot. The target shrinks with the opponent's strength and the level you are at,
-and grows with the attribute the challenge tests. A title is never one lucky tap
-— you need 2 of 3 domestically, 3 of 5 in the EuroLeague or the NBA.
+En Alemania te dan la doble ficha. El sábado a la noche jugás en la segunda del
+club, contra hombres de treinta que cobran por estar ahí; el domingo a las once,
+trescientos kilómetros más allá, jugás el juvenil. Dos entrenadores, un cuerpo, y
+los dos hablan de vos como si fueras de ellos.
 
-**Club crests everywhere.** Every club, academy and college wears a badge built
-from its real colours, in one of six silhouettes, on the preseason screen, the
-season card, the career timeline, the final, and the shareable PNG. Real logo
-files drop in without touching code — see *Club badges* below.
+En China te eligieron a los doce por la altura de tus viejos y una radiografía de
+la muñeca. Seis horas por día en un edificio donde también dormís, y el colegio
+es lo que queda en el medio.
 
-**Two modes.** *Mi Carrera / My Career* is a fresh run every time. *Carrera del
-Día / Daily Career* gives everyone on earth the same country, club, events and
-injuries for that date — so the only variable is how well you decide.
+En Nigeria, Senegal o Camerún la academia paga el pasaje, el colegio y la comida,
+y a cambio se queda con una parte de lo que ganes el día que ganes algo. La
+reunión es en el patio de tu casa, con toda la familia sentada.
 
-**Shareable ending.** A retirement card rendered to PNG plus a copyable text block,
-both carrying the run's seed so anyone can replay your exact career.
+Y en un club de socios, la noche que se vota el presupuesto, los dos bandos dicen
+tu apellido desde el micrófono.
 
-**Fully bilingual.** Spanish and English, toggleable at any moment mid-career.
-Every event card, award, verdict and headline exists in both languages by
-construction — a card cannot be half-translated, and a test enforces it.
+## Elegís sabiendo lo que te van a cobrar
+
+Nada está escondido. Al lado de cada atributo, en la pantalla de creación, dice
+qué te da y qué te saca.
+
+Físico: explosión, rebote y aguante, con más lesiones y la caída más dura después
+de los treinta. Mentalidad es el único que te sigue subiendo a los treinta y
+siete.
+
+Con los estilos pasa lo mismo, y está escrito ahí antes de que confirmes. Atleta
+explosivo: *volás, sos viral y firmás contratos enormes, pero tu cuerpo paga la
+factura después de los 30.* Muralla: *ganás partidos sin que se note en la
+planilla; los entrenadores te aman, los votantes de MVP no.*
+
+## La final se juega
+
+Llegar a la final la simula el juego. Ganarla, no.
+
+Si llegás, se para todo y la jugás vos. Tiros libres con el estadio de pie. El
+triple de los últimos segundos, porque la pelota terminó en tus manos y no hay
+otra jugada. Un punto arriba, quedan seis y ellos sacan de banda.
+
+Cuál te toca depende del jugador que construiste: al pivote defensivo le mandan
+la última defensa, al tirador le mandan el tiro. Y no alcanza con una sola. Dos
+de tres para las ligas de tu país, tres de cinco en la Euroliga y en la NBA.
+
+## Un rival durante veinte años
+
+Al crear el jugador el juego te asigna uno, de tu misma posición y con
+preferencia por tu mismo país. Su carrera se simula en paralelo a la tuya,
+temporada por temporada, hasta el final. Cuando te retirás, la última línea de tu
+resumen dice si terminaste arriba o abajo de él.
+
+## El draft no te cae encima
+
+Antes de la noche tenés una pantalla que te dice en qué puesto te proyectan, qué
+tan probable es que te elijan y qué te está frenando: si todavía no sos lo
+bastante bueno, o si sos bueno y nadie te vio jugar. Con eso decidís si te anotás
+este año o esperás uno más.
+
+## Dos modos
+
+**Mi Carrera.** Tu suerte, tu historia. Empezás distinto cada vez y jugás las
+veces que quieras.
+
+**Carrera del Día.** Todos arrancan con la misma suerte: mismo país, mismo club,
+mismas lesiones. Gana el que decide mejor. Una por día.
+
+## Y además
+
+Está en castellano y en inglés, y cambiás de idioma en cualquier momento sin
+perder la carrera. Al terminar te queda una tarjeta de retiro para compartir, con
+la semilla adentro, así cualquiera puede correr tu carrera exacta.
+
+Sale de la misma familia que [Copero](https://copero.com.ar/juegos/simulador-carrera),
+[El Ídolo](https://www.potrerofutbol.ar/el-idolo) y
+[F1 Glory](https://f1-glory.vercel.app), a los que les debe más de una idea.
 
 ---
 
-## Running it
+## Correrlo
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000
+npm run dev        # http://localhost:3000
 ```
 
 ```bash
-npm run build     # production build
-npm run typecheck # tsc --noEmit
-npm test          # vitest
+npm run build      # build de producción
+npm run typecheck
+npm test
 npm run lint
 ```
 
----
+Se publica en **https://rodcor.github.io/jamstar/** con
+`.github/workflows/deploy.yml`, en cada push a `main`. El export estático es
+opcional: `STATIC_EXPORT=true` lo genera en `out/`, y `NEXT_PUBLIC_BASE_PATH`
+sirve desde un subpath. Un `npm run build` pelado sigue dando una app Next
+normal, así que Vercel sigue siendo un comando.
 
-## Deployment
+## Sobre los nombres
 
-Live at **https://rodcor.github.io/jamstar/**, published by
-`.github/workflows/deploy.yml` on every push to `main`. The same workflow runs
-lint, typecheck, the test suite and a build on every pull request.
+Las ligas, los clubes y los jugadores reales están para que la cosa se sienta
+real, igual que en los juegos que lo inspiraron. Son marcas de sus dueños y acá
+no hay ninguna afiliación ni aval. Todos los nombres viven en cuatro archivos de
+`src/data` y el motor solo usa `id`, así que reemplazarlos por un set inventado
+no toca `src/game`. Los escudos de club son obra protegida además de marca:
+alcanzan para un proyecto de hobby, no para publicar y cobrar.
 
-The static export is **opt-in**, not baked in. `output: 'export'` would
-permanently disable `next start`, SSR and API routes — and the daily mode is an
-obvious candidate for a real leaderboard one day, which would need a backend. So
-two env vars switch it on instead:
+## Licencia
 
-| Variable | Effect |
-|---|---|
-| `STATIC_EXPORT=true` | emit a fully static site into `out/` |
-| `NEXT_PUBLIC_BASE_PATH=/jamstar` | serve from a subpath (GitHub project pages) |
-
-Plain `npm run build` still produces a normal Next app, so Vercel remains a
-one-command deploy with nothing to undo.
-
-To reproduce the Pages build locally — including the subpath, which is where
-asset bugs actually hide:
-
-```bash
-npm run export                      # or: STATIC_EXPORT=true npm run build
-mkdir -p preview && cp -r out preview/jamstar
-npx serve preview                   # then open http://localhost:3000/jamstar/
-```
-
-Serving `out/` at the root instead would mask exactly the `basePath` problems
-this is meant to catch.
-
-`basePath` covers `_next/*` and metadata automatically, but **not** a plain
-`<img src="/…">`. Public assets referenced directly — the optional club logos —
-go through `withBasePath()` in `src/lib/basePath.ts`.
-
-If the first deploy fails to enable Pages, the workflow's `configure-pages` step
-lacked the permission. Fix it once by hand: **Settings → Pages → Source: GitHub
-Actions**, then re-run the workflow.
-
----
-
-## How it is built
-
-```
-src/game/          the simulation — no React, no DOM, fully testable
-  rng.ts           seeded PRNG; everything derives from this
-  types.ts         domain types
-  create.ts        character creation
-  engine.ts        the season loop and phase machine
-  ladder.ts        which league and club you belong in each year
-  stats.ts         attributes + role + league → box score
-  progression.ts   ageing, growth, decline, wear
-  awards.ts        MVP, DPOY, All-League, international medals
-  minigame.ts      the playable finals: challenge selection, difficulty, tuning
-  rival.ts         the parallel rival career
-  legacy.ts        career totals and the final verdict
-  save.ts          localStorage
-  events/          the event decks, one file per career stage
-src/data/          leagues, clubs, countries, people, play styles, logo overrides
-src/i18n/          UI dictionary + locale provider
-src/components/    screens and widgets
-  TeamCrest.tsx    club badges (SVG for the app, canvas twin for the share card)
-  minigames/       the three finals challenges
-```
-
-### Determinism is load-bearing
-
-The entire simulation runs off a seeded PRNG. `Math.random()` appears nowhere in
-`src/game` — an `Rng` instance is threaded explicitly through every call that
-needs randomness, and subsystems use `rng.fork(label)` so the rival's career can
-never shift the stream for your events.
-
-This is what makes the daily mode fair, makes a shared seed replay exactly, and
-makes the whole engine testable. Replaying a seed with the same decisions
-reproduces a career byte for byte, and a test asserts it.
-
-Minigame results are **inputs**, not RNG draws — the engine is handed how many
-attempts you converted, exactly the way it is handed which choice you picked on
-an event card. So determinism holds as *same seed + same decisions + same
-minigame results → same career*, and skill decides titles without ever making
-the simulation unreproducible.
-
-### Playable finals
-
-`simulatePlayoffRun` stops at the final and reports whether you reached it. If
-you did — and you were actually on the floor, not injured out of the season — the
-season is parked as a draft in `draftSeason`, the phase switches to `minigame`,
-and awards, salary and knock-on effects are all computed afterwards in
-`finalizeSeason`. Finals you cannot contest fall back to `rollFinal`, so a player
-who missed the whole year can still collect a ring from the bench, and both paths
-share one finalisation routine so they can never drift apart.
-
-### Balance
-
-Calibrated across hundreds of simulated careers so the population looks like real
-basketball. A player who takes whatever perk comes up first and loses every final
-they reach still becomes a legend or GOAT in under a quarter of careers, and
-reaches the NBA less than two-thirds of the time. Picking perks that actually
-suit your position instead measurably raises both the average legacy score and
-how often a career clears Hall-of-Fame tier. Achievements are weighted by the
-tier they were earned at — a title in the LEB Oro counts, but it is not an NBA
-ring, and the legacy score says so.
-
----
-
-## Club badges
-
-Every club, academy and college gets a generated crest: one of six silhouettes
-(shield, disc, roundel, hexagon, diamond, pennant) picked deterministically from
-the team id, filled with that club's real colours and stamped with its
-abbreviation. Nothing is fetched at runtime — the badges are inline SVG, which
-also means they survive a strict CSP. The share card draws a canvas twin of the
-same crest so the PNG matches what you saw in the app.
-
-Leagues and cups work the same way through `LeagueCrest` / `CupCrest`, with a
-flat plate instead of a shield so a competition never reads as a club.
-
-**To use real logos instead:**
-
-```bash
-npm run logos:fetch    # downloads into public/logos/
-npm run logos          # regenerates src/data/logos.ts from that folder
-git add public/logos src/data/logos.ts && git commit && git push
-```
-
-The logos have to be **committed** — Pages builds from the repository, so files
-that only exist on your machine will not reach the live site.
-
-It covers clubs, leagues and cups — `public/logos/<team>.svg`,
-`public/logos/leagues/<league>.svg`, `public/logos/cups/<cup>.png`.
-
-`logos:fetch` tries, in order: a manual URL from `scripts/logo-sources.json`,
-the NBA's own CDN (clean SVGs keyed by franchise id), then Wikipedia — the only
-source with coverage across every league here. Wikipedia is read in four passes:
-
-1. the **infobox's own `logo=` parameter**, taken from the article wikitext,
-2. the linked Wikidata item's P154 (logo image),
-3. any file on the page whose name scores as this club's badge,
-4. the article's page image.
-
-Pass 1 leads for a reason worth knowing: `prop=pageimages` **excludes non-free
-files**, and nearly every European club crest is a fair-use upload. The API will
-tell you the article has no image while the article is displaying the crest. An
-earlier version of this script asked only that question and failed on half the
-game.
-
-If English Wikipedia has the article but no badge — common for competitions it
-covers as a stub — it follows the Wikidata sitelinks and reads the Italian,
-Serbian, Greek or Spanish article instead.
-
-Plain names are ambiguous for multi-sport clubs ("Real Madrid" and "Flamengo"
-land on the football side; "Coupe de France" is a football trophy first), so ~80
-ids are pinned to the right article by the hint tables in the script.
-
-Useful flags:
-
-```bash
-npm run logos:fetch -- --dry-run              # resolve URLs, download nothing
-npm run logos:fetch -- --kind=leagues,cups    # teams | leagues | cups
-npm run logos:fetch -- --league=nba           # one league at a time
-npm run logos:fetch -- --only=lal,el_rma
-npm run logos:fetch -- --force                # re-download existing
-npm run logos:fetch -- --include-youth
-```
-
-It skips anything already downloaded, so re-running only fills gaps. Whatever it
-cannot resolve gets listed in `public/logos/_report.json`; add a direct URL for
-those to `scripts/logo-sources.json` and re-run. Anything still missing simply
-keeps its generated crest, so a partial set is fine — and a few competitions are
-deliberately left generated because no badge exists for them (`NO_REAL_BADGE` in
-the script says which, and why).
-
-**Look at what you got.** The script reports what downloaded, not whether the
-picture is right: a search that drifts one place still returns a real logo, just
-somebody else's. Unicaja resolved to the bank, Platense to Independiente, Pato
-Basquete to the league's own mark — all three "succeeded".
-
-> Club logos are copyrighted artwork as well as trademarks. Fine for a hobby
-> build; get permission before publishing one commercially.
-
-## Swapping the name data
-
-**All real names live in four files**: `src/data/teams.ts` (clubs),
-`src/data/people.ts` (rival players, coaches, agents), `src/data/countries.ts`
-(nations and national teams) and `src/data/cups.ts` (domestic cups). The engine
-only ever refers to clubs by `id`, so replacing these with a licence-safe set
-requires **no changes to `src/game`**.
-
-To build a fully fictional version: rewrite the `name` fields in `teams.ts` and
-`cups.ts`, swap `REAL_STARS` in `people.ts` for generated names, and leave every
-`id` untouched. The test suite will confirm nothing broke.
-
-Cups are opt-in per league: a league with no entry in `cups.ts` simply has no cup,
-and the whole subsystem is skipped for it.
-
-> **A note on names.** This project uses real league, club and player names for
-> authenticity, in the same way the games that inspired it do. Those names are
-> trademarks of their respective owners and no affiliation or endorsement is
-> implied. If you intend to publish this commercially, use the swap described
-> above or obtain the relevant licences. Player attributes and `ceiling` values
-> are gameplay dials, not editorial judgements.
-
----
-
-## Tests
-
-```bash
-npm test
-```
-
-98 tests covering the things that actually break:
-
-- **Determinism** — same seed produces a byte-identical career; different seeds
-  do not; `fork()` streams are independent and reproducible.
-- **Termination and sanity** — 300 careers across every country, position and
-  style all terminate, with no `NaN`, no negative stats, games played plus games
-  missed always equalling the schedule, and every club/league id resolving.
-- **Plausible bands** — nobody averages 42 points or 22 rebounds a game.
-- **Data integrity** — no duplicate club, league, country or event ids (a
-  duplicate id silently overwrites an entry in the lookup map).
-- **Translation completeness** — the two dictionaries have identical key sets,
-  matching `{placeholder}` tokens, no empty strings, and no untranslated prose;
-  every event title and choice carries both languages.
-- **Balance invariants** — picking perks that suit your position measurably
-  beats leaving them to the engine; elite outcomes stay rare for casual play; the
-  legacy score scales with the level played at; the Hall of Fame flag can never
-  contradict the legacy tier.
-- **Playable finals** — a career where every final is won collects more titles
-  than the same seeds losing every final; losing a contested final can never
-  produce a title; no minigame is offered for a season the player sat out; the
-  challenge is never against your own club; every difficulty and tuning value
-  lands inside a playable range across 200 generated challenges; and no draft
-  season is ever left dangling or committed twice.
-
----
-
-## Licence
-
-MIT — see [LICENSE](LICENSE).
+MIT — ver [LICENSE](LICENSE).
