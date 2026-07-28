@@ -3,10 +3,31 @@ import { describe, expect, it } from 'vitest'
 import { getCountry, domesticLeagueFor } from '@/data/countries'
 import { getLeague } from '@/data/leagues'
 import { teamsInLeague } from '@/data/teams'
+import { createGame, type CreationChoices } from '../create'
+import {
+  acceptOffer,
+  beginSeason,
+  choosePerk,
+  confirmDraft,
+  continueAfterEvent,
+  continueFromNational,
+  continueFromSeason,
+  resolveChoice,
+  resolveMinigame,
+  resolveNationalFinal,
+} from '../engine'
 import { ALL_EVENTS, eligibleEvents } from '../events'
 import { ORIGIN_EVENTS } from '../events/origin'
 import { Rng } from '../rng'
-import type { CareerStage, EventContext, Player, Position, Rival } from '../types'
+import type {
+  CareerStage,
+  EventContext,
+  GameState,
+  Player,
+  PlayStyleId,
+  Position,
+  Rival,
+} from '../types'
 
 /**
  * The coverage guard.
@@ -72,6 +93,8 @@ import type { CareerStage, EventContext, Player, Position, Rival } from '../type
  *    visible once the deck is large enough that nobody notices a card never
  *    fires. It is cheap to check and expensive to debug, which is exactly
  *    the kind of assertion that belongs in a guard like this one.
+ *  - >= 1.5 origin cards drawn per career, pooled across driven careers: see
+ *    the note on that test for why eligibility is not exposure.
  */
 
 const COUNTRY_CODES = [
@@ -249,5 +272,190 @@ describe('event coverage: variety per player', () => {
           .join(', ')}`,
       ).toEqual([])
     })
+  })
+})
+
+/**
+ * The exposure guard.
+ *
+ * Everything above measures the *pool*: which cards a country's gate lets
+ * through. Nothing above measures the *draw*. Those are different properties
+ * and only one of them is what a player experiences. `drawEvent` picks one
+ * card per season by weight, so a country's four eligible origin cards
+ * compete against every other eligible card in the pool for that single slot.
+ * A deck that is perfectly covered and never drawn is indistinguishable, from
+ * the seat the game is played from, from a deck that does not exist — and the
+ * assertions above would stay green through all of it, because a weight is not
+ * an eligibility.
+ *
+ * That is not hypothetical. This deck shipped at weights of 18-24 against an
+ * early-stage field averaging about 23 per card, which measured 1.08 origin
+ * draws per career with 29% of careers drawing none at all: the wave's whole
+ * premise ("your country shows up in your career") was true of the data and
+ * false of the experience. The weights were raised in response — see the
+ * header of `origin.ts` for why the lift is uneven across the deck — and this
+ * assertion is what stops the next well-meaning weight edit from undoing it
+ * silently. Eligibility is asserted three ways above; without this, exposure
+ * is asserted zero ways.
+ *
+ * Sampling: all 21 countries, 6 careers each. Every gate gets exercised
+ * (a country whose cards became unreachable is a country whose careers stop
+ * contributing draws), and the assertion is on the *pooled* mean rather than a
+ * per-country one. Per-country means at any n this suite can afford are mostly
+ * seed noise — at n=40 the spread across countries was 1.88 to 2.40 — so a
+ * per-country floor would be a brittleness generator, not a guard.
+ *
+ * The floor of 1.5 sits well below the measured 2.1 and well above the 1.08
+ * that prompted the change, which is the room it needs: comfortably clear of
+ * ordinary drift from unrelated event or pacing work, and comfortably short of
+ * a revert to the old weights.
+ *
+ * A ceiling is deliberately *not* asserted here, even though more exposure is
+ * not simply better: pushing the mean past about 2.2 required weight the
+ * origin deck cannot carry without draining the early `coachTrust` surplus,
+ * which inverts the perk-agency invariant in `legacy.test.ts`. That property
+ * already owns its own guard and is a better instrument for it than a number
+ * in this file would be. See
+ * `docs/superpowers/plans/2026-07-28-perk-agency-margin.md`.
+ */
+
+const EXPOSURE_STYLES: PlayStyleId[] = [
+  'scorer',
+  'floor_general',
+  'sharpshooter',
+  'lockdown',
+  'highlight',
+  'franchise',
+]
+
+/** Careers driven per country. 21 x 6 = 126 careers, a few seconds of runtime. */
+const CAREERS_PER_COUNTRY = 6
+
+/** Mean origin-card draws per career this deck must keep clearing. */
+const EXPOSURE_FLOOR = 1.5
+
+/**
+ * Drive a career through every phase. Copied from `career-distribution.test.ts`
+ * for the reason that file gives for copying it from `legacy.test.ts`: these
+ * are independent measurement instruments, and a shared helper would let a
+ * change made for one of them move the others without anyone noticing.
+ */
+function drive(
+  state: GameState,
+  opts: {
+    choice: (count: number, rng: Rng) => number
+    minigame: (required: number, rounds: number, rng: Rng) => number
+    offer: (count: number, rng: Rng) => number
+    perk: (choices: string[], rng: Rng) => string
+    rng: Rng
+  },
+): GameState {
+  let s = state
+  let guard = 0
+  while (!s.player.retired && guard < 220) {
+    guard++
+    switch (s.phase) {
+      case 'draft':
+        s = confirmDraft(s)
+        break
+      case 'offers': {
+        const offers = s.pendingOffers ?? []
+        const index = opts.offer(offers.length, opts.rng) % Math.max(1, offers.length)
+        s = acceptOffer(s, index)
+        break
+      }
+      case 'preseason': {
+        const choices = s.player.perkChoices
+        if (choices.length > 0) s = choosePerk(s, opts.perk(choices, opts.rng))
+        s = beginSeason(s)
+        break
+      }
+      case 'event': {
+        const options = s.pendingEvent?.choices ?? []
+        const index = opts.choice(options.length, opts.rng) % Math.max(1, options.length)
+        s = resolveChoice(s, options[index]?.index ?? 0)
+        s = continueAfterEvent(s)
+        break
+      }
+      case 'minigame': {
+        const mg = s.pendingMinigame!
+        const successes = opts.minigame(mg.required, mg.rounds, opts.rng)
+        s = s.pendingTournament ? resolveNationalFinal(s, successes) : resolveMinigame(s, successes)
+        break
+      }
+      case 'season_result':
+        s = continueFromSeason(s)
+        break
+      case 'national':
+        if (s.pendingMinigame) {
+          const mg = s.pendingMinigame
+          const successes = opts.minigame(mg.required, mg.rounds, opts.rng)
+          s = resolveNationalFinal(s, successes)
+        } else {
+          s = continueFromNational(s)
+        }
+        break
+      case 'retirement':
+        return s
+    }
+  }
+  return s
+}
+
+/**
+ * One career from a given country, every decision taken at random from its own
+ * seeded stream — a player who is not steering towards or away from anything,
+ * which is the population this floor is about.
+ */
+function playCareer(countryCode: string, index: number): GameState {
+  const seed = `exposure::${countryCode}::${index}`
+  const choices: CreationChoices = {
+    name: `P${index}`,
+    countryCode,
+    number: (index % 55) + 1,
+    position: POSITIONS[index % POSITIONS.length],
+    hand: 'right',
+    styleId: EXPOSURE_STYLES[index % EXPOSURE_STYLES.length],
+  }
+  const policy = new Rng(seed)
+  return drive(createGame(choices, seed, 'career'), {
+    rng: policy,
+    choice: (count, r) => (count > 0 ? r.int(0, count - 1) : 0),
+    offer: (count, r) => (count > 0 ? r.int(0, count - 1) : 0),
+    perk: (list, r) => r.pick(list),
+    minigame: (_required, rounds, r) => r.int(0, rounds),
+  })
+}
+
+describe('event coverage: origin cards are actually drawn', () => {
+  it(`draws at least ${EXPOSURE_FLOOR} origin cards per career on average`, () => {
+    // Every origin card is `once`, so counting its id in `firedEventIds` at
+    // retirement counts draws, not repeats.
+    const counts: number[] = []
+    const perCountry: { code: string; mean: number }[] = []
+    for (const code of COUNTRY_CODES) {
+      const own: number[] = []
+      for (let i = 0; i < CAREERS_PER_COUNTRY; i++) {
+        const player = playCareer(code, i).player
+        own.push(player.firedEventIds.filter((id) => ORIGIN_IDS.has(id)).length)
+      }
+      perCountry.push({ code, mean: own.reduce((a, b) => a + b, 0) / own.length })
+      counts.push(...own)
+    }
+
+    const overall = counts.reduce((a, b) => a + b, 0) / counts.length
+    const none = counts.filter((c) => c === 0).length / counts.length
+
+    console.log(
+      `\norigin-card exposure across ${counts.length} driven careers (${CAREERS_PER_COUNTRY} per country)` +
+        `\nmean origin draws per career: ${overall.toFixed(3)} (floor ${EXPOSURE_FLOOR})` +
+        `\ncareers that met their country not once: ${(none * 100).toFixed(1)}%` +
+        `\nper country: ${perCountry.map((p) => `${p.code}=${p.mean.toFixed(2)}`).join(' ')}\n`,
+    )
+
+    expect(
+      overall,
+      `mean origin draws per career fell to ${overall.toFixed(3)}: the country deck is eligible but not being drawn`,
+    ).toBeGreaterThanOrEqual(EXPOSURE_FLOOR)
   })
 })

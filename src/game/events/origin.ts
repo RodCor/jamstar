@@ -13,6 +13,34 @@
  * a pair of cards of its own at youth and a pair shared with the countries that
  * run their basketball the same way, so nobody's early career is thinner than
  * anybody else's.
+ *
+ * Weights here run well above an ordinary card's, and are not uniform across
+ * the deck. Both of those are measured decisions.
+ *
+ * Why they are high: any one player is only ever eligible for four of these, so
+ * at ordinary weight (18-24, against an early-stage field averaging about 23)
+ * they compete four-against-the-whole-deck for the one draw a season and lose.
+ * Measured, a career met its country 1.08 times and 29% of careers never met it
+ * at all. Coverage was satisfied and the point of the deck was not. It now
+ * measures 2.11, asserted in `event-coverage.test.ts` so it cannot slide back.
+ *
+ * Why they are not uniform: raising a card's weight raises its share of the
+ * effective pool, and these cards do not pay the pool's channel profile evenly
+ * across stages. Against the rest of the deck they are `coachTrust`-rich at
+ * youth (2.12 vs 1.39), development (1.85 vs 1.34) and prime (3.43 vs 0.58),
+ * and `coachTrust`-poor at breakout (0.01 vs 1.38). `coachTrust` is how an
+ * attribute advantage becomes minutes, so a uniform lift quietly drains the
+ * early-`coachTrust` surplus the perk-agency invariant in `legacy.test.ts`
+ * depends on — tripling the whole deck did exactly that and inverted it. Each
+ * tier is therefore lifted by how well it pays the stages it appears in:
+ * youth-only x6, youth+breakout x1.5 (breakout is the constraint),
+ * breakout+development x2, development+prime x4. The ordering within the deck
+ * is no longer the flat 24/22/20/18, but each card's *effects* are still the
+ * ones priced against its own stages, so what a card is worth to draw is
+ * unchanged; only how often it comes up moved.
+ *
+ * `docs/superpowers/plans/2026-07-28-perk-agency-margin.md` has the mechanism
+ * and the measurements, including the failed uniform version.
  */
 
 import type { GameEvent } from '../types'
@@ -23,7 +51,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_rp_mini',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'locker_room',
     requires: gate.fromCountry('AR', 'UY'),
@@ -69,7 +97,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_rp_micro',
-    weight: 22,
+    weight: 33,
     stages: ['youth', 'breakout'],
     category: 'locker_room',
     requires: gate.fromCountry('AR', 'UY'),
@@ -120,7 +148,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_br_futsal',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'personal',
     requires: gate.fromCountry('BR'),
@@ -166,7 +194,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_br_clube_de_futebol',
-    weight: 22,
+    weight: 33,
     stages: ['youth', 'breakout'],
     category: 'transfer',
     requires: gate.fromCountry('BR'),
@@ -214,7 +242,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_latam_hombres',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'personal',
     requires: gate.fromCountry('DO', 'MX'),
@@ -260,7 +288,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_latam_scout',
-    weight: 22,
+    weight: 33,
     stages: ['youth', 'breakout'],
     category: 'transfer',
     requires: gate.fromCountry('DO', 'MX'),
@@ -308,7 +336,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_balkan_academy',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'transfer',
     requires: gate.fromCountry('RS', 'SI'),
@@ -354,7 +382,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_balkan_coach',
-    weight: 22,
+    weight: 33,
     stages: ['youth', 'breakout'],
     category: 'coach',
     requires: gate.fromCountry('RS', 'SI'),
@@ -412,7 +440,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_baltic_town',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'media',
     requires: gate.fromCountry('LT'),
@@ -458,7 +486,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_baltic_key',
-    weight: 22,
+    weight: 33,
     stages: ['youth', 'breakout'],
     category: 'personal',
     requires: gate.fromCountry('LT', 'DE'),
@@ -506,7 +534,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_de_doble_licencia',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'coach',
     requires: gate.fromCountry('DE'),
@@ -554,7 +582,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_med_cantera',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'coach',
     requires: gate.fromCountry('ES', 'IT', 'GR', 'TR'),
@@ -600,7 +628,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_med_fondo',
-    weight: 22,
+    weight: 33,
     stages: ['youth', 'breakout'],
     category: 'media',
     requires: gate.fromCountry('ES', 'IT', 'GR', 'TR'),
@@ -648,7 +676,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_fr_centre',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'transfer',
     requires: gate.fromCountry('FR'),
@@ -694,7 +722,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_fr_primer_contrato',
-    weight: 22,
+    weight: 33,
     stages: ['youth', 'breakout'],
     category: 'transfer',
     requires: gate.fromCountry('FR'),
@@ -748,7 +776,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_na_circuito',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'transfer',
     requires: gate.fromCountry('US', 'CA'),
@@ -794,7 +822,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_na_otro_deporte',
-    weight: 22,
+    weight: 33,
     stages: ['youth', 'breakout'],
     category: 'personal',
     requires: gate.fromCountry('US', 'CA'),
@@ -842,7 +870,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_waf_camp',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'milestone',
     requires: gate.fromCountry('NG', 'SN', 'CM'),
@@ -888,7 +916,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_waf_reunion',
-    weight: 22,
+    weight: 33,
     stages: ['youth', 'breakout'],
     category: 'transfer',
     requires: gate.fromCountry('NG', 'SN', 'CM'),
@@ -936,7 +964,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_au_instituto',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'transfer',
     requires: gate.fromCountry('AU'),
@@ -982,7 +1010,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_au_distancia',
-    weight: 22,
+    weight: 33,
     stages: ['youth', 'breakout'],
     category: 'personal',
     requires: gate.fromCountry('AU'),
@@ -1030,7 +1058,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_cn_escuela_deportiva',
-    weight: 24,
+    weight: 144,
     stages: ['youth'],
     category: 'coach',
     requires: gate.fromCountry('CN'),
@@ -1079,7 +1107,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_cn_ficha',
-    weight: 22,
+    weight: 33,
     stages: ['youth', 'breakout'],
     category: 'transfer',
     requires: gate.fromCountry('CN'),
@@ -1127,7 +1155,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_system_plan',
-    weight: 20,
+    weight: 40,
     stages: ['breakout', 'development'],
     category: 'coach',
     requires: gate.fromCountry('US', 'CA', 'FR', 'DE', 'AU', 'CN'),
@@ -1173,7 +1201,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_system_medical',
-    weight: 18,
+    weight: 72,
     stages: ['development', 'prime'],
     category: 'injury',
     requires: gate.fromCountry('US', 'CA', 'FR', 'DE', 'AU', 'CN'),
@@ -1221,7 +1249,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_club_asamblea',
-    weight: 20,
+    weight: 40,
     stages: ['breakout', 'development'],
     category: 'media',
     requires: gate.fromCountry('AR', 'UY', 'BR', 'ES', 'IT', 'GR', 'TR', 'RS', 'SI', 'LT'),
@@ -1267,7 +1295,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_club_clausula',
-    weight: 18,
+    weight: 72,
     stages: ['development', 'prime'],
     category: 'transfer',
     requires: gate.fromCountry('AR', 'UY', 'BR', 'ES', 'IT', 'GR', 'TR', 'RS', 'SI', 'LT'),
@@ -1315,7 +1343,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_exit_visa',
-    weight: 20,
+    weight: 40,
     stages: ['breakout', 'development'],
     category: 'personal',
     requires: gate.fromCountry('NG', 'SN', 'CM', 'DO', 'MX'),
@@ -1361,7 +1389,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
 
   event({
     id: 'origin_exit_casa',
-    weight: 18,
+    weight: 72,
     stages: ['development', 'prime'],
     category: 'business',
     requires: gate.fromCountry('NG', 'SN', 'CM', 'DO', 'MX'),

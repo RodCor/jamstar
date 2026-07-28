@@ -245,6 +245,15 @@ describe('career distribution against the seven-attribute baseline', () => {
 
     const rows: Row[] = [
       row('ppg.mean', actual.ppg.mean, baseline.ppg.mean, 12),
+      // Structurally the tightest row here, for a reason that predates whatever
+      // change is being made when it fails: the attribute merge replaced
+      // `strength * 0.1 + athleticism * 0.055` with `physical * 0.155`, so
+      // rebounds went from two attributes averaging each other out to one
+      // carrying the whole load, which widened their spread against a baseline
+      // captured before that. It has run close to its band ever since. A
+      // failure here is more likely inherited than caused — check the printed
+      // margin against the previous run before assuming the change under test
+      // is what moved it.
       row('rpg.mean', actual.rpg.mean, baseline.rpg.mean, 12),
       row('apg.mean', actual.apg.mean, baseline.apg.mean, 12),
       // Career length is structural: a big move here means ageing or retirement
