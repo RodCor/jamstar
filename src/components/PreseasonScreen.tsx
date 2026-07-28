@@ -5,6 +5,7 @@ import type { Dictionary } from '@/i18n/dictionary'
 import type { AttributeKey, GameState, Position } from '@/game/types'
 import { getPerk, type PerkRarity } from '@/data/perks'
 import { ATTRIBUTE_KEY } from './display'
+import { DraftOutlookPanel } from './DraftOutlook'
 
 /** Most effect chips a card should ever show before the rest fold into "+N". */
 const MAX_EFFECT_CHIPS = 3
@@ -127,8 +128,9 @@ export function PreseasonScreen({ state, onChoosePerk, onPlay }: Props) {
         </div>
       )}
 
-      <AttributePanel state={state} />
+      <DraftOutlookPanel state={state} />
 
+      <AttributePanel state={state} />
 
       <button type="button" onClick={onPlay} className="btn-primary w-full py-3.5 text-base">
         {t('playSeason')}

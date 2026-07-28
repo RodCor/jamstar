@@ -9,9 +9,10 @@ import { flagFor } from '@/data/countries'
 import { computeTotals } from '@/game/legacy'
 import { rivalAverages } from '@/game/rival'
 import { AWARD_INFO } from '@/game/awards'
-import { PLAYOFF_KEY } from './display'
+import { DRAFT_TIER_KEY, PLAYOFF_KEY } from './display'
 import { TeamCrest } from './TeamCrest'
 import { LeagueCrest } from './CompetitionCrest'
+import { getDraftOutlook } from './DraftOutlook'
 
 /**
  * The career at a glance, pinned above whatever decision is on screen.
@@ -28,6 +29,7 @@ export function CareerStrip({ state }: { state: GameState }) {
   const team = getTeam(state.player.currentTeamId)
   const league = getLeague(state.player.currentLeagueId)
   const hasHistory = state.seasons.length > 0
+  const draftOutlook = getDraftOutlook(state)
 
   return (
     <div className="panel overflow-hidden">
@@ -49,6 +51,16 @@ export function CareerStrip({ state }: { state: GameState }) {
             {league.id === 'youth' ? L(team.name) : `${team.abbr} · ${league.abbr}`} ·{' '}
             {state.year} · {state.player.age}
           </p>
+          {draftOutlook && (
+            <p className="truncate text-[11px] font-semibold leading-tight text-flame-400">
+              {t('draftStripLabel')} ·{' '}
+              {draftOutlook.eligibleNow || draftOutlook.seasonsUntilForced === 0
+                ? t('draftStripSoon')
+                : t('draftStripIn', { n: draftOutlook.seasonsUntilForced })}{' '}
+              · {t(DRAFT_TIER_KEY[draftOutlook.tier])} (#{draftOutlook.projectedRange[0]}–#
+              {draftOutlook.projectedRange[1]})
+            </p>
+          )}
         </div>
 
         {hasHistory && (

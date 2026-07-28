@@ -2,6 +2,7 @@
 
 import type { Dictionary } from '@/i18n/dictionary'
 import type { AttributeKey, Locale, PlayerRole, PlayoffResult, Position } from '@/game/types'
+import type { DraftTier } from '@/game/draft'
 
 export const POSITION_KEY: Record<Position, keyof Dictionary> = {
   PG: 'posPG',
@@ -36,6 +37,15 @@ export const ATTRIBUTE_KEY: Record<AttributeKey, keyof Dictionary> = {
   defense: 'attrDefense',
   physical: 'attrPhysical',
   mental: 'attrMental',
+}
+
+/** Scouting-language label per tier — shared by the header strip and the
+ *  preseason panel so the two surfaces never describe the same range differently. */
+export const DRAFT_TIER_KEY: Record<DraftTier, keyof Dictionary> = {
+  lottery: 'draftTierLottery',
+  first_round: 'draftTierFirstRound',
+  second_round: 'draftTierSecondRound',
+  fringe: 'draftTierFringe',
 }
 
 export const ATTRIBUTE_HELP_KEY: Record<AttributeKey, keyof Dictionary> = {
