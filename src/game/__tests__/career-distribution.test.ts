@@ -273,17 +273,26 @@ describe('career distribution against the seven-attribute baseline', () => {
       // is when its band was widened from ±12% to ±30% with its own paragraph.
       // It drifted a third time on a change that did not meaningfully alter
       // player quality: the early-stage event decks were rebalanced against the
-      // pool a real career draws from, landing `development` within 0.04 of the
-      // cards it replaced on all five effect channels, and `youth` and
-      // `breakout` within 0.13 on attributes, hype, wear and morale. The one
-      // channel deliberately left open is `coachTrust`, still +0.27 at youth
-      // and +0.54 at breakout: closing it inverts the perk-agency invariant in
-      // `legacy.test.ts`, because coachTrust is how an attribute advantage
-      // becomes minutes and therefore production. Through all of that
-      // `peakRating` moved +0.93% at the mean and +0.23% at p90. A row that
-      // fails three times for three unrelated upstream causes, while the rows
-      // that measure quality stay flat, is not measuring what this guard exists
-      // to catch.
+      // pool a real career actually draws from rather than against the deck
+      // listing. `development`'s cards were matched closely to the pool they
+      // displace on all five effect channels. `youth` and `breakout` were
+      // matched on attributes, hype, wear and morale, and carry a deliberate
+      // `coachTrust` surplus: bringing that one channel onto target inverted
+      // the perk-agency invariant in `legacy.test.ts`, because coachTrust is
+      // how an attribute advantage becomes minutes, so throttling it early
+      // penalises exactly the player who invested in attributes. That surplus
+      // is a decision, not an oversight. Through all of it the `peakRating`
+      // pair barely moved.
+      //
+      // No drift figures are quoted in this comment, on purpose. It has been
+      // wrong once and stale twice, every time because a hand-carried number
+      // outlived the code beneath it. The test prints every row with its
+      // current drift on every run, pass or fail: read the printout for
+      // numbers and read this for the argument.
+      //
+      // A row that fails three times for three unrelated upstream causes,
+      // while the rows that measure quality stay flat, is not measuring what
+      // this guard exists to catch.
       //
       // Widening it a second time was the alternative and it was rejected. The
       // paragraph justifying the first widening said plainly that widening is
@@ -291,11 +300,13 @@ describe('career distribution against the seven-attribute baseline', () => {
       // teach the next reader that it moves whenever it is inconvenient.
       //
       // The sensitivity that made this row look informative is real, and it is
-      // exactly why it makes a bad gate: measured on this cohort, a 4.4% change
-      // in total perk magnitude moved it 27 percentage points while peak rating
-      // moved under one — roughly a 30x gap. MVP is winner-take-all, one per
-      // league-season, decided on a threshold rather than a mean, so it
-      // amplifies everything, including things that are not regressions.
+      // exactly why it makes a bad gate. Recorded once, when rarity landed, and
+      // kept here as history rather than as a current reading: a 4.4% change in
+      // total perk magnitude moved this row 27 percentage points on this cohort
+      // while peak rating moved under one — roughly a 30x gap. MVP is
+      // winner-take-all, one per league-season, decided on a threshold rather
+      // than a mean, so it amplifies everything, including things that are not
+      // regressions.
       // `peakRating.mean` and `peakRating.p90` are the regression detectors
       // here. Both stay at ±12% and both stay asserted; they are what should be
       // trusted if the simulation genuinely inflates or deflates.
