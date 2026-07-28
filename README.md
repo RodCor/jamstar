@@ -46,10 +46,8 @@ tu apellido desde el micrófono.
 
 ## Elegís sabiendo lo que te van a cobrar
 
-Nada está escondido. Al lado de cada atributo, en la pantalla de creación, dice
-qué te da y qué te saca.
-
-Físico: explosión, rebote y aguante, con más lesiones y la caída más dura después
+Al lado de cada atributo, en la pantalla de creación, dice qué te da y qué te
+saca. Físico: explosión, rebote y aguante, con más lesiones y la caída más dura después
 de los treinta. Mentalidad es el único que te sigue subiendo a los treinta y
 siete.
 
@@ -60,7 +58,7 @@ planilla; los entrenadores te aman, los votantes de MVP no.*
 
 ## La final se juega
 
-Llegar a la final la simula el juego. Ganarla, no.
+Llegar a la final lo simula el juego. Ganarla, no.
 
 Si llegás, se para todo y la jugás vos. Tiros libres con el estadio de pie. El
 triple de los últimos segundos, porque la pelota terminó en tus manos y no hay
@@ -68,7 +66,8 @@ otra jugada. Un punto arriba, quedan seis y ellos sacan de banda.
 
 Cuál te toca depende del jugador que construiste: al pivote defensivo le mandan
 la última defensa, al tirador le mandan el tiro. Y no alcanza con una sola. Dos
-de tres para las ligas de tu país, tres de cinco en la Euroliga y en la NBA.
+de tres en tu liga y en la copa; tres de cinco en la Euroliga, en la NBA y con la
+selección.
 
 ## Un rival durante veinte años
 
