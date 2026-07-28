@@ -53,7 +53,7 @@ export const CUPS: Cup[] = [
     leagueId: 'pro_b',
     name: { es: 'Copa de Francia', en: 'Coupe de France' },
     abbr: 'CDF',
-    // Second-tier clubs enter the same cup — and occasionally knock someone over.
+    // Second-tier clubs enter the same cup, and occasionally knock someone over.
     fieldStrength: 62,
     prestige: 46,
   },
@@ -118,7 +118,7 @@ export const CUPS: Cup[] = [
     leagueId: 'g_league',
     name: { es: 'Winter Showcase', en: 'Winter Showcase' },
     abbr: 'WS',
-    // Every scout in the NBA is in the building, which is the whole point of it.
+    // Every scout in the NBA is in the building, which is what it is for.
     fieldStrength: 66,
     prestige: 50,
   },

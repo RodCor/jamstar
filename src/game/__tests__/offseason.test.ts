@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 
 /**
- * `generateOffers` almost never actually returns zero offers with real league
- * data — there is always a weaker league willing to take a player, confirmed
+ * `generateOffers` almost never returns zero offers with real league data,
+ * because there is always a weaker league willing to take a player, confirmed
  * by a 2000-trial search with a worst-case (old, unskilled, unloved) player
  * that never once produced an empty slate. So the zero-offer branch in
  * `startOffseason` is tested here by stubbing `generateOffers` to return the

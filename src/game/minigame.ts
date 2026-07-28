@@ -1,11 +1,11 @@
 /**
- * Finals you have to actually win.
+ * Finals you have to win yourself.
  *
  * Reaching the last round is simulated; winning it is not. When the player gets
  * to a final they play a short skill challenge, and its result is fed back into
- * the season as an *input* — never an RNG draw. That keeps a seed reproducible
+ * the season as an *input*, never an RNG draw. That keeps a seed reproducible
  * (same seed + same decisions + same minigame results reproduce a career
- * exactly) while making titles genuinely harder to collect.
+ * exactly) while making titles harder to collect.
  */
 
 import type {
@@ -36,10 +36,10 @@ function chooseType(player: Player, rng: Rng): MinigameType {
     clutch_three: a.scoring * 1.2 * (style.id === 'sharpshooter' ? 2.2 : 1),
     free_throw: 55 + a.scoring * 0.35,
     defensive_stop: a.defense * 1.1 * (style.id === 'lockdown' ? 2.4 : 1) + (isBig ? 35 : 0),
-    // Finishing through contact on the break — the athlete's ending.
+    // Finishing through contact on the break: the athlete's ending.
     fast_break:
       a.physical * 1.0 * (style.id === 'highlight' ? 2.4 : 1) + a.physical * 0.35,
-    // Executing the set play out of a timeout — the thinker's ending.
+    // Executing the set play out of a timeout: the thinker's ending.
     play_recall: a.mental * 1.1 * (style.id === 'floor_general' ? 2.2 : 1) + a.mental * 0.4,
   }
 
@@ -134,7 +134,7 @@ function stagePressure(competition: CompetitionKind, league: League | null | und
     case 'league':
       return league?.tier === 1 ? 0.1 : league?.tier === 2 ? 0.04 : 0
     // A cup final is one night against whoever survived the other half of the
-    // bracket — less weight than a league final at the same level, and often a
+    // bracket: less weight than a league final at the same level, and often a
     // weaker opponent, which is what makes it winnable for a smaller club.
     case 'cup':
       return league?.tier === 1 ? 0.04 : -0.04
@@ -238,7 +238,7 @@ export function isWin(challenge: MinigameChallenge, successes: number): boolean 
 
 /**
  * How the final ended, for the season headline. Takes the opponent's bilingual
- * name so each language interpolates its own — a club can be "Múnich" in one
+ * name so each language interpolates its own: a club can be "Múnich" in one
  * and "Munich" in the other.
  */
 export function resultHeadline(

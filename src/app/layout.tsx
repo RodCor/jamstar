@@ -2,11 +2,11 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Hoop Glory — Simulá tu carrera de básquet',
+  title: 'La Naranja — Simulá tu carrera de básquet',
   description:
     'Elegí tu país, tu número y tu posición. Simulá una carrera completa de básquet, desde las inferiores hasta el Salón de la Fama. / Pick your country, number and position and simulate a full basketball career.',
   openGraph: {
-    title: 'Hoop Glory',
+    title: 'La Naranja',
     description: 'De las inferiores al Salón de la Fama. / From the academy to the Hall of Fame.',
     type: 'website',
   },

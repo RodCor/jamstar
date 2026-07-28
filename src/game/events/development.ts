@@ -1,9 +1,9 @@
 /**
  * The development years: nineteen to twenty-one.
  *
- * Old enough to be somewhere real — the college years, the second team, a first
+ * Old enough to be somewhere real (the college years, the second team, a first
  * contract at a club that cannot pay, a season on loan in a league nobody
- * watches — and too young for any of it to have been decided yet. The stage had
+ * watches) and too young for any of it to have been decided yet. The stage had
  * fourteen cards before this file and only three of them were ungated, which
  * meant most of what a player met here was decided by the flag on their passport
  * rather than by anything they did.
@@ -11,9 +11,9 @@
  * Every card below is ungated for that reason, and every one of them is a trade:
  * at this age nothing is bought without something being sold.
  *
- * On the magnitudes: these are balanced against the *effective* pool — the
- * weight-adjusted expected value of the cards a real career can actually draw
- * here, measured at +1.43 attributes and +2.73 hype per draw. That is not the
+ * On the magnitudes: these are balanced against the *effective* pool, the
+ * weight-adjusted expected value of the cards a real career can draw here,
+ * measured at +1.43 attributes and +2.73 hype per draw. That is not the
  * mean over every card carrying the stage, which reads +1.91 attributes: nine of
  * the fourteen pre-existing cards sit behind hype, age or league gates an
  * ordinary career fails, and they pull the deck-wide average well above anything

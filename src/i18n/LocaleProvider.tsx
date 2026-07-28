@@ -4,7 +4,10 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { Locale, Localized } from '@/game/types'
 import { DICTIONARIES, type Dictionary } from './dictionary'
 
-const STORAGE_KEY = 'hoop-glory:locale'
+const STORAGE_KEY = 'la-naranja:locale'
+// One-time migration from the game's previous name, Hoop Glory. Delete this
+// once players have had time to reopen the game after the rename ships.
+const OLD_STORAGE_KEY = 'hoop-glory:locale'
 
 interface LocaleContextValue {
   locale: Locale
@@ -26,6 +29,18 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   // Read the stored preference after mount so the server and first client
   // render agree, then correct <html lang> to match.
   useEffect(() => {
+    if (window.localStorage.getItem(STORAGE_KEY) === null) {
+      try {
+        const old = window.localStorage.getItem(OLD_STORAGE_KEY)
+        if (old !== null) {
+          window.localStorage.setItem(STORAGE_KEY, old)
+          window.localStorage.removeItem(OLD_STORAGE_KEY)
+        }
+      } catch {
+        // Storage disabled: nothing to migrate, nothing lost that wasn't
+        // already inaccessible.
+      }
+    }
     const stored = window.localStorage.getItem(STORAGE_KEY)
     if (stored === 'es' || stored === 'en') {
       setLocaleState(stored)
@@ -45,7 +60,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     try {
       window.localStorage.setItem(STORAGE_KEY, next)
     } catch {
-      // Private browsing with storage disabled — the toggle still works for
+      // Private browsing with storage disabled: the toggle still works for
       // this session, it just will not be remembered.
     }
   }, [])

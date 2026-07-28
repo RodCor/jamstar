@@ -1,6 +1,6 @@
 /**
  * Rival beats. These are the cards that make the head-to-head panel mean
- * something — the rivalry has to actually happen, not just be tallied.
+ * something, because a rivalry has to happen and not merely be tallied.
  */
 
 import type { GameEvent } from '../types'

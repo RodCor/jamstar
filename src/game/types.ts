@@ -15,13 +15,13 @@ export type Hand = 'right' | 'left'
  * The five visible attributes, each named for what it does rather than for a
  * body part. Each has an explicit tradeoff, surfaced in the UI.
  *
- * - `scoring` — putting the ball in the hoop, and doing it efficiently.
- * - `playmaking` — creating for others: the handle, the pass, the read with the
+ * - `scoring`: putting the ball in the hoop, and doing it efficiently.
+ * - `playmaking`: creating for others, the handle, the pass, the read with the
  *   ball in your hands.
- * - `defense` — stopping the other end.
- * - `physical` — explosion, size and durability. The steepest decline of the
+ * - `defense`: stopping the other end.
+ * - `physical`: explosion, size and durability. The steepest decline of the
  *   five, and the one that buys you injuries.
- * - `mental` — decisions, composure and the locker room. Still climbing at 38.
+ * - `mental`: decisions, composure and the locker room. Still climbing at 38.
  */
 export type AttributeKey = 'scoring' | 'playmaking' | 'defense' | 'physical' | 'mental'
 
@@ -39,7 +39,7 @@ export const ATTRIBUTE_KEYS: readonly AttributeKey[] = [
 export interface HiddenStats {
   /** Accumulated mileage. Drives injury odds and how steeply the decline curve bites. */
   wear: number
-  /** Morale — affects performance swings and which event branches unlock. */
+  /** Morale. Affects performance swings and which event branches unlock. */
   morale: number
   /** Media/scouting stock. Drives draft position, offers and endorsement events. */
   hype: number
@@ -58,7 +58,7 @@ export type PlayStyleId =
 export interface PlayStyle {
   id: PlayStyleId
   name: Localized
-  /** The gamble, stated plainly — F1 Glory's "Verstappen style" framing. */
+  /** The gamble, stated plainly, in F1 Glory's "Verstappen style" framing. */
   tradeoff: Localized
   /** Starting attribute bonuses. */
   bonus: Partial<Attributes>
@@ -103,7 +103,7 @@ export interface League {
   country: string
   /** 0-100. Scales how hard it is to put up numbers and how much a title is worth. */
   prestige: number
-  /** Games in a regular season — used for counting-stat totals. */
+  /** Games in a regular season, used for counting-stat totals. */
   gamesPerSeason: number
   /** Rough annual salary band in USD, [floor, star]. */
   salaryBand: [number, number]
@@ -182,8 +182,9 @@ export interface Season {
   teamLosses: number
   playoffResult: PlayoffResult
   /**
-   * The cup contested this season, so the trophy can be named after the fact —
-   * `state.cupRun` is cleared before the next season and cannot be read later.
+   * The cup contested this season, so the trophy can be named after the fact,
+   * because `state.cupRun` is cleared before the next season and cannot be read
+   * later.
    *
    * Optional: seasons recorded before this field existed do not carry it, and
    * Wave 1 deliberately does not bump `SAVE_VERSION` to force them out.
@@ -191,7 +192,7 @@ export interface Season {
   cupId?: string | null
   /**
    * How the cup final went: `true` won, `false` reached it and lost, `null`
-   * never got there. A loss is recorded nowhere else — the winner gets an
+   * never got there. A loss is recorded nowhere else: the winner gets an
    * award id, the runner-up got nothing at all.
    */
   cupWon?: boolean | null
@@ -280,7 +281,7 @@ export interface RivalTotals {
   peakRating: number
 }
 
-/** Aggregated career numbers, recomputed from `seasons` — never stored as truth. */
+/** Aggregated career numbers, recomputed from `seasons`, never stored as truth. */
 export interface CareerTotals {
   seasons: number
   gamesPlayed: number
@@ -319,7 +320,7 @@ export interface GameEvent {
   category: EventCategory
   /** Optional gate. Returning false removes the card from the deck this season. */
   requires?: (ctx: EventContext) => boolean
-  /** Fire at most once per career. Defaults to true — repeats feel cheap. */
+  /** Fire at most once per career. Defaults to true, because repeats feel cheap. */
   once?: boolean
   title: Localized
   body: (ctx: EventContext) => Localized
@@ -381,14 +382,14 @@ export interface Player {
   position: Position
   hand: Hand
   styleId: PlayStyleId
-  /** Height in cm — derived from position at creation, shown in the profile. */
+  /** Height in cm, derived from position at creation and shown in the profile. */
   heightCm: number
   age: number
   stage: CareerStage
   attributes: Attributes
   /**
    * Attributes as they stood at the previous preseason, so the screen can show
-   * what a year actually bought. Absent in a player's first preseason, when
+   * what a year bought. Absent in a player's first preseason, when
    * there is nothing to compare against.
    */
   attributesLastYear?: Attributes
@@ -536,7 +537,7 @@ export interface CupRun {
 export interface ContractOffer {
   teamId: string
   leagueId: string
-  /** The role the club is selling you. Not a guarantee — you still have to earn minutes. */
+  /** The role the club is selling you. Not a guarantee. You still have to earn minutes. */
   role: PlayerRole
   /** Annual salary in USD. */
   salary: number
@@ -580,9 +581,9 @@ export interface NationalTournament {
 }
 
 /**
- * A playable final. The outcome is an *input* to the simulation, not an RNG
- * draw — which is what keeps a seed reproducible (same seed + same decisions +
- * same minigame results → same career) while still letting skill decide titles.
+ * A playable final. The outcome is an *input* to the simulation rather than an
+ * RNG draw, which keeps a seed reproducible (same seed + same decisions + same
+ * minigame results → same career) while still letting skill decide titles.
  */
 export interface MinigameChallenge {
   type: MinigameType

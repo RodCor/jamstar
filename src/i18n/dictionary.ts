@@ -10,7 +10,7 @@
  */
 
 export const es = {
-  appName: 'Hoop Glory',
+  appName: 'La Naranja',
   tagline: 'De las inferiores al Salón de la Fama',
 
   // Mode select
@@ -157,7 +157,7 @@ export const es = {
   draftUndrafted: 'Nadie te eligió',
   draftUndraftedBody: 'Las 58 selecciones pasaron sin tu nombre. Hay otros caminos, y algunos terminan igual de arriba.',
 
-  // Draft outlook — the projection screen, before draft night itself
+  // Draft outlook: the projection screen, before draft night itself
   draftStripLabel: 'DRAFT',
   draftStripSoon: 'esta temporada',
   draftStripIn: 'en {n} temporada(s)',
@@ -181,7 +181,7 @@ export const es = {
   draftOutlookRangeFringe: 'Si te eligen, caerías alrededor de {range}.',
   draftOutlookLikelihoodNote: 'Hoy, que te elijan es {likelihood}.',
   draftOutlookLimiterExposure: 'Te falta exposición: casi nadie fuera de tu liga te vio jugar todavía.',
-  draftOutlookLimiterAbility: 'Lo que más te frena hoy es tu nivel de juego: ahí tenés que crecer.',
+  draftOutlookLimiterAbility: 'Lo que más te frena hoy es tu nivel de juego.',
   draftOutlookBoost: 'Subís cotización con una gran temporada, jugando en una liga que los scouts siguen, o si te convocan a la selección.',
 
   // National team
@@ -236,7 +236,7 @@ export const es = {
 export type Dictionary = Record<keyof typeof es, string>
 
 export const en: Dictionary = {
-  appName: 'Hoop Glory',
+  appName: 'La Naranja',
   tagline: 'From the academy to the Hall of Fame',
 
   modeCareer: 'My Career',
@@ -393,7 +393,7 @@ export const en: Dictionary = {
   draftOutlookRangeFringe: "If you're picked, it would be around {range}.",
   draftOutlookLikelihoodNote: 'Right now, being picked is {likelihood}.',
   draftOutlookLimiterExposure: "You're short on exposure: almost nobody outside your league has watched you play yet.",
-  draftOutlookLimiterAbility: "What's holding you back right now is your game — that's what to work on.",
+  draftOutlookLimiterAbility: "What's holding you back right now is your game.",
   draftOutlookBoost: 'You boost your stock with a big season, playing in a league scouts actually watch, or a national-team call-up.',
 
   nationalSummer: 'Summer with the national team',

@@ -84,8 +84,8 @@ export const NATIONAL_EVENTS: GameEvent[] = [
             ctx,
             0.52,
             outcome(
-              'La metió tu compañero. Ganaron y vos hiciste la jugada correcta, aunque la foto sea de otro.',
-              'Your teammate made it. You won, and you made the right play, even if the photo belongs to someone else.',
+              'La metió tu compañero. Ganaron, y al día siguiente la foto del diario era de él.',
+              'Your teammate made it. You won, and the next morning the photograph in the paper was his.',
               'good',
               { attributes: { mental: 9 }, hidden: { morale: 16, hype: 8 } },
             ),

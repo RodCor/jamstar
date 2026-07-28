@@ -2,8 +2,8 @@
  * Seeded pseudo-random number generation.
  *
  * The entire simulation runs off this. Two runs with the same seed must produce
- * byte-identical careers — that is what makes the daily mode fair and what makes
- * a shared seed replayable. `Math.random()` must never appear anywhere else in
+ * byte-identical careers. That is what makes the daily mode fair and a shared
+ * seed replayable. `Math.random()` must never appear anywhere else in
  * `src/game`; an RNG instance is threaded explicitly through every call that
  * needs randomness.
  */
@@ -28,7 +28,7 @@ export class Rng {
     this.state = hashSeed(seed) || 0x9e3779b9
   }
 
-  /** Float in [0, 1). mulberry32 — small, fast, good enough distribution for a game. */
+  /** Float in [0, 1). mulberry32: small, fast, good enough distribution for a game. */
   next(): number {
     this.state = (this.state + 0x6d2b79f5) >>> 0
     let t = this.state
@@ -94,7 +94,7 @@ export class Rng {
 
   /**
    * Approximately normal via the mean of 3 uniforms (Bates). Cheap, bounded, and
-   * — unlike Box-Muller — can never return a wild tail value that produces a
+   * unlike Box-Muller, can never return a wild tail value that produces a
    * 71-point-per-game season.
    */
   gauss(mean: number, stdDev: number): number {
@@ -128,7 +128,7 @@ export function round(value: number, places = 1): number {
   return Object.is(r, -0) ? 0 : r
 }
 
-/** `YYYY-MM-DD` in UTC — the basis of the daily seed. */
+/** `YYYY-MM-DD` in UTC, the basis of the daily seed. */
 export function dailySeedKey(date: Date = new Date()): string {
   return date.toISOString().slice(0, 10)
 }

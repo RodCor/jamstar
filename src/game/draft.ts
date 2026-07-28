@@ -17,7 +17,7 @@ import { stageForAge } from './ladder'
 /** Picks in a draft. Two rounds, thirty apiece, minus a couple for realism. */
 const TOTAL_PICKS = 58
 
-/** Weights behind `draftStock` — pulled out so `draftLimiter` can re-run the
+/** Weights behind `draftStock`, pulled out so `draftLimiter` can re-run the
  *  formula with one term swapped for a benchmark, without duplicating it. */
 const RATING_WEIGHT = 0.86
 const HYPE_WEIGHT = 0.22
@@ -26,9 +26,9 @@ const COUNTRY_WEIGHT = 0.06
 /**
  * How good you look to scouts, which is not quite how good you are.
  *
- * Weighted toward raw ability with hype as a real but secondary factor — this
- * is the number draft night turns on, so it should mostly reward the player
- * having actually become good.
+ * Weighted toward raw ability, with hype a real but secondary factor. Draft
+ * night turns on this number, so 0.86 against 0.22 is the ratio that makes
+ * becoming good the main way to move it and being talked about the lesser one.
  */
 function stockFor(rating: number, hype: number, country: Country): number {
   return rating * RATING_WEIGHT + hype * HYPE_WEIGHT + country.strength * COUNTRY_WEIGHT
@@ -40,12 +40,13 @@ function draftStock(player: Player, country: Country): number {
 
 /**
  * Where scouts had you going, before the picks start. Shared by `runDraft`
- * (the outcome) and `draftOutlook` (the preview) so the two can never drift —
- * there is exactly one place this arithmetic lives.
+ * (the outcome) and `draftOutlook` (the preview), so there is exactly one
+ * place this arithmetic lives and the two can never drift.
  */
 function projectDraftRange(stock: number): { centre: number; range: [number, number] } {
-  // Wide when your stock is middling, which is exactly when draft night is
-  // most nerve-racking.
+  // Wide when your stock is middling, because that is where draft night is
+  // least predictable. A tight range there would promise a precision the
+  // projection does not have.
   const centre = clamp(Math.round(96 - stock * 1.05), 1, TOTAL_PICKS)
   const spread = clamp(Math.round(18 - stock * 0.12), 4, 16)
   const range: [number, number] = [
@@ -56,8 +57,8 @@ function projectDraftRange(stock: number): { centre: number; range: [number, num
 }
 
 /** Chance of hearing your name called at all, calibrated against what a real
- *  20-22 year old prospect looks like. Exactly zero at/below the floor — that
- *  same line is what makes an outlook 'fringe' rather than 'second_round'. */
+ *  20-22 year old prospect looks like. Exactly zero at or below the floor;
+ *  that same line makes an outlook 'fringe' rather than 'second_round'. */
 const UNDRAFTED_STOCK_FLOOR = 52
 const DRAFT_PROBABILITY_SPAN = 26
 const MAX_DRAFT_PROBABILITY = 0.85
@@ -66,7 +67,7 @@ function draftProbability(stock: number): number {
   return clamp((stock - UNDRAFTED_STOCK_FLOOR) / DRAFT_PROBABILITY_SPAN, 0, MAX_DRAFT_PROBABILITY)
 }
 
-/** Rating gates for "clearly ready regardless of age" — shared with
+/** Rating gates for "clearly ready regardless of age". Shared with
  *  `couldDeclareEarlyFor` so its proximity check reads off the same numbers
  *  this eligibility check gates on, rather than a second copy of them. */
 const NCAA_DRAFT_GATE = 66
@@ -103,14 +104,13 @@ const FORCED_DRAFT_AGE = 22
  * just noting the draft exists and naming it a while off.
  *
  * Below this, a fresh character and a well-developed one look almost
- * identical — everyone starts around the same low rating and hype — so a
- * precise range/tier/likelihood is confidently describing a state that is
- * universal, not diagnostic of *this* build. Derived from `stageForAge`
- * (`ladder.ts`) rather than a second hardcoded 17 here: that function's own
- * youth -> breakout boundary is the point the ladder moves a player out of
- * the youth league and builds genuinely start to diverge, which is exactly
- * when a number starts meaning something. If that boundary ever moves, this
- * moves with it.
+ * identical, because everyone starts around the same low rating and hype, so
+ * a precise range/tier/likelihood would confidently describe a state that is
+ * universal rather than diagnostic of *this* build. Derived from `stageForAge`
+ * (`ladder.ts`) rather than a second hardcoded 17 here, because that
+ * function's own youth -> breakout boundary is the point the ladder moves a
+ * player out of the youth league and builds start to diverge. If that boundary
+ * ever moves, this moves with it.
  */
 const DETAILED_OUTLOOK_AGE = (() => {
   for (let age = 0; age <= 100; age++) {
@@ -120,18 +120,18 @@ const DETAILED_OUTLOOK_AGE = (() => {
 })()
 
 /** Where scouts are projecting you before the draft, or how far off it still
- *  is. Purely a read of state — call it every render, it never mutates
+ *  is. Purely a read of state: call it every render, it never mutates
  *  anything and never touches an `Rng`. */
 export type DraftTier = 'lottery' | 'first_round' | 'second_round' | 'fringe'
 
 /** Which side of `draftStock` is furthest behind, so the UI can tell the
- *  player what to work on. Never the raw hype number — that stays hidden. */
+ *  player what to work on. Never the raw hype number, which stays hidden. */
 export type DraftLimiter = 'ability' | 'exposure' | null
 
 /**
  * How confident the projection is, independent of where it lands. `tier`
- * answers "where"; this answers "how sure" — deliberately kept apart, because
- * a single band that tried to carry both ended up overselling itself (see
+ * answers "where"; this answers "how sure". They are kept apart because a
+ * single band that tried to carry both ended up overselling itself (see
  * `FRINGE_PROBABILITY_FLOOR`). A category, never the raw percentage: this
  * game never surfaces odds as numbers anywhere else, and a number invites
  * optimising it rather than understanding the situation.
@@ -143,9 +143,10 @@ export interface DraftOutlook {
   eligibleNow: boolean
   /** Seasons until age 22, when eligibility stops being optional. 0 once reached. */
   seasonsUntilForced: number
-  /** True when a good season could pull the draft forward — the rating gate is close. */
+  /** True when a good season could pull the draft forward, because the rating
+   *  gate is close. */
   couldDeclareEarly: boolean
-  /** Same maths the draft itself uses. Where you'd land *if* picked — see
+  /** Same maths the draft itself uses. Where you'd land *if* picked. See
    *  `likelihood` for whether that's likely to happen at all. */
   projectedRange: [number, number]
   tier: DraftTier
@@ -155,8 +156,8 @@ export interface DraftOutlook {
   limiter: DraftLimiter
   /** False below `DETAILED_OUTLOOK_AGE`: the draft still looms, but nothing
    *  below is yet a read on *this* player rather than on every fresh
-   *  character alike. Every other field above is still populated regardless
-   *  — this function states the rule, the surfaces decide what to render. */
+   *  character alike. Every other field above is still populated regardless.
+   *  This function states the rule, the surfaces decide what to render. */
   detailed: boolean
 }
 
@@ -164,18 +165,18 @@ export interface DraftOutlook {
  * Benchmarks `draftLimiter` substitutes in to see which side of the formula
  * is holding stock back. Hype starts around 12 at creation and is bounded
  * 0-100, so 40 reads as a solid, unremarkable media profile a couple of
- * seasons in — a fair midpoint to test against, not the ceiling. `overallRating`
+ * seasons in: a fair midpoint to test against, not the ceiling. `overallRating`
  * runs roughly 40-90 over a career, so 60 reads as a useful rotation player,
  * the equivalent midpoint on that scale. Substituting each term for its
  * benchmark and comparing which move helps stock more identifies the side
- * that is actually behind, instead of picking an arbitrary split of the raw
- * formula weights.
+ * that is behind, instead of picking an arbitrary split of the raw formula
+ * weights.
  */
 const HYPE_BENCHMARK = 40
 const RATING_BENCHMARK = 60
 /**
- * A gap smaller than this is noise, not a real story — keeps `limiter` from
- * flipping between near-identical benchmarks.
+ * A gap smaller than this is noise, so `limiter` does not flip between
+ * near-identical benchmarks.
  *
  * Because rating and hype cancel out of the *other* term's substitution,
  * `gainFromHypeBenchmark` reduces to `(HYPE_BENCHMARK - hype) * HYPE_WEIGHT`
@@ -185,19 +186,19 @@ const RATING_BENCHMARK = 60
  * `1 / HYPE_WEIGHT ≈ 4.5` points was enough to flip the verdict, and a
  * single offseason can move hype far past that: `finalizeSeason` alone
  * (`engine.ts`) moves it by roughly `(rating - 55) * 0.28 + awards * 4`, and
- * on top of that a single event card can add a lot more — a `development`
- * card grants +20 hype, an origin-story card +18, a national-tournament win
- * +14 (`events/development.ts`, `events/origin.ts`, `events/national.ts`) —
- * so one offseason's total swing commonly runs 30-45 points, not the ±16 the
- * base formula alone would suggest. At margin 5, a hype move of
- * `5 / HYPE_WEIGHT ≈ 22.7` points is needed to flip on hype alone — that is
- * comfortably *inside* the real envelope above, so the margin does not stop
- * a big offseason from flipping `limiter`, and isn't meant to. What actually
- * justifies margin 5 is measured, not arithmetic: a 1,560-career re-trace
- * (see `task-1-report.md`) found `limiter` flicker at 1.5% of traces at this
- * margin, down from 8.3% at margin 1 — low enough to leave as is — while the
- * genuinely lopsided exposure/ability fixtures below (gaps of 7-13 points)
- * still clear it easily.
+ * on top of that a single event card can add a lot more (a `development` card
+ * grants +20 hype, an origin-story card +18, a national-tournament win +14;
+ * see `events/development.ts`, `events/origin.ts`, `events/national.ts`), so
+ * one offseason's total swing commonly runs 30-45 points, not the ±16 the
+ * base formula alone would suggest.
+ *
+ * At margin 5, flipping on hype alone needs a move of `5 / HYPE_WEIGHT ≈ 22.7`
+ * points, comfortably *inside* that envelope, so the margin does not stop a big
+ * offseason from flipping `limiter` and isn't meant to. What justifies margin 5
+ * is measured rather than arithmetic. A 1,560-career re-trace (see
+ * `task-1-report.md`) found `limiter` flicker at 1.5% of traces at this margin,
+ * down from 8.3% at margin 1, low enough to leave as is, while the lopsided
+ * exposure/ability fixtures below (gaps of 7-13 points) still clear it easily.
  */
 const LIMITER_MARGIN = 5
 
@@ -220,8 +221,8 @@ function draftLimiter(player: Player, country: Country): DraftLimiter {
 /**
  * How close to the applicable rating gate counts as "a strong season could
  * close it". Five points is roughly what a good preseason plus a good year
- * buys a player already in that range — close enough that declaring early is
- * a live decision, not wishful thinking.
+ * buys a player already in that range, close enough that declaring early is
+ * a live decision rather than wishful thinking.
  */
 const EARLY_DECLARE_MARGIN = 5
 
@@ -232,31 +233,30 @@ function couldDeclareEarlyFor(player: Player): boolean {
 }
 
 /**
- * Verification drove real careers through the engine and watched the tier
- * against what `runDraft` actually did: of the traces whose final pre-draft
- * reading was `'second_round'`, only 27% were actually drafted — worse than
- * a coin flip, and not what "second round" tells a player. 0.30 draws the
- * fringe line just above that observed rate: below it, "you might not be
- * drafted at all" is the more important fact than "if you are, it's around
- * pick 40", so `'fringe'` overrides whatever the centre alone would suggest.
- * A 1,560-career re-trace after this landed confirmed it: `'second_round'`
- * moved to 49.1% actually-drafted and `'first_round'` held at 60.4% (the
- * original "0/3 first_round traces drafted" was small-sample noise, not a
- * second defect) — both now comfortably above a coin flip.
+ * Verification drove real careers through the engine and compared the tier
+ * against what `runDraft` did: of the traces whose final pre-draft reading was
+ * `'second_round'`, only 27% were drafted, worse than a coin flip and not what
+ * "second round" tells a player. 0.30 draws the fringe line just above that
+ * observed rate. Below it, "you might not be drafted at all" matters more than
+ * "if you are, it's around pick 40", so `'fringe'` overrides whatever the
+ * centre alone would suggest. A 1,560-career re-trace after this landed
+ * confirmed it: `'second_round'` moved to 49.1% drafted and `'first_round'`
+ * held at 60.4% (the original "0/3 first_round traces drafted" was
+ * small-sample noise, not a second defect), both comfortably above a coin
+ * flip.
  *
- * This is deliberately *not* set at the second/first-round boundary
- * (~0.42, where `centre` crosses 30) — that would have retired
- * `'second_round'` as a reachable tier entirely, and 27% is an average over
- * that whole band, not a per-instance measurement; the band's upper half
- * (toward 0.42) is closer to 40%, a real placement worth keeping. What's
- * left of `'second_round'` after this floor (~0.30-0.42) is genuinely
- * uncertain rather than fringe, which is exactly what `draftLikelihood`
- * exists to say out loud alongside it.
+ * It is *not* set at the second/first-round boundary (~0.42, where `centre`
+ * crosses 30), which would have retired `'second_round'` as a reachable tier
+ * entirely. 27% is an average over that whole band, not a per-instance
+ * measurement, and the band's upper half (toward 0.42) is closer to 40%, a
+ * real placement worth keeping. What is left of `'second_round'` after this
+ * floor (~0.30-0.42) is uncertain rather than fringe, which is what
+ * `draftLikelihood` says out loud alongside it.
  *
- * `draftLikelihood`'s bands are built from this same constant — every band
- * below it is a `'fringe'`-side reading and every band at or above it is
- * not — so the two can never disagree about where "probably not drafted"
- * begins. See `draftLikelihood` for how that invariant is kept explicit.
+ * `draftLikelihood`'s bands are built from this same constant: every band
+ * below it is a `'fringe'`-side reading and every band at or above it is not,
+ * so the two can never disagree about where "probably not drafted" begins.
+ * See `draftLikelihood` for how that invariant is kept explicit.
  */
 const FRINGE_PROBABILITY_FLOOR = 0.3
 
@@ -274,8 +274,8 @@ function draftTier(centre: number, stock: number): DraftTier {
  * also found the fix's cost: `'fringe'`/what was then a single `'unlikely'`
  * likelihood swallowed 80% of final readings, so a player at 29% and one at
  * 2% saw the identical word. A fresh cohort run for this rebalance (~3,200
- * draft-night readings, same engine, same methodology) reproduced that shape
- * — everything below 0.30 was 68-69% of the population — and broke it down
+ * draft-night readings, same engine, same methodology) reproduced that shape,
+ * with everything below 0.30 at 68-69% of the population, and broke it down
  * by drafted-rate to find real sub-bands rather than an even split:
  *
  * ```
@@ -290,19 +290,18 @@ function draftTier(centre: number, stock: number): DraftTier {
  *
  * Splitting at 0.05 and 0.15 turns one 68-point-share band with a 0-31%
  * internal spread of drafted-rate into three, each with a materially
- * different rate (1%, 10%, 22%) — a 29% and a 2% player now land in
- * different bands, which is the whole point of this rebalance. The
- * remaining `[0.15, 0.30)` band is still the single largest at ~41%, left
- * that way deliberately: splitting it further (tried at 0.20 in the same
- * re-trace) only shaves it to two ~15-26% bands with adjacent drafted-rates
- * (17% and 25%) that are not meaningfully different categories, and this
- * game does not want a wall of near-synonymous hint text. Six categories
- * already strains "categorical, not a percentage."
+ * different rate (1%, 10%, 22%), so a 29% and a 2% player now land in
+ * different bands. The remaining `[0.15, 0.30)` band is still the single
+ * largest at ~41% and stays that way on purpose: splitting it further (tried
+ * at 0.20 in the same re-trace) only shaves it to two ~15-26% bands with
+ * adjacent drafted-rates (17% and 25%) that are not meaningfully different
+ * categories, and this game does not want a wall of near-synonymous hint
+ * text. Six categories already strains "categorical, not a percentage."
  *
  * `'unlikely'` and `'longshot'` sit entirely below `FRINGE_PROBABILITY_FLOOR`
- * by construction — `'longshot'`'s own ceiling *is* that constant — so every
- * band below it reads `'fringe'` on `tier` and every band at or above it
- * never does. `'likely'`/`'strong'` are unchanged from the original pass:
+ * by construction, since `'longshot'`'s own ceiling *is* that constant, so
+ * every band below it reads `'fringe'` on `tier` and every band at or above
+ * it never does. `'likely'`/`'strong'` are unchanged from the original pass:
  * `draftProbability` caps at `MAX_DRAFT_PROBABILITY` (0.85), so `'strong'`
  * is reachable but never a guarantee, matching what a projection should
  * promise.
@@ -327,9 +326,9 @@ function draftLikelihood(probability: number): DraftLikelihood {
 /**
  * The projection screen for the draft that hasn't happened yet. Pure and
  * `Rng`-free by design: it is called on every render, and the number it
- * shows must never move between calls or drift from what `runDraft` actually
- * produces on the night — both read `projectDraftRange`/`draftStock`, the
- * exact functions `runDraft` itself calls.
+ * shows must never move between calls or drift from what `runDraft` produces
+ * on the night. Both read `projectDraftRange`/`draftStock`, the exact
+ * functions `runDraft` itself calls.
  */
 export function draftOutlook(player: Player, country: Country, seasonsPlayed: number): DraftOutlook | null {
   // No draft is ahead: it already happened, they're already in the league
@@ -346,8 +345,8 @@ export function draftOutlook(player: Player, country: Country, seasonsPlayed: nu
   return {
     eligibleNow,
     seasonsUntilForced: Math.max(0, FORCED_DRAFT_AGE - player.age),
-    // Nothing to "pull forward" once the draft is already this season — that
-    // branch belongs to `eligibleNow`, not this one.
+    // Nothing to "pull forward" once the draft is already this season. That
+    // branch belongs to `eligibleNow`.
     couldDeclareEarly: !eligibleNow && couldDeclareEarlyFor(player),
     projectedRange: range,
     tier: draftTier(centre, stock),

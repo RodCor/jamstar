@@ -1,11 +1,11 @@
 /**
- * Perks — the thing you actually choose each preseason.
+ * Perks are the thing you choose each preseason.
  *
  * Allocating raw stat points was arithmetic, not a decision: the optimal spread
  * was the same every year. A perk is a named, flavoured upgrade with a shape,
  * and picking one of three means giving up two.
  *
- * `bonus` values are *growth points*, not raw attribute numbers — they are spent
+ * `bonus` values are *growth points*, not raw attribute numbers. They are spent
  * through `spendGrowthPoint`, so the same diminishing returns apply and an
  * already-elite attribute cannot be pumped forever.
  *
@@ -15,26 +15,26 @@
 
 import type { AttributeKey, Position } from '@/game/types'
 
-/** Weakest to strongest. Required on every `Perk` — the draw falls back to
+/** Weakest to strongest. Required on every `Perk`. The draw falls back to
  * `basic` only for the mechanism's own tests, never for real content. */
 export type PerkRarity = 'basic' | 'silver' | 'gold' | 'legend' | 'top1'
 
 /**
  * The growth-point budget each rarity must spend its `bonus` inside.
  *
- * Spec §6 verbatim. An earlier pass divided these by 0.675 — the factor
- * `spendGrowthPoint`'s gain ladder was scaled by in Wave 2a — reasoning that a
+ * Spec §6 verbatim. An earlier pass divided these by 0.675 (the factor
+ * `spendGrowthPoint`'s gain ladder was scaled by in Wave 2a), reasoning that a
  * perk now buys a third less than its author intended. That double-counts.
  * The 0.675 was itself chosen by measuring whole careers against
  * `__fixtures__/career-baseline.json` *with perks in the loop at these
  * magnitudes*, so it already compensates for everything downstream of it,
  * perks included. Correcting a second time inflated the pool from 89 growth
- * points to 148 and put five of nine distribution metrics out of band —
+ * points to 148 and put five of nine distribution metrics out of band,
  * `mvpsPerCareer` by +209%. Do not re-derive these; they are measured.
  *
  * The bands are also what keeps the pool honest as it grows: a career of ~20
  * seasons draws ~20 perks, so at 53 perks it consumes under 40% of the pool and
- * the rarity odds — rather than exhaustion — decide what a player ends up with.
+ * the rarity odds, rather than exhaustion, decide what a player ends up with.
  * Every entry below is checked against its band by `perks.test.ts`.
  */
 export const PERK_BUDGET: Record<PerkRarity, { min: number; max: number }> = {
@@ -212,14 +212,14 @@ export const PERKS: Perk[] = [
     rarity: 'legend',
   },
   // `signature_move`, `telepathy` and `the_island` share the shape
-  // `{ primary: 7, mental: 3 }`. That is a known review finding, deliberately
-  // left open, because differentiating it is not free.
+  // `{ primary: 7, mental: 3 }`. That is a known review finding, left open on
+  // purpose, because differentiating it is not free.
   //
   // `overallRating` is a weighted average over `POSITION_WEIGHTS`
   // (`src/game/progression.ts`), and `mental` is the cheapest place to put a
   // growth point almost everywhere: it is in the bottom two at all five
-  // positions — lowest at SG (0.08) and SF (0.06), tied lowest at PF (0.08),
-  // second-lowest at PG (0.14) and C (0.09) — and it never exceeds 0.14. The
+  // positions (lowest at SG 0.08 and SF 0.06, tied lowest at PF 0.08,
+  // second-lowest at PG 0.14 and C 0.09) and it never exceeds 0.14. The
   // attributes these perks would move those points onto run far heavier at the
   // positions that use them: physical to 0.48, playmaking to 0.38, scoring to
   // 0.30, defense to 0.28. So the same growth points buy more rating, for free,
@@ -230,7 +230,7 @@ export const PERKS: Perk[] = [
   // against a ±12% band, and shifting 1 point still landed at +12.25%. Both
   // red the distribution guard. Any future attempt has to keep each perk's
   // `mental` allocation exactly where it is and find the distinction
-  // elsewhere — or move the band, which is a separate decision.
+  // elsewhere, or move the band, which is a separate decision.
   {
     id: 'signature_move',
     name: { es: 'Movimiento propio', en: 'Signature Move' },

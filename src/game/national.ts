@@ -3,8 +3,8 @@
  *
  * The World Cup and the Olympics used to be a silent dice roll folded into the
  * awards pass, which meant the two biggest tournaments in the sport never
- * actually happened to you. Now they get their own screen, their own run, and a
- * final you have to win.
+ * happened to you. Now they get their own screen, their own run, and a final
+ * you have to win.
  */
 
 import type { AwardId, Country, NationalTournament, Player } from './types'

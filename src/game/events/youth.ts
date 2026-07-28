@@ -9,9 +9,9 @@ import { event, gamble, gate, loc, outcome } from './helpers'
  * `youth_out_of_position` deals to all five positions, so it cannot hard-code
  * the destination: a big pushed into the post is not a story, it is his job.
  * Bigs get sent out to handle the ball, everyone else gets sent inside, and the
- * card interpolates which. The attribute effects are identical either way —
- * you lose reps at your own game and learn somebody else's — so this changes
- * what the card says, never what it is worth.
+ * card interpolates which. The attribute effects are identical either way,
+ * since you lose reps at your own game and learn somebody else's, so this
+ * changes what the card says, never what it is worth.
  */
 function emergencyHole(ctx: EventContext): { setup: Localized; won: Localized; lost: Localized } {
   const big = ctx.player.position === 'C' || ctx.player.position === 'PF'
@@ -49,8 +49,8 @@ function emergencyHole(ctx: EventContext): { setup: Localized; won: Localized; l
 
 /**
  * What the coach starts calling you once you stop growing and nobody else does:
- * one rung down the ladder, or — for a point guard, who has no rung below —
- * simply small. `youth_plateau` used to assume the word was always "guard",
+ * one rung down the ladder, or simply small for a point guard, who has no rung
+ * below. `youth_plateau` used to assume the word was always "guard",
  * which said nothing at all to the guard it was happy to deal to.
  */
 const OUTGROWN_INTO: Record<Position, Localized> = {
@@ -518,8 +518,8 @@ export const YOUTH_EVENTS: GameEvent[] = [
    * A career spends three seasons in `youth` and one in `breakout`, and the
    * origin deck only lends two cards to each of those from any one country, so
    * the opening act was being dealt from the same eight-card hand every replay.
-   * Anything gated here would thin the general pool rather than thicken it —
-   * these have to be drawable by a kid from anywhere.
+   * Anything gated here would thin the general pool rather than thicken it.
+   * These have to be drawable by a kid from anywhere.
    */
 
   event({

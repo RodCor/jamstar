@@ -41,7 +41,7 @@ export function DefensiveStop({
     const schedule: number[] = []
     let at = 350
 
-    // Fakes first — a lane flashes and goes dark.
+    // Fakes first. A lane flashes and goes dark.
     for (let i = 0; i < tuning.stopFeints; i++) {
       const lane = (liveLane.current + i + 1) % 3
       schedule.push(

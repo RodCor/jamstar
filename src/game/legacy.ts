@@ -2,8 +2,8 @@
  * Career totals and the final verdict.
  *
  * The legacy score is the number people will screenshot, so it has to reward the
- * things that actually make a basketball legend — rings and MVPs above all, then
- * longevity and volume, then international medals — while still giving a good
+ * things that make a basketball legend (rings and MVPs above all, then
+ * longevity and volume, then international medals) while still giving a good
  * player who never won anything a respectable, non-insulting result.
  */
 
@@ -23,8 +23,8 @@ export function computeTotals(seasons: Season[]): CareerTotals {
   return {
     seasons: seasons.length,
     gamesPlayed: totalGames,
-    // Career totals are per-game averages summed across seasons — the same way
-    // a career line is normally quoted, weighted by games actually played.
+    // Career totals are per-game averages summed across seasons, the same way
+    // a career line is normally quoted, weighted by games played.
     points: round(seasons.reduce((sum, s) => sum + s.points * s.gamesPlayed, 0), 0),
     rebounds: round(seasons.reduce((sum, s) => sum + s.rebounds * s.gamesPlayed, 0), 0),
     assists: round(seasons.reduce((sum, s) => sum + s.assists * s.gamesPlayed, 0), 0),
@@ -54,10 +54,10 @@ export function computeTotals(seasons: Season[]): CareerTotals {
 
 /**
  * How much the level you played at is worth. A title in the LEB Oro is a real
- * achievement, but it is not an NBA ring, and the final score has to say so —
- * otherwise a journeyman who collected trophies in a fourth-tier league outranks
- * a genuine star. Weighted by minutes-ish (games) so a one-game cameo in the NBA
- * does not launder a whole career.
+ * achievement, but it is not an NBA ring, and the final score has to say so.
+ * Otherwise a journeyman who collected trophies in a fourth-tier league
+ * outranks a real star. Weighted by minutes-ish (games) so a one-game cameo in
+ * the NBA does not launder a whole career.
  */
 function careerLevel(seasons: Season[]): number {
   const played = seasons.filter((s) => s.gamesPlayed > 0 && s.leagueId !== 'youth')
@@ -114,7 +114,7 @@ export function computeLegacy(totals: CareerTotals, seasons: Season[], rival: Ri
   const jerseyRetired =
     hallOfFame || (totals.seasons >= 8 && totals.teamsPlayedFor <= 2 && score >= 300)
 
-  // Beat the rival on the things that actually get argued about.
+  // Beat the rival on the things that get argued about.
   const myPoints = totals.rings * 3 + totals.mvps * 4 + totals.allStars
   const theirPoints = rival.totals.rings * 3 + rival.totals.mvps * 4 + rival.totals.allStars
   const beatRival = myPoints > theirPoints
@@ -134,7 +134,7 @@ export function computeLegacy(totals: CareerTotals, seasons: Season[], rival: Ri
 /**
  * Cutoffs are set so the distribution across many careers looks like real
  * basketball: most players are solid pros or journeymen, stars are uncommon,
- * and a Hall of Fame career is genuinely rare.
+ * and a Hall of Fame career is rare.
  */
 function tierFor(score: number, totals: CareerTotals): LegacyTier {
   if (score >= 1300 && totals.rings >= 2 && totals.mvps >= 2) return 'goat'

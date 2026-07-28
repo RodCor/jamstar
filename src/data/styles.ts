@@ -1,7 +1,7 @@
 /**
  * Play styles. Each is a stated gamble, in the spirit of F1 Glory's driving
  * styles ("more poles and wins, but more DNFs"). The tradeoff text is shown on
- * the creation screen — the player should be choosing knowingly.
+ * the creation screen, because the player should be choosing knowingly.
  */
 
 import type { PlayStyle } from '@/game/types'
@@ -67,8 +67,8 @@ export const PLAY_STYLES: PlayStyle[] = [
     id: 'highlight',
     name: { es: 'Atleta explosivo', en: 'Highlight Athlete' },
     tradeoff: {
-      es: 'Volás, sos viral y firmás contratos enormes — pero tu cuerpo paga la factura después de los 30.',
-      en: 'You fly, you go viral, you sign huge deals — and your body sends the bill after 30.',
+      es: 'Volás, sos viral y firmás contratos enormes, pero tu cuerpo paga la factura después de los 30.',
+      en: 'You fly, you go viral, you sign huge deals, and your body sends the bill after 30.',
     },
     bonus: { physical: 15, mental: -4, scoring: -3 },
     scoringBias: 1.1,

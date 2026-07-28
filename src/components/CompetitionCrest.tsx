@@ -7,12 +7,12 @@ import { hashSeed } from '@/game/rng'
 import { withBasePath } from '@/lib/basePath'
 
 /**
- * The mark of a competition — a league or a domestic cup.
+ * The mark of a competition: a league or a domestic cup.
  *
  * Same contract as `TeamCrest`: a real logo file when one has been supplied
  * (see `src/data/logos.ts`), otherwise a generated plate built from the
- * competition's abbreviation. Several cups have no artwork anywhere — an NCAA
- * "conference tournament" is thirty different trophies — so the fallback is not
+ * competition's abbreviation. Several cups have no artwork anywhere (an NCAA
+ * "conference tournament" is thirty different trophies), so the fallback is not
  * a rare path, and it has to look deliberate rather than broken.
  *
  * Clubs get shields and roundels; competitions get a flat plate, so the two

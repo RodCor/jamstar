@@ -6,7 +6,7 @@ import type { MinigameTuning } from '@/game/minigame'
 /**
  * A ring collapses toward the rim; release when it lines up.
  *
- * One continuous shrink rather than a loop — you get a single window per
+ * One continuous shrink rather than a loop, so you get a single window per
  * attempt, which is what makes it feel like a shot rather than a slot machine.
  */
 export function ClutchThree({
@@ -34,7 +34,7 @@ export function ClutchThree({
       if (start.current === 0) start.current = now
       const t = (now - start.current) / 1000 / tuning.clutchDuration
       if (t >= 1) {
-        // Never released — the shot clock beat you.
+        // Never released. The shot clock beat you.
         setProgress(1)
         if (!settled.current) {
           settled.current = true

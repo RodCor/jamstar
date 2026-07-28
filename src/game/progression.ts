@@ -1,7 +1,7 @@
 /**
  * Ageing: how attributes grow, peak and decline, and how wear accumulates.
  *
- * The shape the whole game hangs on — teenagers improve fast, players peak
+ * The shape the whole game hangs on: teenagers improve fast, players peak
  * roughly 26-30, and after that the decline rate depends on what kind of player
  * you chose to be. Physical falls off a cliff; mental and scoring barely move.
  */
@@ -15,10 +15,10 @@ import { getStyle } from '@/data/styles'
  * Development earned on the floor.
  *
  * Progression used to come only from the preseason, which made a great season
- * and a terrible one develop you identically — the year you actually played had
- * no bearing on who you became. This adds growth proportional to how the season
- * went, so form compounds and a breakout year genuinely changes your trajectory.
- * Young players learn fastest from it; a 34-year-old learns almost nothing.
+ * and a terrible one develop you identically, so the year you played had no
+ * bearing on who you became. This adds growth proportional to how the season
+ * went, so form compounds and a breakout year changes your trajectory. Young
+ * players learn fastest from it; a 34-year-old learns almost nothing.
  */
 export function developFromSeason(
   player: Player,
@@ -37,8 +37,8 @@ export function developFromSeason(
   const weights = POSITION_WEIGHTS[player.position]
   for (let i = 0; i < points; i++) {
     player.growthPoints += 1
-    // Weighted toward what the position uses, but not exclusively — you improve
-    // at what the season put in front of you.
+    // Weighted toward what the position uses, but not exclusively, because you
+    // improve at what the season put in front of you.
     const key = rng.weighted(ATTRIBUTE_KEYS, (k) => 1 + (weights[k] ?? 0.02) * 6)
     if (!spendGrowthPoint(player, key)) player.growthPoints -= 1
   }
@@ -47,7 +47,7 @@ export function developFromSeason(
 
 /**
  * How fast each attribute falls once past its peak, in points per year.
- * Physical is the gamble and mental is the hedge — that contrast is what makes
+ * Physical is the gamble and mental is the hedge. That contrast is what makes
  * an ageing career interesting, so the merge preserves it at the extremes.
  */
 const DECLINE_RATE: Record<AttributeKey, number> = {
@@ -92,7 +92,7 @@ export function ageOneYear(player: Player, rng: Rng): void {
       const yearsPast = player.age - peak
       const rate = DECLINE_RATE[key]
       if (rate <= 0) {
-        // Mental keeps creeping up — experience is cumulative.
+        // Mental keeps creeping up, because experience is cumulative.
         delta = rng.float(0, -rate * 1.4)
       } else {
         const severity = rate * (0.35 + yearsPast * 0.16) * (1 + wearPenalty * 1.3)
@@ -111,8 +111,8 @@ export function ageOneYear(player: Player, rng: Rng): void {
  *
  * Returns are steeply diminishing on purpose: it keeps a realistic ceiling
  * (a great player tops out in the high 80s, not at 99 across the board) and it
- * makes specialising in two attributes a genuinely different build from
- * spreading points evenly.
+ * makes specialising in two attributes a different build from spreading
+ * points evenly.
  */
 export function spendGrowthPoint(player: Player, key: AttributeKey): boolean {
   if (player.growthPoints <= 0) return false
@@ -125,16 +125,16 @@ export function spendGrowthPoint(player: Player, key: AttributeKey): boolean {
   // *average*, the same number of points spread over five attributes instead
   // of seven moves it about 7/5 as fast, and careers inflated across the
   // board. Scaling here rather than cutting the per-point gain keeps the
-  // diminishing-returns shape — and the choice between specialising and
-  // spreading — exactly as it was. 0.675 rather than the arithmetic
+  // diminishing-returns shape, and the choice between specialising and
+  // spreading, exactly as it was. 0.675 rather than the arithmetic
   // 5/7 = 0.714 most likely because development feeds back on itself: a
   // better season earns more points in `developFromSeason`, so the inflation
   // compounds beyond what the averaging alone predicts. The factor was
-  // measured against `__fixtures__/career-baseline.json`, not derived — that
-  // explanation for the gap is inferred rather than tested.
+  // measured against `__fixtures__/career-baseline.json`, not derived, so
+  // that explanation for the gap is inferred rather than tested.
   //
   // Every point that reaches this function comes from `developFromSeason` or
-  // from a perk's bonus (perks.ts, `takePerk`) — both grant and spend within
+  // from a perk's bonus (perks.ts, `takePerk`). Both grant and spend within
   // a single call, so `player.growthPoints` is never left holding a balance
   // between preseasons.
   const gain =
@@ -152,7 +152,7 @@ export function spendGrowthPoint(player: Player, key: AttributeKey): boolean {
  * Each row sums to 1, though `overallRating` normalises anyway. The old
  * seven-key rows folded in here: handling and part of iq into playmaking,
  * athleticism and strength into physical, leadership and the rest of iq into
- * mental — with iq leaning toward playmaking for guards, who read the floor
+ * mental, with iq leaning toward playmaking for guards, who read the floor
  * with the ball, and toward mental for bigs, who read it without.
  */
 const POSITION_WEIGHTS: Record<string, Partial<Record<AttributeKey, number>>> = {
@@ -164,7 +164,7 @@ const POSITION_WEIGHTS: Record<string, Partial<Record<AttributeKey, number>>> = 
 }
 
 /**
- * Overall rating — one number for "how good is this player right now", weighted
+ * Overall rating: one number for "how good is this player right now", weighted
  * by position because a centre who can't dribble is not a flawed player.
  */
 export function overallRating(player: Player): number {
@@ -180,7 +180,7 @@ export function overallRating(player: Player): number {
   return clamp(total / (weightSum || 1), 5, 99)
 }
 
-/** Sum of all attributes — used for "did this player develop" style checks. */
+/** Sum of all attributes, used for "did this player develop" style checks. */
 export function attributeTotal(attributes: Attributes): number {
   return ATTRIBUTE_KEYS.reduce((sum, key) => sum + attributes[key], 0)
 }
@@ -188,14 +188,15 @@ export function attributeTotal(attributes: Attributes): number {
 /**
  * Nobody walks away from the game before this age on their own. A career can
  * still end earlier, but only through a catastrophic-injury event that sets
- * `retire` explicitly — never through the ageing roll. Without this floor a
+ * `retire` explicitly, never through the ageing roll. Without this floor a
  * raw 17-year-old reads as "washed up" purely because their rating is low.
  */
 export const MIN_RETIREMENT_AGE = 29
 
 /**
- * Whether the player's body is telling them to stop. Not a hard rule — the
- * engine also offers retirement as a choice — but this is the forcing function.
+ * Whether the player's body is telling them to stop. Not a hard rule, since
+ * the engine also offers retirement as a choice, but it is the forcing
+ * function.
  */
 export function retirementPressure(player: Player): number {
   if (player.age < MIN_RETIREMENT_AGE) return 0

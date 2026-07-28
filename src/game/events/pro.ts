@@ -25,8 +25,8 @@ export const PRO_EVENTS: GameEvent[] = [
             ctx,
             0.58,
             outcome(
-              'Explotaste en dos años y renegociaste por el triple. La apuesta salió.',
-              'You broke out in two years and renegotiated for triple. The bet paid.',
+              'Explotaste en dos años y renegociaste por el triple.',
+              'You broke out in two years and renegotiated for triple.',
               'good',
               { money: 400_000, hidden: { hype: 10, morale: 8 } },
             ),

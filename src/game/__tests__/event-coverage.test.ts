@@ -32,39 +32,39 @@ import type {
 /**
  * The coverage guard.
  *
- * Wave 3's whole point was "careers stop being repetitive": 29 country-gated
- * origin cards, 17 early-stage cards, and a fix that made `development`
- * reachable at all. None of that was ever asserted anywhere — a future PR
- * could quietly thin any of it back out (a card re-gated into uselessness, an
- * id collision that shadows a card, a country's dedicated pair deleted) and
- * every other test in this suite would stay green, because they measure
- * aggregate distributions, not what any *one* player actually sees.
+ * Wave 3 was about "careers stop being repetitive": 29 country-gated origin
+ * cards, 17 early-stage cards, and a fix that made `development` reachable at
+ * all. None of that was ever asserted anywhere. A future PR could quietly thin
+ * any of it back out (a card re-gated into uselessness, an id collision that
+ * shadows a card, a country's dedicated pair deleted) and every other test in
+ * this suite would stay green, because they measure aggregate distributions,
+ * not what any *one* player sees.
  *
  * These floors are about variety per player, not deck size. A deck of three
- * hundred cards is worthless to a Cameroonian player if the country gate
- * only ever lets eight of them through — they would still replay the same
- * eight-card opening every single career. So every assertion below is scoped
- * to a single country (and, for the richest one, a single position too)
- * rather than to `ALL_EVENTS.length`.
+ * hundred cards is worthless to a Cameroonian player if the country gate only
+ * lets eight of them through: they would still replay the same eight-card
+ * opening every career. So every assertion below is scoped to a single country
+ * (and, for the richest one, a single position too) rather than to
+ * `ALL_EVENTS.length`.
  *
  * Harness choice: a hand-built `EventContext` rather than the
  * `career-distribution.test.ts` harness. That harness is the right tool for
  * "does the simulation still feel like the simulation" because it has to run
  * real, RNG-driven careers to answer that question. This guard asks a
- * narrower, structural question — "for this country (and stage, and
- * position), how big is the eligible pool" — and a driven career only visits
- * one stage/country/position combination per run, with no control over which
- * one. Reaching all 315 combinations that way (21 countries x 5 positions x
- * 3 stages — a 105-wide country x position sweep, repeated per stage) would
- * mean steering hundreds of careers through RNG; building the context
- * directly makes every combination reachable in one deterministic pass and
- * keeps the failure message pointing at the exact country/stage/position
- * that broke, rather than an average that already absorbed it.
+ * narrower, structural question, "for this country (and stage, and position),
+ * how big is the eligible pool", and a driven career only visits one
+ * stage/country/position combination per run, with no control over which one.
+ * Reaching all 315 combinations that way (21 countries x 5 positions x 3
+ * stages, a 105-wide country x position sweep repeated per stage) would mean
+ * steering hundreds of careers through RNG; building the context directly
+ * makes every combination reachable in one deterministic pass and keeps the
+ * failure message pointing at the exact country/stage/position that broke,
+ * rather than an average that already absorbed it.
  *
- * `buildContext` is deliberately permissive on every gate that is *not* under
+ * `buildContext` is permissive on purpose on every gate that is *not* under
  * test: high hype, low coachTrust (the one card that wants it low), generous
  * attributes, an empty fired-event set. That is what makes a low reading mean
- * something — if the probe context satisfies every incidental `requires` it
+ * something. If the probe context satisfies every incidental `requires` it
  * can, a pool that still comes up short is short because of the country gate
  * (or, for assertion 3, the position), not because the probe forgot to clear
  * some unrelated threshold.
@@ -75,24 +75,22 @@ import type {
  *    rule turned into a number, not a round figure picked after the fact.
  *  - >= 2 origin-gated cards at `youth` per country: the shared regional
  *    pair generally lands later (breakout/development), so youth needs its
- *    own floor — that is the stage where a first career's opening is
- *    entirely origin-gated cards or nothing.
+ *    own floor. That is the stage where a first career's opening is entirely
+ *    origin-gated cards or nothing.
  *  - >= 16 total eligible cards at `youth`/`development`/`breakout`, each
  *    checked across all 21 countries x 5 positions: this is the number that
- *    actually protects "not repetitive." A player draws roughly four
- *    seasons per stage; sixteen distinct eligible
- *    cards keeps a single stage from exhausting its `once`-fired pool inside
- *    one career. The brief for this wave flagged that two cards were
- *    reworked for being incoherent at some positions and were deliberately
- *    *not* re-gated by position, because gating them would have dropped
- *    centres below this exact floor — so the position sweep exists
- *    specifically to catch a future attempt to add that gate back without
- *    checking the consequence.
- *  - No id collisions in `ALL_EVENTS`: `findEvent` is a `Map` keyed by id: a
- *    duplicate silently shadows one card with another and only becomes
+ *    protects "not repetitive." A player draws roughly four seasons per
+ *    stage; sixteen distinct eligible cards keeps a single stage from
+ *    exhausting its `once`-fired pool inside one career. The brief for this
+ *    wave flagged that two cards were reworked for being incoherent at some
+ *    positions and were deliberately *not* re-gated by position, because
+ *    gating them would have dropped centres below this exact floor. The
+ *    position sweep exists to catch a future attempt to add that gate back
+ *    without checking the consequence.
+ *  - No id collisions in `ALL_EVENTS`: `findEvent` is a `Map` keyed by id, so
+ *    a duplicate silently shadows one card with another and only becomes
  *    visible once the deck is large enough that nobody notices a card never
- *    fires. It is cheap to check and expensive to debug, which is exactly
- *    the kind of assertion that belongs in a guard like this one.
+ *    fires. Cheap to check, expensive to debug.
  *  - >= 1.5 origin cards drawn per career, pooled across driven careers: see
  *    the note on that test for why eligibility is not exposure.
  */
@@ -113,7 +111,7 @@ const POSITIONS: Position[] = ['PG', 'SG', 'SF', 'PF', 'C']
  * noise, it is a deterministic function of position with disjoint PG/C
  * ranges, and it is already read by two card bodies. A future gate written
  * as `heightCm < 205` would silently pass identically for every position if
- * this probe used one fixed height — so each position gets its own real
+ * this probe used one fixed height, so each position gets its own real
  * number instead.
  */
 const PROBE_HEIGHT: Record<Position, number> = { PG: 186, SG: 195, SF: 202, PF: 207, C: 214 }
@@ -151,8 +149,8 @@ function dummyRival(): Rival {
  *
  * Attributes and hidden stats are set generously and identically across
  * every position, so varying `position` only moves the position *gate* (if
- * any exists), never an incidental attribute threshold — see the file
- * comment above for why that separation is the point.
+ * any exists), never an incidental attribute threshold. See the file comment
+ * above for why that separation is the point.
  */
 function buildContext(
   countryCode: string,
@@ -238,9 +236,9 @@ describe('event coverage: variety per player', () => {
     // stage, matching the brief's country x position sweep, repeated for
     // each of the three stages named in assertion 3). Built as one test
     // (rather than 315 `it.each` rows) so a run always reports every
-    // combination that fails, plus the global minimum, in one place — the
-    // number this wave exists to move, and the one likeliest to matter the
-    // next time an event card grows a gate.
+    // combination that fails, plus the global minimum, in one place. That
+    // minimum is the number this wave exists to move, and the one likeliest
+    // to matter the next time an event card grows a gate.
     it('holds >= 16 eligible cards for every one of the 315 combinations', () => {
       const results: { country: string; stage: CareerStage; position: Position; count: number }[] = []
       for (const country of COUNTRY_CODES) {
@@ -284,31 +282,31 @@ describe('event coverage: variety per player', () => {
  * card per season by weight, so a country's four eligible origin cards
  * compete against every other eligible card in the pool for that single slot.
  * A deck that is perfectly covered and never drawn is indistinguishable, from
- * the seat the game is played from, from a deck that does not exist — and the
+ * the seat the game is played from, from a deck that does not exist, and the
  * assertions above would stay green through all of it, because a weight is not
  * an eligibility.
  *
  * That is not hypothetical. This deck shipped at weights of 18-24 against an
  * early-stage field averaging about 23 per card, which measured 1.08 origin
- * draws per career with 29% of careers drawing none at all: the wave's whole
- * premise ("your country shows up in your career") was true of the data and
- * false of the experience. The weights were raised in response — see the
- * header of `origin.ts` for why the lift is uneven across the deck — and this
- * assertion is what stops the next well-meaning weight edit from undoing it
- * silently. Eligibility is asserted three ways above; without this, exposure
- * is asserted zero ways.
+ * draws per career with 29% of careers drawing none at all: the wave's premise
+ * ("your country shows up in your career") was true of the data and false of
+ * the experience. The weights were raised in response (see the header of
+ * `origin.ts` for why the lift is uneven across the deck), and this assertion
+ * is what stops the next well-meaning weight edit from undoing it silently.
+ * Eligibility is asserted three ways above; without this, exposure is asserted
+ * zero ways.
  *
  * Sampling: all 21 countries, 6 careers each. Every gate gets exercised
  * (a country whose cards became unreachable is a country whose careers stop
  * contributing draws), and the assertion is on the *pooled* mean rather than a
  * per-country one. Per-country means at any n this suite can afford are mostly
- * seed noise — at n=40 the spread across countries was 1.88 to 2.40 — so a
+ * seed noise: at n=40 the spread across countries was 1.88 to 2.40, so a
  * per-country floor would be a brittleness generator, not a guard.
  *
  * The floor of 1.5 sits well below the measured 2.1 and well above the 1.08
- * that prompted the change, which is the room it needs: comfortably clear of
- * ordinary drift from unrelated event or pacing work, and comfortably short of
- * a revert to the old weights.
+ * that prompted the change, which is the room it needs: clear of ordinary
+ * drift from unrelated event or pacing work, and short of a revert to the old
+ * weights.
  *
  * A ceiling is deliberately *not* asserted here, even though more exposure is
  * not simply better: pushing the mean past about 2.2 required weight the
@@ -404,8 +402,8 @@ function drive(
 
 /**
  * One career from a given country, every decision taken at random from its own
- * seeded stream — a player who is not steering towards or away from anything,
- * which is the population this floor is about.
+ * seeded stream. That is the population this floor is about, a player who is
+ * not steering towards or away from anything.
  */
 function playCareer(countryCode: string, index: number): GameState {
   const seed = `exposure::${countryCode}::${index}`

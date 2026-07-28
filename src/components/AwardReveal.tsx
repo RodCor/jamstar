@@ -10,8 +10,8 @@ import { trophyForAward, trophyIcon, trophyLabel, type Trophy } from '@/game/tro
 /**
  * Winning something should feel like winning something.
  *
- * Awards used to appear as a row of small grey chips indistinguishable from the
- * team record — an MVP season read exactly like a losing one. The heaviest
+ * Awards used to appear as a row of small grey chips indistinguishable from
+ * the team record. An MVP season read exactly like a losing one. The heaviest
  * trophy gets the headline treatment; the rest sit under it.
  */
 export function AwardReveal({
@@ -37,7 +37,7 @@ export function AwardReveal({
   const cupTrophy = trophies.find((tr) => tr.kind === 'cup' && tr.result === 'champion')
   // Only when a real trophy badge exists. `CupCrest` would happily draw its
   // generated plate here, but as the hero of the reveal the emoji trophy beats
-  // an abbreviation on a rectangle — the plate is for inline use beside a name.
+  // an abbreviation on a rectangle. The plate is for inline use beside a name.
   const badge =
     headline === 'cup_champion' && cupTrophy && cupLogoPathFor(cupTrophy.competitionId)
       ? cupTrophy.competitionId

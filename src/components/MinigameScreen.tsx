@@ -38,7 +38,7 @@ export function MinigameScreen({ state, onFinish }: Props) {
         const canStillWin = successes + (challenge.rounds - next.length) >= challenge.required
         const alreadyWon = successes >= challenge.required
 
-        // Stop as soon as the series is decided — no dead attempts.
+        // Stop as soon as the series is decided, so there are no dead attempts.
         if (alreadyWon || !canStillWin || next.length >= challenge.rounds) {
           window.setTimeout(() => onFinish(successes), 700)
         }
@@ -61,7 +61,7 @@ export function MinigameScreen({ state, onFinish }: Props) {
     <div className="space-y-4 animate-fade-up">
       <div className="panel overflow-hidden">
         <div className="flex items-center gap-2 border-b border-white/10 bg-flame-500/10 px-4 py-2">
-          {/* The trophy that is actually on the line, when it has a badge. */}
+          {/* The trophy that is on the line, when it has a badge. */}
           {challenge.competition === 'cup' && state.cupRun && (
             <CupCrest cupId={state.cupRun.cupId} size={18} />
           )}

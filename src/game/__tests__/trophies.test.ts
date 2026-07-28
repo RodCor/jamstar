@@ -46,7 +46,7 @@ describe('trophiesFor', () => {
   })
 
   it('gives nothing to a cup run that never reached the final', () => {
-    // cupWon null means they went out earlier — not a finalist.
+    // cupWon null means they went out earlier, not a finalist.
     expect(trophiesFor(season({ leagueId: 'acb', cupId: 'copa_rey', cupWon: null }))).toEqual([])
   })
 

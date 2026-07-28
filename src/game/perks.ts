@@ -14,7 +14,7 @@ import { spendGrowthPoint } from './progression'
 /** How many are put in front of the player each preseason. */
 export const PERK_CHOICES = 3
 
-/** Weakest to strongest — also the order the draw falls back through. */
+/** Weakest to strongest. Also the order the draw falls back through. */
 export const PERK_RARITIES: readonly PerkRarity[] = ['basic', 'silver', 'gold', 'legend', 'top1']
 
 const MAJOR_AWARDS: readonly AwardId[] = ['mvp', 'dpoy', 'finals_mvp']
@@ -39,7 +39,7 @@ export function standingFor(lastSeason: Season | null): number {
   )
 }
 
-/** The odds table's two endpoints — standing 0 and standing 1 — each summing to 1. */
+/** The odds table's two endpoints (standing 0 and standing 1), each summing to 1. */
 const ODDS_AT_MIN: Record<PerkRarity, number> = {
   basic: 0.45, silver: 0.38, gold: 0.15, legend: 0.02, top1: 0,
 }
@@ -50,7 +50,7 @@ const ODDS_AT_MAX: Record<PerkRarity, number> = {
 /**
  * The rarity distribution to roll a preseason's three slots against.
  *
- * Pure — no `Rng` involved — so a replayed seed always sees the same odds;
+ * Pure, with no `Rng` involved, so a replayed seed always sees the same odds;
  * only the roll made against them (in `drawPerkChoices`) consumes randomness.
  */
 export function rarityOdds(standing: number): Record<PerkRarity, number> {
@@ -83,10 +83,9 @@ function eligiblePerks(player: Player): Perk[] {
  *
  * Two-stage: roll a rarity per slot from `rarityOdds(standingFor(lastSeason))`,
  * then fill it from the eligible pool, tie-broken by the existing `weight`
- * field. Weighted toward what the player's position actually uses, so a centre
- * is not repeatedly offered ball-handling upgrades — but not exclusively,
- * because an off-profile perk is one of the more interesting things you can
- * be offered.
+ * field. Weighted toward what the player's position uses, so a centre is not
+ * repeatedly offered ball-handling upgrades, but not exclusively: an
+ * off-profile perk is one of the more interesting things you can be offered.
  */
 export function drawPerkChoices(player: Player, rng: Rng, lastSeason: Season | null): string[] {
   const pool = eligiblePerks(player)

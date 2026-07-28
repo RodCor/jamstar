@@ -24,7 +24,7 @@ import { getPerk } from '@/data/perks'
 const POSITIONS: Position[] = ['PG', 'SG', 'SF', 'PF', 'C']
 
 /**
- * What an informed player invests in, per position — the attributes the UI's
+ * What an informed player invests in, per position: the attributes the UI's
  * help text points them at. Deliberately not imported from the engine: this is
  * the player's view of the game, and it should win on its own merits.
  */
@@ -177,9 +177,9 @@ describe('legacy verdicts', () => {
       rows.filter((r) => ['hall_of_famer', 'legend', 'goat'].includes(r.legacy.tier)).length /
       rows.length
 
-    // Player agency has to actually matter — this is the whole point of the
-    // perk screen. Measured on legacy rather than on reaching the NBA, since
-    // that is now gated on draft night rather than on year-to-year quality.
+    // Player agency has to matter; that is what the perk screen is for.
+    // Measured on legacy rather than on reaching the NBA, since that is now
+    // gated on draft night rather than on year-to-year quality.
     expect(avg(focused)).toBeGreaterThan(avg(casual))
     expect(eliteRate(focused)).toBeGreaterThan(eliteRate(casual))
   })
@@ -187,7 +187,7 @@ describe('legacy verdicts', () => {
   it('keeps elite outcomes rare for a player who never thinks about their perks', () => {
     // Also loses its finals: the default harness converts every title chance,
     // which no real casual player does and which inflates elite outcomes well
-    // past what the game actually hands out.
+    // past what the game hands out.
     const casual = verdicts(120, false, false)
     const eliteRate =
       casual.filter((r) => r.legacy.tier === 'goat' || r.legacy.tier === 'legend').length /
@@ -195,8 +195,8 @@ describe('legacy verdicts', () => {
     const nbaRate = casual.filter((r) => r.reachedNba).length / casual.length
 
     expect(eliteRate).toBeLessThan(0.25)
-    // The NBA has two doors now — draft night, and a free-agent call for a
-    // player who put up a season somewhere visible — so this bound is looser
+    // The NBA has two doors now (draft night, and a free-agent call for a
+    // player who put up a season somewhere visible), so this bound is looser
     // than when the draft was the only way in. It is still a bound: free agency
     // once escalated every career into the NBA and measured 85% here, which this
     // continues to catch. The cohort takes the highest-tier offer every year, so

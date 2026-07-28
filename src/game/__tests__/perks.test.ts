@@ -6,8 +6,8 @@ import type { Perk, PerkRarity } from '@/data/perks'
  * The two-stage rarity draw is tested against a small fixture that spans
  * every rarity, rather than the real 53-perk pool. Task 2 tagged every real
  * perk with a rarity and Task 3 grew the pool to 14/14/12/8/5, but the
- * mechanism tests still want a pool with a known, exact count per tier —
- * independent of however the real content happens to be distributed — so the
+ * mechanism tests still want a pool with a known, exact count per tier,
+ * independent of however the real content happens to be distributed, so the
  * fixture stays.
  */
 const FIXTURE_PERKS = vi.hoisted(() => {
@@ -143,7 +143,7 @@ describe('perk bonus budgets', () => {
    * check the real content, so it reaches past the mock with `importActual`
    * rather than asserting against `FIXTURE_PERKS`.
    *
-   * This is what stops the pool drifting now that it holds 53 perks — a
+   * This is what stops the pool drifting now that it holds 53 perks: a
    * single perk with an out-of-band `bonus` total fails here immediately,
    * rather than surfacing only as a distribution shift many careers later.
    * The bands themselves are load-bearing: an earlier pass scaled them up by
@@ -171,7 +171,7 @@ describe('perk bonus budgets', () => {
 
 /**
  * The guard above bounds each perk on its own. That is not enough, and the
- * gap is not theoretical — it was measured.
+ * gap was measured rather than imagined.
  *
  * A career takes roughly twenty perks, so what reaches the player is the
  * pool's *aggregate* magnitude, and `PERK_BUDGET` says nothing about it.
@@ -185,14 +185,14 @@ describe('perk bonus budgets', () => {
  *   an informed pick to be better *at*.
  *
  * The pool currently sits at 257 and the suite's tightest metric,
- * `allStarsPerCareer`, holds only 0.54pp of headroom — which works out at
+ * `allStarsPerCareer`, holds only 0.54pp of headroom, which works out at
  * roughly half a growth point across the whole 53-perk pool. So the total is
  * asserted directly, along with the size and the tier spread that set it.
  *
  * A failure here is not a licence to widen this band. It means the pool's
  * magnitude moved, and the response is to re-run
  * `career-distribution.test.ts` and `legacy.test.ts` and find out what that
- * did — those are the measurements this band is a cheap proxy for.
+ * did. Those are the measurements this band is a cheap proxy for.
  */
 describe('the pool as a whole', () => {
   const EXPECTED_TOTAL = 257
@@ -200,7 +200,7 @@ describe('the pool as a whole', () => {
    * ±3%, i.e. 250–264 growth points.
    *
    * Deliberately narrower than it looks like it could be. The nearest
-   * measured failures are 246 and 266, and ±4% would reach 267.3 — admitting
+   * measured failures are 246 and 266, and ±4% would reach 267.3, admitting
    * the 266-point placement that is known to red `allStarsPerCareer`. ±3%
    * clears both boundaries with a few points to spare on each side while
    * still leaving room to re-place a handful of perks inside their bands.

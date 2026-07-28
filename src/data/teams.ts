@@ -220,7 +220,7 @@ export const NCAA_TEAMS: Team[] = [
   t('ncaa_ala', 'Alabama Crimson Tide', 'ALA', 'ncaa', 'Tuscaloosa', 82, 74, ['#9E1B32', '#FFFFFF']),
 ]
 
-/** Second divisions and development leagues — where careers stall or get rebuilt. */
+/** Second divisions and development leagues, where careers stall or get rebuilt. */
 export const DEV_TEAMS: Team[] = [
   t('leb_ovi', 'Unión Financiera Oviedo', 'OVI', 'leb_oro', 'Oviedo', 58, 44, ['#0A2E6E', '#FFFFFF']),
   t('leb_bur', 'San Pablo Burgos', 'BUR', 'leb_oro', 'Burgos', 62, 50, ['#0A2E6E', '#F1C40F']),

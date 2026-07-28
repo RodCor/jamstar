@@ -175,7 +175,7 @@ const SPECS: LeagueSpec[] = [
     country: 'US',
     prestige: 62,
     gamesPerSeason: 32,
-    // NIL money — not a salary, but it spends the same.
+    // NIL money: not a salary, but it spends the same.
     salaryBand: [0, 3_500_000],
     hasMvp: true,
     hasAllStar: false,
