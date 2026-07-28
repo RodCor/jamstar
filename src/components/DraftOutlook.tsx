@@ -44,7 +44,15 @@ export function DraftOutlookPanel({ state }: { state: GameState }) {
       </p>
 
       <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
-        {t('draftOutlookRange', { tier: tierLabel, range })}
+        {/* 'fringe' is an odds word, not a placement — forcing it into the
+            same "scouts have you around {tier}" frame as lottery/first_round/
+            second_round produces broken grammar ("around on the fringe",
+            "en al margen"). It gets its own sentence that keeps the range
+            (still true and worth saying, even when being picked at all is
+            the long shot) without the placement claim. */}
+        {outlook.tier === 'fringe'
+          ? t('draftOutlookRangeFringe', { range })
+          : t('draftOutlookRange', { tier: tierLabel, range })}
         {/* The range is where you'd land *if* picked — not a promise you will
             be. Stated only when the odds are not already high, so a genuine
             lottery/first-round lock doesn't get second-guessed for no reason. */}

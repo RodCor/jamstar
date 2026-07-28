@@ -154,15 +154,23 @@ const RATING_BENCHMARK = 60
  * `gainFromHypeBenchmark` reduces to `(HYPE_BENCHMARK - hype) * HYPE_WEIGHT`
  * and depends on nothing else. Verification caught a trace where `limiter`
  * flickered `ability -> null -> exposure -> null` across three seasons on
- * hype noise alone. The per-season hype update (`engine.ts`, `finalizeSeason`)
- * moves hype by roughly `(rating - 55) * 0.28 + awards * 4`, bounded around
- * ±16 in an ordinary season. At the old margin of 1, a hype move of just
- * `1 / HYPE_WEIGHT ≈ 4.5` points was enough to flip the verdict — well
- * inside that envelope, so ordinary seasons flickered it. At margin 5, a
- * hype move of `5 / HYPE_WEIGHT ≈ 22.7` points is needed to flip on hype
- * alone: above the ordinary-season envelope, so it damps noise, while a
- * genuinely lopsided profile (the exposure/ability fixtures below clear it
- * by 7-13 points) still reads through.
+ * hype noise alone. At the old margin of 1, a hype move of just
+ * `1 / HYPE_WEIGHT ≈ 4.5` points was enough to flip the verdict, and a
+ * single offseason can move hype far past that: `finalizeSeason` alone
+ * (`engine.ts`) moves it by roughly `(rating - 55) * 0.28 + awards * 4`, and
+ * on top of that a single event card can add a lot more — a `development`
+ * card grants +20 hype, an origin-story card +18, a national-tournament win
+ * +14 (`events/development.ts`, `events/origin.ts`, `events/national.ts`) —
+ * so one offseason's total swing commonly runs 30-45 points, not the ±16 the
+ * base formula alone would suggest. At margin 5, a hype move of
+ * `5 / HYPE_WEIGHT ≈ 22.7` points is needed to flip on hype alone — that is
+ * comfortably *inside* the real envelope above, so the margin does not stop
+ * a big offseason from flipping `limiter`, and isn't meant to. What actually
+ * justifies margin 5 is measured, not arithmetic: a 1,560-career re-trace
+ * (see `task-1-report.md`) found `limiter` flicker at 1.5% of traces at this
+ * margin, down from 8.3% at margin 1 — low enough to leave as is — while the
+ * genuinely lopsided exposure/ability fixtures below (gaps of 7-13 points)
+ * still clear it easily.
  */
 const LIMITER_MARGIN = 5
 
