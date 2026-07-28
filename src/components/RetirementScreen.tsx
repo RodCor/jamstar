@@ -83,7 +83,7 @@ export function RetirementScreen({ state, onPlayAgain }: Props) {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `hoop-glory-${state.player.name.replace(/\s+/g, '-').toLowerCase() || 'career'}.png`
+      link.download = `la-naranja-${state.player.name.replace(/\s+/g, '-').toLowerCase() || 'career'}.png`
       link.click()
       URL.revokeObjectURL(url)
     }, 'image/png')

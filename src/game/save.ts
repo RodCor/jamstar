@@ -6,14 +6,36 @@
 import type { ArchivedCareer, GameState } from './types'
 import { SAVE_VERSION } from './create'
 
-const RUN_KEY = 'hoop-glory:run'
-const ARCHIVE_KEY = 'hoop-glory:archive'
-const DAILY_KEY = 'hoop-glory:daily'
+const RUN_KEY = 'la-naranja:run'
+const ARCHIVE_KEY = 'la-naranja:archive'
+const DAILY_KEY = 'la-naranja:daily'
 
 const MAX_ARCHIVE = 50
 
+/**
+ * One-time migration from the game's previous name, Hoop Glory. `ARCHIVE_KEY`
+ * holds completed careers and has survived every `SAVE_VERSION` bump this
+ * project has shipped, so a rename that just changed the key name and left
+ * old data behind would silently erase every player's hall of fame. Delete
+ * this once players have had time to reopen the game after the rename ships.
+ */
+function migrateFromOldKey(key: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    if (window.localStorage.getItem(key) !== null) return
+    const oldKey = key.replace('la-naranja:', 'hoop-glory:')
+    const old = window.localStorage.getItem(oldKey)
+    if (old === null) return
+    window.localStorage.setItem(key, old)
+    window.localStorage.removeItem(oldKey)
+  } catch {
+    // Storage disabled — nothing to migrate, nothing lost that wasn't already inaccessible.
+  }
+}
+
 function readJson<T>(key: string): T | null {
   if (typeof window === 'undefined') return null
+  migrateFromOldKey(key)
   try {
     const raw = window.localStorage.getItem(key)
     return raw ? (JSON.parse(raw) as T) : null

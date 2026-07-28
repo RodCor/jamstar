@@ -102,7 +102,7 @@ export async function drawShareCard(
   ctx.textAlign = 'center'
   ctx.fillStyle = '#f97316'
   ctx.font = `900 40px ${sans}`
-  ctx.fillText('🏀 HOOP GLORY', center, 92)
+  ctx.fillText('🏀 LA NARANJA', center, 92)
   ctx.fillStyle = '#64748b'
   ctx.font = `500 26px ${sans}`
   ctx.fillText(c.tagline, center, 134)
@@ -286,7 +286,7 @@ export function buildShareText(data: ShareData): string {
 
   if (locale === 'es') {
     return [
-      `🏀 HOOP GLORY — ${player.name || 'Anónimo'} ${flag} #${player.number} (${player.position})`,
+      `🏀 LA NARANJA — ${player.name || 'Anónimo'} ${flag} #${player.number} (${player.position})`,
       `${legacy.title.es.toUpperCase()} · ${legacy.score} pts de legado`,
       `${totals.ppg} PTS / ${totals.rpg} REB / ${totals.apg} AST en ${totals.seasons} temporadas`,
       `🏆 ${totals.rings} títulos · 🥇 ${totals.cups} copas · 👑 ${totals.mvps} MVP · ⭐ ${totals.allStars} All-Star`,
@@ -298,7 +298,7 @@ export function buildShareText(data: ShareData): string {
   }
 
   return [
-    `🏀 HOOP GLORY — ${player.name || 'Anonymous'} ${flag} #${player.number} (${player.position})`,
+    `🏀 LA NARANJA — ${player.name || 'Anonymous'} ${flag} #${player.number} (${player.position})`,
     `${legacy.title.en.toUpperCase()} · ${legacy.score} legacy points`,
     `${totals.ppg} PTS / ${totals.rpg} REB / ${totals.apg} AST across ${totals.seasons} seasons`,
     `🏆 ${totals.rings} titles · 🥇 ${totals.cups} cups · 👑 ${totals.mvps} MVP · ⭐ ${totals.allStars} All-Star`,

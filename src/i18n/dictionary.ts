@@ -10,7 +10,7 @@
  */
 
 export const es = {
-  appName: 'Hoop Glory',
+  appName: 'La Naranja',
   tagline: 'De las inferiores al Salón de la Fama',
 
   // Mode select
@@ -236,7 +236,7 @@ export const es = {
 export type Dictionary = Record<keyof typeof es, string>
 
 export const en: Dictionary = {
-  appName: 'Hoop Glory',
+  appName: 'La Naranja',
   tagline: 'From the academy to the Hall of Fame',
 
   modeCareer: 'My Career',
