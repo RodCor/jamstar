@@ -1,7 +1,65 @@
 /** Youth and breakout events: ages 14-19, before anyone knows your name. */
 
-import type { GameEvent } from '../types'
+import type { EventContext, GameEvent, Localized, Position } from '../types'
 import { event, gamble, gate, loc, outcome } from './helpers'
+
+/**
+ * Where a season's hole is depends on what you already play.
+ *
+ * `youth_out_of_position` deals to all five positions, so it cannot hard-code
+ * the destination: a big pushed into the post is not a story, it is his job.
+ * Bigs get sent out to handle the ball, everyone else gets sent inside, and the
+ * card interpolates which. The attribute effects are identical either way —
+ * you lose reps at your own game and learn somebody else's — so this changes
+ * what the card says, never what it is worth.
+ */
+function emergencyHole(ctx: EventContext): { setup: Localized; won: Localized; lost: Localized } {
+  const big = ctx.player.position === 'C' || ctx.player.position === 'PF'
+  if (big) {
+    return {
+      setup: loc(
+        `Al único base de ${ctx.team.name.es} se le partió la mano en octubre. De los grandes sos el que mejor maneja, así que el entrenador te saca de ${ctx.player.position} hasta junio y te manda a subir la pelota contra la presión.`,
+        `The only point guard at ${ctx.team.name.en} broke his hand in October. Of the bigs you are the one who can handle it, so until June the coach moves you off ${ctx.player.position} and sends you out to bring the ball up against pressure.`,
+      ),
+      won: loc(
+        'Saliste sabiendo subir contra dos y leer la cancha entera desde arriba del bote. Tu juego de espaldas, mientras tanto, estuvo nueve meses en un cajón.',
+        'You came out able to bring it up against two men and read the whole floor from behind your dribble. Your back-to-the-basket game, meanwhile, spent nine months in a drawer.',
+      ),
+      lost: loc(
+        'Nueve meses perdiendo la pelota contra pibes que botan desde los seis años. Volviste a tu puesto sin saber bien qué eras.',
+        'Nine months losing the ball to boys who have been dribbling since they were six. You came back to your own position not quite sure what you were.',
+      ),
+    }
+  }
+  return {
+    setup: loc(
+      `Al único cinco de ${ctx.team.name.es} se le partió la mano en octubre y no hay con quién reemplazarlo. El entrenador te saca de ${ctx.player.position} hasta junio y te manda al poste: de espaldas al aro, codos, y la pelota nunca más arriba del tiro libre.`,
+      `The only centre at ${ctx.team.name.en} broke his hand in October and there is nobody to replace him. Until June the coach moves you off ${ctx.player.position} and puts you in the post: back to the basket, elbows, and the ball never reaching you above the free-throw line.`,
+    ),
+    won: loc(
+      'Saliste sabiendo aguantar con la cadera y pelear un rebote entre tres cuerpos. Tu juego de cara al aro, mientras tanto, estuvo nueve meses en un cajón.',
+      'You came out able to hold a man off with your hips and win a rebound between three bodies. Your game facing the basket, meanwhile, spent nine months in a drawer.',
+    ),
+    lost: loc(
+      'Nueve meses de espaldas al aro contra pibes quince kilos más pesados. Volviste a tu puesto sin saber bien qué eras.',
+      'Nine months with your back to the basket against boys fifteen kilos heavier. You came back to your own position not quite sure what you were.',
+    ),
+  }
+}
+
+/**
+ * What the coach starts calling you once you stop growing and nobody else does:
+ * one rung down the ladder, or — for a point guard, who has no rung below —
+ * simply small. `youth_plateau` used to assume the word was always "guard",
+ * which said nothing at all to the guard it was happy to deal to.
+ */
+const OUTGROWN_INTO: Record<Position, Localized> = {
+  C: loc('un cuatro', 'a power forward'),
+  PF: loc('un tres', 'a small forward'),
+  SF: loc('un dos', 'a shooting guard'),
+  SG: loc('un base', 'a point guard'),
+  PG: loc('un base bajo', 'an undersized guard'),
+}
 
 export const YOUTH_EVENTS: GameEvent[] = [
   event({
@@ -469,32 +527,26 @@ export const YOUTH_EVENTS: GameEvent[] = [
     weight: 22,
     stages: ['youth', 'breakout'],
     category: 'coach',
-    title: loc('El más alto que quedó', 'The Tallest One Left'),
-    body: (ctx) =>
-      loc(
-        `Al único cinco de ${ctx.team.name.es} se le partió la mano en octubre. Sos el segundo más alto del plantel y el entrenador te manda al poste hasta junio: de espaldas al aro, codos, y la pelota no te llega nunca más arriba del tiro libre.`,
-        `The only centre at ${ctx.team.name.en} broke his hand in October. You are the second tallest on the roster, so the coach puts you in the post until June: back to the basket, elbows, and the ball never reaching you above the free-throw line.`,
-      ),
+    title: loc('El agujero que dejó la lesión', 'The Hole the Injury Left'),
+    body: (ctx) => emergencyHole(ctx).setup,
     choices: [
       {
         label: loc('Bancar el puesto hasta junio', 'Hold the spot until June'),
-        resolve: (ctx) =>
-          gamble(
+        resolve: (ctx) => {
+          const hole = emergencyHole(ctx)
+          return gamble(
             ctx,
             0.6,
-            outcome(
-              'Saliste sabiendo aguantar con la cadera y pelear un rebote entre tres cuerpos. La pelota, mientras tanto, estuvo nueve meses en un cajón.',
-              'You came out able to hold a man off with your hips and win a rebound between three bodies. Your handle, meanwhile, spent nine months in a drawer.',
-              'good',
-              { attributes: { physical: 6, defense: 4, playmaking: -2 }, hidden: { coachTrust: 10, wear: 3 } },
-            ),
-            outcome(
-              'Nueve meses de espaldas al aro contra pibes quince kilos más pesados. Volviste a tu puesto sin saber bien qué eras.',
-              'Nine months with your back to the basket against boys fifteen kilos heavier. You came back to your own position not quite sure what you were.',
-              'bad',
-              { attributes: { physical: 2, scoring: -2, playmaking: -3 }, hidden: { coachTrust: 5, morale: -8 } },
-            ),
-          ),
+            outcome(hole.won.es, hole.won.en, 'good', {
+              attributes: { defense: 6, physical: 4, scoring: -2 },
+              hidden: { coachTrust: 10, wear: 3, morale: 2 },
+            }),
+            outcome(hole.lost.es, hole.lost.en, 'bad', {
+              attributes: { physical: 2, scoring: -3, defense: -2 },
+              hidden: { coachTrust: 5, morale: -4 },
+            }),
+          )
+        },
       },
       {
         label: loc('Pedirle que me devuelva a mi puesto', 'Ask him to put me back where I belong'),
@@ -531,13 +583,13 @@ export const YOUTH_EVENTS: GameEvent[] = [
               'Un verano entero botando contra una pared del club. En septiembre ya no necesitabas que nadie te encontrara.',
               'A whole summer bouncing a ball off the club wall. By September you did not need anybody to find you.',
               'good',
-              { attributes: { playmaking: 5, scoring: 4, defense: -1 }, hidden: { hype: 5, morale: -2 } },
+              { attributes: { playmaking: 5, scoring: 4, defense: -1 }, hidden: { hype: 5 } },
             ),
             outcome(
               'Te pasaste el año tratando de hacer lo que hacía él y dejaste de hacer bien lo tuyo.',
               'You spent the year trying to do what he did and stopped doing your own thing well.',
               'bad',
-              { attributes: { playmaking: 2, scoring: -3 }, hidden: { morale: -6, coachTrust: -4 } },
+              { attributes: { playmaking: 2, scoring: -3 }, hidden: { morale: -3, coachTrust: -4 } },
             ),
           ),
       },
@@ -548,7 +600,7 @@ export const YOUTH_EVENTS: GameEvent[] = [
             'Un año cortando, saliendo de bloqueos y llegando siempre con los pies listos. El base nuevo tardó seis meses en encontrarte; el entrenador, ni un partido.',
             'A year of cutting, coming off screens and always arriving with your feet ready. The new point guard took six months to find you; the coach took one game.',
             'good',
-            { attributes: { defense: 3, mental: 3, scoring: 2, playmaking: -2 }, hidden: { coachTrust: 10 } },
+            { attributes: { defense: 3, mental: 3, scoring: 2, playmaking: -2 }, hidden: { coachTrust: 10, morale: 1 } },
           ),
       },
     ],
@@ -582,7 +634,7 @@ export const YOUTH_EVENTS: GameEvent[] = [
               'Alguien te reconoció y mandó la foto. Dos fechas de suspensión y una reunión con la comisión, con tu vieja sentada al lado.',
               'Somebody recognised you and sent the photograph in. A two-game ban and a meeting with the committee, with your mother sitting next to you.',
               'bad',
-              { attributes: { physical: 1, mental: 2 }, hidden: { coachTrust: -14, morale: -6, hype: -2 }, money: 700 },
+              { attributes: { physical: 1, mental: 2 }, hidden: { coachTrust: -14, morale: -5, hype: -2 }, money: 700 },
             ),
           ),
       },
@@ -593,7 +645,7 @@ export const YOUTH_EVENTS: GameEvent[] = [
             'Jugaste tu torneo y ganaron todos los partidos por veinte, que no enseña nada. En el pueblo consiguieron otro alto y el que fue volvió con historias y con zapatillas nuevas.',
             'You played your own tournament and won every game by twenty, which teaches nothing. The town found another tall kid, and the one who went came back with stories and new shoes.',
             'neutral',
-            { attributes: { scoring: 3, playmaking: 2 }, hidden: { coachTrust: 8, hype: 1 } },
+            { attributes: { scoring: 3, playmaking: 2 }, hidden: { coachTrust: 8, hype: 1, morale: 2 } },
           ),
       },
     ],
@@ -621,13 +673,13 @@ export const YOUTH_EVENTS: GameEvent[] = [
               'Dos años de escalera, soga y arena con esa frase adentro de la cabeza cada mañana. Los pies te alcanzaron.',
               'Two years of ladders, rope and sand with that sentence inside your head every morning. Your feet caught up.',
               'good',
-              { attributes: { physical: 6, defense: 3 }, hidden: { hype: 5, wear: 2, morale: -4 } },
+              { attributes: { physical: 6, defense: 3 }, hidden: { hype: 5, wear: 2, morale: -2 } },
             ),
             outcome(
               'Entrenaste con bronca, que no es lo mismo que entrenar bien. Ganaste piernas y perdiste las ganas de entrar al gimnasio.',
               'You trained angry, which is not the same as training well. You gained legs and lost the wish to walk into the gym.',
               'bad',
-              { attributes: { physical: 2, mental: -2 }, hidden: { wear: 3, morale: -12 } },
+              { attributes: { physical: 2, mental: -2 }, hidden: { wear: 3, morale: -9 } },
             ),
           ),
       },
@@ -652,12 +704,15 @@ export const YOUTH_EVENTS: GameEvent[] = [
     title: loc('El que dejó de crecer', 'The One Who Stopped Growing'),
     body: (ctx) =>
       loc(
-        `Medís lo mismo que hace dos años. Los que te miraban de abajo ahora te sacan una cabeza, y el entrenador empezó a usar la palabra "base" cuando habla de vos. Son ${ctx.player.heightCm} cm y no van a ser más.`,
-        `You are the same height you were two years ago. The boys who used to look up at you are a head taller now, and the coach has started using the word "guard" when he talks about you. It is ${ctx.player.heightCm} cm and that is where it stops.`,
+        `Medís lo mismo que hace dos años. Los que te miraban de abajo ahora te sacan una cabeza, y el entrenador empezó a hablar de vos como ${OUTGROWN_INTO[ctx.player.position].es}. Son ${ctx.player.heightCm} cm y no van a ser más.`,
+        `You are the same height you were two years ago. The boys who used to look up at you are a head taller now, and the coach has started talking about you as ${OUTGROWN_INTO[ctx.player.position].en}. It is ${ctx.player.heightCm} cm and that is where it stops.`,
       ),
     choices: [
       {
-        label: loc('Rehacerme entero para el puesto nuevo', 'Rebuild myself for the new position'),
+        label: loc(
+          'Rehacerme entero para el jugador que voy a tener que ser',
+          'Rebuild myself into the player I will have to be',
+        ),
         resolve: (ctx) =>
           gamble(
             ctx,
@@ -669,21 +724,21 @@ export const YOUTH_EVENTS: GameEvent[] = [
               { attributes: { playmaking: 6, mental: 3, physical: -1 }, hidden: { coachTrust: 6, hype: 3 } },
             ),
             outcome(
-              'A los dieciséis es tarde para aprender a botar. Quedaste entre dos puestos y no fuiste bueno en ninguno.',
-              'Sixteen is late to learn to handle a ball. You ended up between two positions and were good at neither.',
+              'A los dieciséis ya es tarde para reinventarse. Quedaste entre dos puestos y no fuiste bueno en ninguno.',
+              'Sixteen is late to reinvent yourself. You ended up between two positions and were good at neither.',
               'bad',
-              { attributes: { playmaking: 2, scoring: -3 }, hidden: { morale: -10, coachTrust: -4 } },
+              { attributes: { playmaking: 2, scoring: -3 }, hidden: { morale: -5, coachTrust: -4 } },
             ),
           ),
       },
       {
-        label: loc('Seguir jugando adentro aunque me pasen por arriba', 'Keep playing inside, even with everyone taller'),
+        label: loc('Seguir jugando igual y aguantar el golpe', 'Keep playing the way I play and take the hits'),
         resolve: () =>
           outcome(
-            'Dos temporadas peleando cada rebote contra tipos diez centímetros más altos. Ganaste un oficio de bajo que no se enseña y perdiste el tiro de afuera que no practicaste.',
-            'Two seasons fighting every rebound against boys ten centimetres taller. You gained a low-post trade nobody teaches and lost the outside shot you never practised.',
+            'Dos temporadas contra tipos diez centímetros más altos sin cambiar una coma. Ganaste un oficio que no se enseña y perdiste el tiro de afuera que no practicaste.',
+            'Two seasons against boys ten centimetres taller without changing a thing. You gained a trade nobody teaches and lost the outside shot you never practised.',
             'neutral',
-            { attributes: { physical: 4, defense: 3, scoring: -2 }, hidden: { wear: 2, coachTrust: 2, hype: 2 } },
+            { attributes: { physical: 4, defense: 3, scoring: -2 }, hidden: { wear: 2, coachTrust: 2, hype: 2, morale: 1 } },
           ),
       },
     ],
@@ -728,7 +783,7 @@ export const YOUTH_EVENTS: GameEvent[] = [
             'No dijiste una palabra en el viaje de vuelta ni en los seis meses siguientes. Entrenaste como no habías entrenado nunca, solo, con una cara que en el club no te conocían.',
             'You did not say a word on the bus home, or for the six months after it. You trained the way you had never trained, alone, with a face nobody at the club had seen on you.',
             'neutral',
-            { attributes: { defense: 3, physical: 3, mental: -1 }, hidden: { morale: -10, coachTrust: 2, hype: 2 } },
+            { attributes: { defense: 3, physical: 3, mental: -1 }, hidden: { morale: -6, coachTrust: 2, hype: 2 } },
           ),
       },
     ],

@@ -271,13 +271,19 @@ describe('career distribution against the seven-attribute baseline', () => {
       // The evidence is three waves deep and consistent. The row drifted at the
       // seven-attribute merge. It drifted again when perk rarity landed, which
       // is when its band was widened from ±12% to ±30% with its own paragraph.
-      // It drifted a third time on a change that provably did not alter player
-      // quality: the early-stage event decks were rebalanced to within 0.06 of
-      // the cards they replaced on all five effect channels, and `peakRating`
-      // moved +0.80% at the mean and +0.23% at p90 — the flattest that pair has
-      // been across any configuration of that work. A row that fails three
-      // times for three unrelated upstream causes, while the rows that measure
-      // quality stay flat, is not measuring what this guard exists to catch.
+      // It drifted a third time on a change that did not meaningfully alter
+      // player quality: the early-stage event decks were rebalanced against the
+      // pool a real career draws from, landing `development` within 0.04 of the
+      // cards it replaced on all five effect channels, and `youth` and
+      // `breakout` within 0.13 on attributes, hype, wear and morale. The one
+      // channel deliberately left open is `coachTrust`, still +0.27 at youth
+      // and +0.54 at breakout: closing it inverts the perk-agency invariant in
+      // `legacy.test.ts`, because coachTrust is how an attribute advantage
+      // becomes minutes and therefore production. Through all of that
+      // `peakRating` moved +0.93% at the mean and +0.23% at p90. A row that
+      // fails three times for three unrelated upstream causes, while the rows
+      // that measure quality stay flat, is not measuring what this guard exists
+      // to catch.
       //
       // Widening it a second time was the alternative and it was rejected. The
       // paragraph justifying the first widening said plainly that widening is
