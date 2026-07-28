@@ -107,23 +107,58 @@ describe('draftOutlook', () => {
     expect(draftOutlook(makePlayer({ rating: 88, hype: 30 }), ES, 0)?.tier).toBe('lottery')
   })
 
-  it('reports fringe and unlikely for a player whose centre lands in a drafted band but whose odds do not clear the floor', () => {
+  it('reports fringe and a below-floor likelihood for a player whose centre lands in a drafted band but whose odds do not clear the floor', () => {
     // This is the regression the fringe/likelihood floor exists for: rating
     // 58 / hype 10 projects a centre of 36 — squarely a "drafted" band by
     // position alone — but draftProbability there is ~0.21, well under the
     // 0.30 floor. Verification found exactly this shape of case: a tier that
     // read as a placement when the player was more likely than not to go
-    // undrafted entirely.
+    // undrafted entirely. 0.21 sits in the 'longshot' sub-band ([0.15, 0.30)):
+    // still fringe on tier, but the empirical re-trace showed this exact slice
+    // drafted about 22% of the time — worth its own word, not lumped in with
+    // a near-zero read.
     const outlook = draftOutlook(makePlayer({ rating: 58, hype: 10 }), ES, 0)
     expect(outlook?.tier).toBe('fringe')
-    expect(outlook?.likelihood).toBe('unlikely')
+    expect(outlook?.likelihood).toBe('longshot')
   })
 
-  it('grades likelihood off draftProbability, independent of tier', () => {
-    // second_round band (~0.37): better than the fringe floor, nowhere near a lock.
+  it('grades likelihood off draftProbability at real resolution, independent of tier', () => {
+    // remote: probability ~0.024 — essentially nothing to work with yet.
+    expect(draftOutlook(makePlayer({ rating: 53, hype: 8 }), ES, 0)?.likelihood).toBe('remote')
+    // unlikely: probability ~0.107 — a real gap below the fringe floor, but a
+    // meaningfully better spot than 'remote'.
+    expect(draftOutlook(makePlayer({ rating: 55, hype: 10 }), ES, 0)?.likelihood).toBe('unlikely')
+    // uncertain: second_round band (~0.37), better than the fringe floor, nowhere near a lock.
     expect(draftOutlook(makePlayer({ rating: 63, hype: 10 }), ES, 0)?.likelihood).toBe('uncertain')
-    // lottery-band stock saturates draftProbability at its 0.85 ceiling.
+    // likely: probability ~0.579 — better than even, short of a lock.
+    expect(draftOutlook(makePlayer({ rating: 68, hype: 15 }), ES, 0)?.likelihood).toBe('likely')
+    // strong: lottery-band stock saturates draftProbability at its 0.85 ceiling.
     expect(draftOutlook(makePlayer({ rating: 88, hype: 30 }), ES, 0)?.likelihood).toBe('strong')
+  })
+
+  it('never disagrees with tier: fringe iff likelihood is a below-floor band, across a full sweep of stock', () => {
+    // The invariant the coordinator asked to keep explicit: 'longshot' is
+    // capped at FRINGE_PROBABILITY_FLOOR itself, so this can't drift by
+    // someone editing one constant and not the other — but this test proves
+    // it holds in practice, not just by inspection of the source.
+    const BELOW_FLOOR = new Set(['remote', 'unlikely', 'longshot'])
+    const AT_OR_ABOVE_FLOOR = new Set(['uncertain', 'likely', 'strong'])
+    for (let rating = 30; rating <= 95; rating += 1) {
+      for (const hype of [0, 12, 25, 40, 60, 90]) {
+        const outlook = draftOutlook(makePlayer({ rating, hype, age: 20 }), ES, 0)
+        if (!outlook) continue
+        if (outlook.tier === 'fringe') {
+          expect(BELOW_FLOOR.has(outlook.likelihood), `rating ${rating} hype ${hype}: ${outlook.likelihood}`).toBe(
+            true,
+          )
+        } else {
+          expect(
+            AT_OR_ABOVE_FLOOR.has(outlook.likelihood),
+            `rating ${rating} hype ${hype}: tier ${outlook.tier} but likelihood ${outlook.likelihood}`,
+          ).toBe(true)
+        }
+      }
+    }
   })
 
   it('names exposure as the limiter when rating is strong but hype is low', () => {

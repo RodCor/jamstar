@@ -55,7 +55,9 @@ export const DRAFT_LIKELIHOOD_KEY: Record<DraftLikelihood, keyof Dictionary> = {
   strong: 'draftLikelihoodStrong',
   likely: 'draftLikelihoodLikely',
   uncertain: 'draftLikelihoodUncertain',
+  longshot: 'draftLikelihoodLongshot',
   unlikely: 'draftLikelihoodUnlikely',
+  remote: 'draftLikelihoodRemote',
 }
 
 export const ATTRIBUTE_HELP_KEY: Record<AttributeKey, keyof Dictionary> = {

@@ -114,7 +114,7 @@ export type DraftLimiter = 'ability' | 'exposure' | null
  * game never surfaces odds as numbers anywhere else, and a number invites
  * optimising it rather than understanding the situation.
  */
-export type DraftLikelihood = 'strong' | 'likely' | 'uncertain' | 'unlikely'
+export type DraftLikelihood = 'strong' | 'likely' | 'uncertain' | 'longshot' | 'unlikely' | 'remote'
 
 export interface DraftOutlook {
   /** True once `isDraftEligible` would fire this season. */
@@ -204,6 +204,10 @@ function couldDeclareEarlyFor(player: Player): boolean {
  * fringe line just above that observed rate: below it, "you might not be
  * drafted at all" is the more important fact than "if you are, it's around
  * pick 40", so `'fringe'` overrides whatever the centre alone would suggest.
+ * A 1,560-career re-trace after this landed confirmed it: `'second_round'`
+ * moved to 49.1% actually-drafted and `'first_round'` held at 60.4% (the
+ * original "0/3 first_round traces drafted" was small-sample noise, not a
+ * second defect) — both now comfortably above a coin flip.
  *
  * This is deliberately *not* set at the second/first-round boundary
  * (~0.42, where `centre` crosses 30) — that would have retired
@@ -214,8 +218,10 @@ function couldDeclareEarlyFor(player: Player): boolean {
  * uncertain rather than fringe, which is exactly what `draftLikelihood`
  * exists to say out loud alongside it.
  *
- * `draftLikelihood`'s `'unlikely'` band uses this same constant, so the two
- * can never disagree about where "probably not drafted" begins.
+ * `draftLikelihood`'s bands are built from this same constant — every band
+ * below it is a `'fringe'`-side reading and every band at or above it is
+ * not — so the two can never disagree about where "probably not drafted"
+ * begins. See `draftLikelihood` for how that invariant is kept explicit.
  */
 const FRINGE_PROBABILITY_FLOOR = 0.3
 
@@ -228,18 +234,56 @@ function draftTier(centre: number, stock: number): DraftTier {
 
 /**
  * Bands for `DraftLikelihood`, read straight off `draftProbability`.
- * `'unlikely'` is exactly `FRINGE_PROBABILITY_FLOOR`, so it always agrees
- * with `tier`'s `'fringe'` cut. `'likely'` and `'strong'` split the
- * remaining range so "better than even" and "about as sure as this
- * projection gets" read as different things — `draftProbability` caps at
- * `MAX_DRAFT_PROBABILITY` (0.85), so `'strong'` is reachable but never a
- * guarantee, which matches what a projection should promise.
+ *
+ * The same 1,560-career re-trace that confirmed `FRINGE_PROBABILITY_FLOOR`
+ * also found the fix's cost: `'fringe'`/what was then a single `'unlikely'`
+ * likelihood swallowed 80% of final readings, so a player at 29% and one at
+ * 2% saw the identical word. A fresh cohort run for this rebalance (~3,200
+ * draft-night readings, same engine, same methodology) reproduced that shape
+ * — everything below 0.30 was 68-69% of the population — and broke it down
+ * by drafted-rate to find real sub-bands rather than an even split:
+ *
+ * ```
+ * probability        share   drafted-rate
+ * [0.00, 0.05)        11%        1%
+ * [0.05, 0.15)        17%       10%
+ * [0.15, 0.30)        41%       22%
+ * [0.30, 0.55)        28%       39%   (was already 'uncertain')
+ * [0.55, 0.70)         3%       52%   (was already 'likely')
+ * [0.70, 0.85]        <1%       92%   (was already 'strong')
+ * ```
+ *
+ * Splitting at 0.05 and 0.15 turns one 68-point-share band with a 0-31%
+ * internal spread of drafted-rate into three, each with a materially
+ * different rate (1%, 10%, 22%) — a 29% and a 2% player now land in
+ * different bands, which is the whole point of this rebalance. The
+ * remaining `[0.15, 0.30)` band is still the single largest at ~41%, left
+ * that way deliberately: splitting it further (tried at 0.20 in the same
+ * re-trace) only shaves it to two ~15-26% bands with adjacent drafted-rates
+ * (17% and 25%) that are not meaningfully different categories, and this
+ * game does not want a wall of near-synonymous hint text. Six categories
+ * already strains "categorical, not a percentage."
+ *
+ * `'unlikely'` and `'longshot'` sit entirely below `FRINGE_PROBABILITY_FLOOR`
+ * by construction — `'longshot'`'s own ceiling *is* that constant — so every
+ * band below it reads `'fringe'` on `tier` and every band at or above it
+ * never does. `'likely'`/`'strong'` are unchanged from the original pass:
+ * `draftProbability` caps at `MAX_DRAFT_PROBABILITY` (0.85), so `'strong'`
+ * is reachable but never a guarantee, matching what a projection should
+ * promise.
  */
+const REMOTE_PROBABILITY_CEILING = 0.05
+const UNLIKELY_PROBABILITY_CEILING = 0.15
 const LIKELY_PROBABILITY_FLOOR = 0.55
 const STRONG_PROBABILITY_FLOOR = 0.7
 
 function draftLikelihood(probability: number): DraftLikelihood {
-  if (probability < FRINGE_PROBABILITY_FLOOR) return 'unlikely'
+  if (probability < REMOTE_PROBABILITY_CEILING) return 'remote'
+  if (probability < UNLIKELY_PROBABILITY_CEILING) return 'unlikely'
+  // FRINGE_PROBABILITY_FLOOR, not a fourth constant: this is the exact line
+  // 'fringe' is drawn on, and reusing it is what makes tier/likelihood
+  // agreement structural rather than something that has to be kept in sync.
+  if (probability < FRINGE_PROBABILITY_FLOOR) return 'longshot'
   if (probability < LIKELY_PROBABILITY_FLOOR) return 'uncertain'
   if (probability < STRONG_PROBABILITY_FLOOR) return 'likely'
   return 'strong'
