@@ -3,7 +3,7 @@
  *
  * Picked at creation from the real-star pool, position-matched, then simulated
  * in parallel on a forked RNG stream so their career never perturbs yours. The
- * point isn't balance; it's having someone specific to be measured against for
+ * point is not balance but having someone specific to be measured against for
  * twenty years.
  */
 
@@ -91,7 +91,7 @@ export function advanceRival(
 
   const star = REAL_STARS.find((s) => s.name === rival.name)
   const ceiling = star?.ceiling ?? 82
-  // Rivals share the player's age: they came up together.
+  // Rivals share the player's age, because they came up together.
   const age = playerAge
 
   if (age < 18) {

@@ -26,8 +26,9 @@ const COUNTRY_WEIGHT = 0.06
 /**
  * How good you look to scouts, which is not quite how good you are.
  *
- * Weighted toward raw ability, with hype a real but secondary factor. This is
- * the number draft night turns on.
+ * Weighted toward raw ability, with hype a real but secondary factor. Draft
+ * night turns on this number, so 0.86 against 0.22 is the ratio that makes
+ * becoming good the main way to move it and being talked about the lesser one.
  */
 function stockFor(rating: number, hype: number, country: Country): number {
   return rating * RATING_WEIGHT + hype * HYPE_WEIGHT + country.strength * COUNTRY_WEIGHT
@@ -39,11 +40,13 @@ function draftStock(player: Player, country: Country): number {
 
 /**
  * Where scouts had you going, before the picks start. Shared by `runDraft`
- * (the outcome) and `draftOutlook` (the preview) so the two can never drift:
- * there is exactly one place this arithmetic lives.
+ * (the outcome) and `draftOutlook` (the preview), so there is exactly one
+ * place this arithmetic lives and the two can never drift.
  */
 function projectDraftRange(stock: number): { centre: number; range: [number, number] } {
-  // Wide when your stock is middling.
+  // Wide when your stock is middling, because that is where draft night is
+  // least predictable. A tight range there would promise a precision the
+  // projection does not have.
   const centre = clamp(Math.round(96 - stock * 1.05), 1, TOTAL_PICKS)
   const spread = clamp(Math.round(18 - stock * 0.12), 4, 16)
   const range: [number, number] = [
@@ -104,10 +107,10 @@ const FORCED_DRAFT_AGE = 22
  * identical, because everyone starts around the same low rating and hype, so
  * a precise range/tier/likelihood would confidently describe a state that is
  * universal rather than diagnostic of *this* build. Derived from `stageForAge`
- * (`ladder.ts`) rather than a second hardcoded 17 here: that function's own
- * youth -> breakout boundary is the point the ladder moves a player out of
- * the youth league and builds start to diverge. If that boundary ever moves,
- * this moves with it.
+ * (`ladder.ts`) rather than a second hardcoded 17 here, because that
+ * function's own youth -> breakout boundary is the point the ladder moves a
+ * player out of the youth league and builds start to diverge. If that boundary
+ * ever moves, this moves with it.
  */
 const DETAILED_OUTLOOK_AGE = (() => {
   for (let age = 0; age <= 100; age++) {
@@ -140,9 +143,10 @@ export interface DraftOutlook {
   eligibleNow: boolean
   /** Seasons until age 22, when eligibility stops being optional. 0 once reached. */
   seasonsUntilForced: number
-  /** True when a good season could pull the draft forward: the rating gate is close. */
+  /** True when a good season could pull the draft forward, because the rating
+   *  gate is close. */
   couldDeclareEarly: boolean
-  /** Same maths the draft itself uses. Where you'd land *if* picked; see
+  /** Same maths the draft itself uses. Where you'd land *if* picked. See
    *  `likelihood` for whether that's likely to happen at all. */
   projectedRange: [number, number]
   tier: DraftTier
@@ -152,8 +156,8 @@ export interface DraftOutlook {
   limiter: DraftLimiter
   /** False below `DETAILED_OUTLOOK_AGE`: the draft still looms, but nothing
    *  below is yet a read on *this* player rather than on every fresh
-   *  character alike. Every other field above is still populated regardless;
-   *  this function states the rule, the surfaces decide what to render. */
+   *  character alike. Every other field above is still populated regardless.
+   *  This function states the rule, the surfaces decide what to render. */
   detailed: boolean
 }
 
@@ -188,14 +192,13 @@ const RATING_BENCHMARK = 60
  * one offseason's total swing commonly runs 30-45 points, not the ±16 the
  * base formula alone would suggest.
  *
- * At margin 5, flipping on hype alone needs a move of
- * `5 / HYPE_WEIGHT ≈ 22.7` points, comfortably *inside* that envelope, so the
- * margin does not stop a big offseason from flipping `limiter` and isn't
- * meant to. What justifies margin 5 is measured, not arithmetic: a
- * 1,560-career re-trace (see `task-1-report.md`) found `limiter` flicker at
- * 1.5% of traces at this margin, down from 8.3% at margin 1, low enough to
- * leave as is, while the lopsided exposure/ability fixtures below (gaps of
- * 7-13 points) still clear it easily.
+ * At margin 5, flipping on hype alone needs a move of `5 / HYPE_WEIGHT ≈ 22.7`
+ * points, comfortably *inside* that envelope, so the margin does not stop a big
+ * offseason from flipping `limiter` and isn't meant to. What justifies margin 5
+ * is measured rather than arithmetic. A 1,560-career re-trace (see
+ * `task-1-report.md`) found `limiter` flicker at 1.5% of traces at this margin,
+ * down from 8.3% at margin 1, low enough to leave as is, while the lopsided
+ * exposure/ability fixtures below (gaps of 7-13 points) still clear it easily.
  */
 const LIMITER_MARGIN = 5
 
@@ -218,8 +221,8 @@ function draftLimiter(player: Player, country: Country): DraftLimiter {
 /**
  * How close to the applicable rating gate counts as "a strong season could
  * close it". Five points is roughly what a good preseason plus a good year
- * buys a player already in that range: close enough that declaring early is
- * a live decision, not wishful thinking.
+ * buys a player already in that range, close enough that declaring early is
+ * a live decision rather than wishful thinking.
  */
 const EARLY_DECLARE_MARGIN = 5
 
@@ -342,7 +345,7 @@ export function draftOutlook(player: Player, country: Country, seasonsPlayed: nu
   return {
     eligibleNow,
     seasonsUntilForced: Math.max(0, FORCED_DRAFT_AGE - player.age),
-    // Nothing to "pull forward" once the draft is already this season; that
+    // Nothing to "pull forward" once the draft is already this season. That
     // branch belongs to `eligibleNow`.
     couldDeclareEarly: !eligibleNow && couldDeclareEarlyFor(player),
     projectedRange: range,

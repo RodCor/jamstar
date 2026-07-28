@@ -14,7 +14,7 @@ import { spendGrowthPoint } from './progression'
 /** How many are put in front of the player each preseason. */
 export const PERK_CHOICES = 3
 
-/** Weakest to strongest; also the order the draw falls back through. */
+/** Weakest to strongest. Also the order the draw falls back through. */
 export const PERK_RARITIES: readonly PerkRarity[] = ['basic', 'silver', 'gold', 'legend', 'top1']
 
 const MAJOR_AWARDS: readonly AwardId[] = ['mvp', 'dpoy', 'finals_mvp']

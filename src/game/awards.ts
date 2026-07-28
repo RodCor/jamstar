@@ -1,5 +1,5 @@
 /**
- * Awards. Deliberately stingy: an MVP should be rare enough that winning one
+ * Awards, deliberately stingy. An MVP should be rare enough that winning one
  * is the thing you tell people about.
  */
 

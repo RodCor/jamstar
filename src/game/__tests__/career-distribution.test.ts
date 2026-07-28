@@ -250,7 +250,7 @@ describe('career distribution against the seven-attribute baseline', () => {
       // rebounds went from two attributes averaging each other out to one
       // carrying the whole load, which widened their spread against a baseline
       // captured before that. It has run close to its band ever since. A
-      // failure here is more likely inherited than caused: check the printed
+      // failure here is more likely inherited than caused. Check the printed
       // margin against the previous run before assuming the change under test
       // is what moved it.
       row('rpg.mean', actual.rpg.mean, baseline.rpg.mean, 12),
@@ -276,12 +276,12 @@ describe('career distribution against the seven-attribute baseline', () => {
       // player in that cohort is identical. That is composition, not health,
       // and a guard against uniform deflation should not be gated on it.
       //
-      // The evidence is three waves deep. The row drifted at the
-      // seven-attribute merge. It drifted again when perk rarity landed, which
-      // is when its band was widened from ±12% to ±30% with its own paragraph.
-      // It drifted a third time on a change that did not meaningfully alter
-      // player quality: the early-stage event decks were rebalanced against the
-      // pool a real career draws from rather than against the deck listing.
+      // The evidence is three waves deep. The row drifted at the seven-attribute
+      // merge. It drifted again when perk rarity landed, which is when its band
+      // was widened from ±12% to ±30% with its own paragraph. It drifted a third
+      // time on a change that did not meaningfully alter player quality: the
+      // early-stage event decks were rebalanced against the pool a real career
+      // draws from rather than against the deck listing.
       // `development`'s cards were matched closely to the pool they displace on
       // all five effect channels. `youth` and `breakout` were matched on
       // attributes, hype, wear and morale, and carry a deliberate `coachTrust`
@@ -308,18 +308,18 @@ describe('career distribution against the seven-attribute baseline', () => {
       // moved this row 27 percentage points on this cohort while peak rating
       // moved under one, roughly a 30x gap. MVP is winner-take-all, one per
       // league-season, decided on a threshold rather than a mean, so it
-      // amplifies everything, regressions included. `peakRating.mean` and
-      // `peakRating.p90` are the regression detectors here: both stay at ±12%
-      // and both stay asserted, and they are what to trust if the simulation
-      // inflates or deflates.
+      // amplifies everything indiscriminately, including things that are not
+      // regressions. `peakRating.mean` and `peakRating.p90` are the regression
+      // detectors here. Both stay at ±12% and both stay asserted, and they are
+      // what to trust if the simulation inflates or deflates.
       //
       // What would earn this row its assertion back: a version that counts MVPs
       // per season played *in an MVP-awarding league*, rather than per career.
       // That removes the league-placement confound at the source instead of
       // tolerating it behind a wide band, and it would deserve a tight one.
       // Until somebody writes that, this stays printed so a human still sees it
-      // move. The fixture keeps its `mvpsPerCareer` figure either way: that
-      // file is a record of what the game did, not a list of assertions.
+      // move. The fixture keeps its `mvpsPerCareer` figure either way, because
+      // that file is a record of what the game did, not a list of assertions.
       row('mvpsPerCareer', actual.mvpsPerCareer, baseline.mvpsPerCareer, 30, false),
       row('allStarsPerCareer', actual.allStarsPerCareer, baseline.allStarsPerCareer, 12),
     ]

@@ -58,7 +58,7 @@ export type PlayStyleId =
 export interface PlayStyle {
   id: PlayStyleId
   name: Localized
-  /** The gamble, stated plainly: F1 Glory's "Verstappen style" framing. */
+  /** The gamble, stated plainly, in F1 Glory's "Verstappen style" framing. */
   tradeoff: Localized
   /** Starting attribute bonuses. */
   bonus: Partial<Attributes>
@@ -182,8 +182,9 @@ export interface Season {
   teamLosses: number
   playoffResult: PlayoffResult
   /**
-   * The cup contested this season, so the trophy can be named after the fact;
-   * `state.cupRun` is cleared before the next season and cannot be read later.
+   * The cup contested this season, so the trophy can be named after the fact,
+   * because `state.cupRun` is cleared before the next season and cannot be read
+   * later.
    *
    * Optional: seasons recorded before this field existed do not carry it, and
    * Wave 1 deliberately does not bump `SAVE_VERSION` to force them out.
@@ -319,7 +320,7 @@ export interface GameEvent {
   category: EventCategory
   /** Optional gate. Returning false removes the card from the deck this season. */
   requires?: (ctx: EventContext) => boolean
-  /** Fire at most once per career. Defaults to true; repeats feel cheap. */
+  /** Fire at most once per career. Defaults to true, because repeats feel cheap. */
   once?: boolean
   title: Localized
   body: (ctx: EventContext) => Localized
@@ -536,7 +537,7 @@ export interface CupRun {
 export interface ContractOffer {
   teamId: string
   leagueId: string
-  /** The role the club is selling you. Not a guarantee; you still have to earn minutes. */
+  /** The role the club is selling you. Not a guarantee. You still have to earn minutes. */
   role: PlayerRole
   /** Annual salary in USD. */
   salary: number

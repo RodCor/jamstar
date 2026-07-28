@@ -8,8 +8,8 @@ import type { Player } from '../types'
 
 /**
  * A player with every attribute set to the same value has `overallRating`
- * exactly equal to that value, regardless of position weights: a weighted
- * mean of five identical numbers is that number. That makes stock (and every
+ * exactly equal to that value, regardless of position weights, because a
+ * weighted mean of five identical numbers is that number. That makes stock (and every
  * band derived from it) exact and easy to reason about, instead of fighting
  * position weighting in every fixture.
  */
@@ -116,8 +116,8 @@ describe('draftOutlook', () => {
     // read as a placement when the player was more likely than not to go
     // undrafted entirely. 0.21 sits in the 'longshot' sub-band ([0.15, 0.30)):
     // still fringe on tier, but the empirical re-trace showed this exact slice
-    // drafted about 22% of the time: worth its own word, not lumped in with
-    // a near-zero read.
+    // drafted about 22% of the time, which is worth its own word rather than
+    // being lumped in with a near-zero read.
     const outlook = draftOutlook(makePlayer({ rating: 58, hype: 10 }), ES, 0)
     expect(outlook?.tier).toBe('fringe')
     expect(outlook?.likelihood).toBe('longshot')
@@ -193,8 +193,8 @@ describe('draftOutlook', () => {
     // rating 55 / hype 35 gives gainFromRatingBenchmark = (60-55)*0.86 = 4.3
     // and gainFromHypeBenchmark = (40-35)*0.22 = 1.1, a gap of 3.2. Under the
     // old margin of 1 that gap would have cleared the bar and called
-    // 'ability': the kind of modest, noise-sized gap that flickered across
-    // seasons in verification as hype alone moved a few points. Under
+    // 'ability'. That is the kind of modest, noise-sized gap that flickered
+    // across seasons in verification as hype alone moved a few points. Under
     // the current margin of 5 it correctly reads as balanced.
     const outlook = draftOutlook(makePlayer({ rating: 55, hype: 35 }), ES, 0)
     expect(outlook?.limiter).toBeNull()
@@ -260,7 +260,7 @@ describe('draftOutlook', () => {
 
     const later = draftOutlook(makePlayer({ age: breakoutAge, rating: 60, hype: 12 }), ES, 0)
     expect(later?.detailed).toBe(true)
-    // Same inputs bar age: the underlying projection is unaffected by `detailed`.
+    // Same inputs bar age, so the underlying projection is unaffected by `detailed`.
     expect(later?.projectedRange).toEqual(early?.projectedRange)
     expect(later?.tier).toEqual(early?.tier)
     expect(later?.likelihood).toEqual(early?.likelihood)

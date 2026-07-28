@@ -1,5 +1,5 @@
 /**
- * Perks: the thing you choose each preseason.
+ * Perks are the thing you choose each preseason.
  *
  * Allocating raw stat points was arithmetic, not a decision: the optimal spread
  * was the same every year. A perk is a named, flavoured upgrade with a shape,
@@ -15,7 +15,7 @@
 
 import type { AttributeKey, Position } from '@/game/types'
 
-/** Weakest to strongest. Required on every `Perk`; the draw falls back to
+/** Weakest to strongest. Required on every `Perk`. The draw falls back to
  * `basic` only for the mechanism's own tests, never for real content. */
 export type PerkRarity = 'basic' | 'silver' | 'gold' | 'legend' | 'top1'
 

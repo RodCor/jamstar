@@ -18,9 +18,8 @@ export function getDraftOutlook(state: GameState): DraftOutlookData | null {
 /**
  * Draft night is still ahead, and the panel says so plainly: when it lands,
  * roughly where scouts have the player now, what's holding the number back,
- * and what moves it. It sits below the perk choice and above the
- * attribute panel, because this is where the player is making decisions that
- * bear on it.
+ * and what moves it. It sits below the perk choice and above the attribute
+ * panel, because this is where the player is making decisions that bear on it.
  */
 export function DraftOutlookPanel({ state }: { state: GameState }) {
   const { t } = useT()
@@ -41,9 +40,9 @@ export function DraftOutlookPanel({ state }: { state: GameState }) {
 
   const range = `#${outlook.projectedRange[0]}–#${outlook.projectedRange[1]}`
   const tierLabel = t(DRAFT_TIER_KEY[outlook.tier])
-  // eligibleNow already implies "this season": seasonsUntilForced only
-  // reaches 0 in lockstep with it, but checking both keeps this panel
-  // correct on its own terms rather than leaning on that coincidence.
+  // eligibleNow already implies "this season". seasonsUntilForced only reaches
+  // 0 in lockstep with it, but checking both keeps this panel correct on its
+  // own terms rather than leaning on that coincidence.
   const soon = outlook.eligibleNow || outlook.seasonsUntilForced === 0
 
   return (

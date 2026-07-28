@@ -26,7 +26,7 @@ export function FreeThrow({
   const start = useRef<number>(0)
   const zoneCenter = useRef(0.5)
 
-  // A fixed centre keeps the target honest; the zone never moves under you.
+  // A fixed centre keeps the target honest, because the zone never moves under you.
   useEffect(() => {
     zoneCenter.current = 0.5
     setLocked(null)

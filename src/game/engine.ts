@@ -343,7 +343,8 @@ function simulateSeason(state: GameState): GameState {
   const onTheFloor = role !== 'injured' && gamesPlayed > 0
   const finals: MinigameChallenge[] = []
 
-  // The cup runs first: it is decided in February, months before the playoff.
+  // The cup runs first, because it is decided in February, months before the
+  // playoff.
   const cup = cupForLeague(league.id)
   if (cup) {
     const run = runCup(cup, team, player, role, yearRng(state, 'cup'))

@@ -6,8 +6,8 @@ import type { MinigameTuning } from '@/game/minigame'
 /**
  * Run the set play: watch the coach draw it, then repeat it exactly.
  *
- * The thinker's ending. Nothing here rewards reflexes; it rewards paying
- * attention, which is what a high-IQ build is supposed to be good at.
+ * The thinker's ending. Nothing here rewards reflexes, only paying attention,
+ * which is what a high-IQ build is supposed to be good at.
  */
 type Stage = 'showing' | 'input' | 'done'
 

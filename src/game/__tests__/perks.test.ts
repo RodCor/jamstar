@@ -192,7 +192,7 @@ describe('perk bonus budgets', () => {
  * A failure here is not a licence to widen this band. It means the pool's
  * magnitude moved, and the response is to re-run
  * `career-distribution.test.ts` and `legacy.test.ts` and find out what that
- * did: those are the measurements this band is a cheap proxy for.
+ * did. Those are the measurements this band is a cheap proxy for.
  */
 describe('the pool as a whole', () => {
   const EXPECTED_TOTAL = 257

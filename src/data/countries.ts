@@ -275,7 +275,7 @@ export function flagFor(code: string): string {
 /**
  * Where a player starts, before the country's ladder takes over.
  *
- * Everyone begins in high school basketball regardless of origin; the country
+ * Everyone begins in high school basketball regardless of origin. The country
  * shapes what comes *after*, which is where the interesting divergence is.
  */
 export function youthTeamFor(): string {

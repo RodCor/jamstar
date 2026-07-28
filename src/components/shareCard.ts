@@ -109,7 +109,8 @@ export async function drawShareCard(
 
   // Final club badge, with the jersey number beside it. The generated crest is
   // the fallback for a club with no logo file, and for one whose file fails to
-  // decode; a share card with a hole in it would be worse than a plain crest.
+  // decode, because a share card with a hole in it would be worse than a plain
+  // crest.
   if (badge) {
     drawContained(ctx, badge, center - 96, 276, 152)
   } else if (data.lastTeam) {
@@ -232,7 +233,7 @@ export async function drawShareCard(
   ctx.fillText(`${c.seed}: ${data.seed}`, center, 1318)
 }
 
-/** Resolves to null rather than rejecting: a missing badge must not kill the card. */
+/** Resolves to null rather than rejecting, because a missing badge must not kill the card. */
 function loadImage(src: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const image = new Image()

@@ -39,7 +39,7 @@ export function runCup(
 
   // Three single-game rounds to reach the final, each better than a coin flip
   // for a decent club. A cup final should be a more familiar sight than a league
-  // final: the appeal is that it is the reachable trophy.
+  // final, since being reachable is the appeal of a cup.
   const survive = () => rng.chance(clamp(0.68 + edge, 0.14, 0.88))
 
   if (!survive()) return base(cup, 'early')

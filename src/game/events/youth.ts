@@ -518,8 +518,8 @@ export const YOUTH_EVENTS: GameEvent[] = [
    * A career spends three seasons in `youth` and one in `breakout`, and the
    * origin deck only lends two cards to each of those from any one country, so
    * the opening act was being dealt from the same eight-card hand every replay.
-   * Anything gated here would thin the general pool rather than thicken it;
-   * these have to be drawable by a kid from anywhere.
+   * Anything gated here would thin the general pool rather than thicken it.
+   * These have to be drawable by a kid from anywhere.
    */
 
   event({

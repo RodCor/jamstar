@@ -76,8 +76,8 @@ function lowestRarity(choices: string[]): string {
 }
 
 /**
- * Drive a career through every phase. Copied rather than imported/shared;
- * see the file header.
+ * Drive a career through every phase. Copied rather than imported/shared.
+ * See the file header.
  */
 function drive(
   state: GameState,

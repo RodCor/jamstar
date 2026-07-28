@@ -402,8 +402,8 @@ function drive(
 
 /**
  * One career from a given country, every decision taken at random from its own
- * seeded stream: a player who is not steering towards or away from anything,
- * which is the population this floor is about.
+ * seeded stream. That is the population this floor is about, a player who is
+ * not steering towards or away from anything.
  */
 function playCareer(countryCode: string, index: number): GameState {
   const seed = `exposure::${countryCode}::${index}`

@@ -159,7 +159,7 @@ function attemptDraft(
   hype: number,
   rng: Rng,
 ): Placement | null {
-  // The bar is deliberately high; most careers never touch the NBA.
+  // The bar is deliberately high. Most careers never touch the NBA.
   const stock = rating * 0.75 + hype * 0.3 + country.strength * 0.05
   const draftChance = clamp((stock - 74) / 24, 0, 0.8)
   if (!rng.chance(draftChance)) return null
@@ -272,7 +272,7 @@ function tierForRating(rating: number, hype: number, age: number): 1 | 2 | 3 | 4
 function leaguesForPlayer(tier: number): League[] {
   const atTier = LEAGUES.filter((l) => l.tier === tier && l.id !== 'youth')
   if (tier === 4) {
-    // Don't send a European veteran to the NCAA; that route only runs one way.
+    // Don't send a European veteran to the NCAA. That route only runs one way.
     return atTier.filter((l) => l.id !== 'ncaa')
   }
   return atTier

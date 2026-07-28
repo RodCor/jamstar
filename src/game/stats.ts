@@ -219,7 +219,7 @@ export function simulateTeamRecord(
 /**
  * Playoff run, given how good the team turned out to be.
  *
- * Stops at the final and reports whether it was reached; winning it is decided
+ * Stops at the final and reports whether it was reached. Winning it is decided
  * separately, by the player, in a minigame. Seasons with no eligible player
  * (youth, a lost season to injury) fall back to a roll.
  */

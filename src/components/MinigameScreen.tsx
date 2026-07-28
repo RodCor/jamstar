@@ -38,7 +38,7 @@ export function MinigameScreen({ state, onFinish }: Props) {
         const canStillWin = successes + (challenge.rounds - next.length) >= challenge.required
         const alreadyWon = successes >= challenge.required
 
-        // Stop as soon as the series is decided: no dead attempts.
+        // Stop as soon as the series is decided, so there are no dead attempts.
         if (alreadyWon || !canStillWin || next.length >= challenge.rounds) {
           window.setTimeout(() => onFinish(successes), 700)
         }

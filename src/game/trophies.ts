@@ -51,7 +51,7 @@ export function trophiesFor(season: Season): Trophy[] {
   // than taking the retirement screen down with it.
   const cup = season.cupId ? CUP_INDEX.get(season.cupId) : undefined
   // `cupWon` is null for a run that never reached the final, which is not a
-  // runner-up; most cup runs end that way and none of them are trophies.
+  // runner-up. Most cup runs end that way and none of them are trophies.
   if (cup && (season.cupWon === true || season.cupWon === false)) {
     trophies.push({
       kind: 'cup',
@@ -91,7 +91,7 @@ export function trophyIcon(trophy: Trophy): string {
  * The trophy a championship award id refers to, if this season produced it.
  *
  * `league_champion` and `cup_champion` are the only award ids that are not
- * self-describing; every other award already names itself. A season can
+ * self-describing, since every other award already names itself. A season can
  * produce both, so the kind has to be matched rather than taking the first.
  */
 export function trophyForAward(award: AwardId, trophies: Trophy[]): Trophy | null {

@@ -15,7 +15,7 @@ import { getStyle } from '@/data/styles'
  * Development earned on the floor.
  *
  * Progression used to come only from the preseason, which made a great season
- * and a terrible one develop you identically: the year you played had no
+ * and a terrible one develop you identically, so the year you played had no
  * bearing on who you became. This adds growth proportional to how the season
  * went, so form compounds and a breakout year changes your trajectory. Young
  * players learn fastest from it; a 34-year-old learns almost nothing.
@@ -37,8 +37,8 @@ export function developFromSeason(
   const weights = POSITION_WEIGHTS[player.position]
   for (let i = 0; i < points; i++) {
     player.growthPoints += 1
-    // Weighted toward what the position uses, but not exclusively: you improve
-    // at what the season put in front of you.
+    // Weighted toward what the position uses, but not exclusively, because you
+    // improve at what the season put in front of you.
     const key = rng.weighted(ATTRIBUTE_KEYS, (k) => 1 + (weights[k] ?? 0.02) * 6)
     if (!spendGrowthPoint(player, key)) player.growthPoints -= 1
   }
@@ -92,7 +92,7 @@ export function ageOneYear(player: Player, rng: Rng): void {
       const yearsPast = player.age - peak
       const rate = DECLINE_RATE[key]
       if (rate <= 0) {
-        // Mental keeps creeping up; experience is cumulative.
+        // Mental keeps creeping up, because experience is cumulative.
         delta = rng.float(0, -rate * 1.4)
       } else {
         const severity = rate * (0.35 + yearsPast * 0.16) * (1 + wearPenalty * 1.3)
