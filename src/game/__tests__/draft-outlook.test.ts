@@ -143,10 +143,15 @@ describe('draftOutlook', () => {
     // it holds in practice, not just by inspection of the source.
     const BELOW_FLOOR = new Set(['remote', 'unlikely', 'longshot'])
     const AT_OR_ABOVE_FLOOR = new Set(['uncertain', 'likely', 'strong'])
+    const ALL_BANDS = new Set([...BELOW_FLOOR, ...AT_OR_ABOVE_FLOOR])
+    const seen = new Set<string>()
+    let checked = 0
     for (let rating = 30; rating <= 95; rating += 1) {
       for (const hype of [0, 12, 25, 40, 60, 90]) {
         const outlook = draftOutlook(makePlayer({ rating, hype, age: 20 }), ES, 0)
         if (!outlook) continue
+        checked++
+        seen.add(outlook.likelihood)
         if (outlook.tier === 'fringe') {
           expect(BELOW_FLOOR.has(outlook.likelihood), `rating ${rating} hype ${hype}: ${outlook.likelihood}`).toBe(
             true,
@@ -159,6 +164,13 @@ describe('draftOutlook', () => {
         }
       }
     }
+    // A sweep that silently skipped most of the grid (every outlook null, say,
+    // if the eligibility rules shifted) would still pass the loop above with
+    // zero iterations. Guard against that going hollow: the grid must have
+    // actually exercised a real number of points and hit every one of the
+    // six bands, not just the two sides of the fringe line.
+    expect(checked).toBeGreaterThan(300)
+    expect(seen).toEqual(ALL_BANDS)
   })
 
   it('names exposure as the limiter when rating is strong but hype is low', () => {
