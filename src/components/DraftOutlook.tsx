@@ -4,7 +4,7 @@ import { useT } from '@/i18n/LocaleProvider'
 import type { GameState } from '@/game/types'
 import { draftOutlook, type DraftOutlook as DraftOutlookData } from '@/game/draft'
 import { getCountry } from '@/data/countries'
-import { DRAFT_TIER_KEY } from './display'
+import { DRAFT_LIKELIHOOD_KEY, DRAFT_TIER_KEY } from './display'
 
 /**
  * Single call site for `draftOutlook`, so the header strip and this panel
@@ -45,6 +45,11 @@ export function DraftOutlookPanel({ state }: { state: GameState }) {
 
       <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
         {t('draftOutlookRange', { tier: tierLabel, range })}
+        {/* The range is where you'd land *if* picked — not a promise you will
+            be. Stated only when the odds are not already high, so a genuine
+            lottery/first-round lock doesn't get second-guessed for no reason. */}
+        {outlook.likelihood !== 'strong' &&
+          ` ${t('draftOutlookLikelihoodNote', { likelihood: t(DRAFT_LIKELIHOOD_KEY[outlook.likelihood]) })}`}
       </p>
 
       {outlook.limiter && (

@@ -9,7 +9,7 @@ import { flagFor } from '@/data/countries'
 import { computeTotals } from '@/game/legacy'
 import { rivalAverages } from '@/game/rival'
 import { AWARD_INFO } from '@/game/awards'
-import { DRAFT_TIER_KEY, PLAYOFF_KEY } from './display'
+import { DRAFT_LIKELIHOOD_KEY, DRAFT_TIER_KEY, PLAYOFF_KEY } from './display'
 import { TeamCrest } from './TeamCrest'
 import { LeagueCrest } from './CompetitionCrest'
 import { getDraftOutlook } from './DraftOutlook'
@@ -75,6 +75,9 @@ export function CareerStrip({ state }: { state: GameState }) {
               : t('draftStripIn', { n: draftOutlook.seasonsUntilForced })}{' '}
             · {t(DRAFT_TIER_KEY[draftOutlook.tier])} (#{draftOutlook.projectedRange[0]}–#
             {draftOutlook.projectedRange[1]})
+            {/* Same rule as the panel: only flag the odds when they are not
+                already high, so this stays a compact label the rest of the time. */}
+            {draftOutlook.likelihood !== 'strong' && ` · ${t(DRAFT_LIKELIHOOD_KEY[draftOutlook.likelihood])}`}
           </p>
         )}
       </button>

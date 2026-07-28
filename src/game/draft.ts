@@ -106,6 +106,16 @@ export type DraftTier = 'lottery' | 'first_round' | 'second_round' | 'fringe'
  *  player what to work on. Never the raw hype number — that stays hidden. */
 export type DraftLimiter = 'ability' | 'exposure' | null
 
+/**
+ * How confident the projection is, independent of where it lands. `tier`
+ * answers "where"; this answers "how sure" — deliberately kept apart, because
+ * a single band that tried to carry both ended up overselling itself (see
+ * `FRINGE_PROBABILITY_FLOOR`). A category, never the raw percentage: this
+ * game never surfaces odds as numbers anywhere else, and a number invites
+ * optimising it rather than understanding the situation.
+ */
+export type DraftLikelihood = 'strong' | 'likely' | 'uncertain' | 'unlikely'
+
 export interface DraftOutlook {
   /** True once `isDraftEligible` would fire this season. */
   eligibleNow: boolean
@@ -113,9 +123,12 @@ export interface DraftOutlook {
   seasonsUntilForced: number
   /** True when a good season could pull the draft forward — the rating gate is close. */
   couldDeclareEarly: boolean
-  /** Same maths the draft itself uses. */
+  /** Same maths the draft itself uses. Where you'd land *if* picked — see
+   *  `likelihood` for whether that's likely to happen at all. */
   projectedRange: [number, number]
   tier: DraftTier
+  /** How confident that placement is. Read this alongside `tier`, not instead of it. */
+  likelihood: DraftLikelihood
   /** Which side of the stock formula is furthest behind, or null when balanced. */
   limiter: DraftLimiter
 }
@@ -133,9 +146,25 @@ export interface DraftOutlook {
  */
 const HYPE_BENCHMARK = 40
 const RATING_BENCHMARK = 60
-/** A gap smaller than this is noise, not a real story — keeps `limiter` from
- *  flipping between near-identical benchmarks. */
-const LIMITER_MARGIN = 1
+/**
+ * A gap smaller than this is noise, not a real story — keeps `limiter` from
+ * flipping between near-identical benchmarks.
+ *
+ * Because rating and hype cancel out of the *other* term's substitution,
+ * `gainFromHypeBenchmark` reduces to `(HYPE_BENCHMARK - hype) * HYPE_WEIGHT`
+ * and depends on nothing else. Verification caught a trace where `limiter`
+ * flickered `ability -> null -> exposure -> null` across three seasons on
+ * hype noise alone. The per-season hype update (`engine.ts`, `finalizeSeason`)
+ * moves hype by roughly `(rating - 55) * 0.28 + awards * 4`, bounded around
+ * ±16 in an ordinary season. At the old margin of 1, a hype move of just
+ * `1 / HYPE_WEIGHT ≈ 4.5` points was enough to flip the verdict — well
+ * inside that envelope, so ordinary seasons flickered it. At margin 5, a
+ * hype move of `5 / HYPE_WEIGHT ≈ 22.7` points is needed to flip on hype
+ * alone: above the ordinary-season envelope, so it damps noise, while a
+ * genuinely lopsided profile (the exposure/ability fixtures below clear it
+ * by 7-13 points) still reads through.
+ */
+const LIMITER_MARGIN = 5
 
 function draftLimiter(player: Player, country: Country): DraftLimiter {
   const rating = overallRating(player)
@@ -167,13 +196,53 @@ function couldDeclareEarlyFor(player: Player): boolean {
   return overallRating(player) > gate - EARLY_DECLARE_MARGIN
 }
 
+/**
+ * Verification drove real careers through the engine and watched the tier
+ * against what `runDraft` actually did: of the traces whose final pre-draft
+ * reading was `'second_round'`, only 27% were actually drafted — worse than
+ * a coin flip, and not what "second round" tells a player. 0.30 draws the
+ * fringe line just above that observed rate: below it, "you might not be
+ * drafted at all" is the more important fact than "if you are, it's around
+ * pick 40", so `'fringe'` overrides whatever the centre alone would suggest.
+ *
+ * This is deliberately *not* set at the second/first-round boundary
+ * (~0.42, where `centre` crosses 30) — that would have retired
+ * `'second_round'` as a reachable tier entirely, and 27% is an average over
+ * that whole band, not a per-instance measurement; the band's upper half
+ * (toward 0.42) is closer to 40%, a real placement worth keeping. What's
+ * left of `'second_round'` after this floor (~0.30-0.42) is genuinely
+ * uncertain rather than fringe, which is exactly what `draftLikelihood`
+ * exists to say out loud alongside it.
+ *
+ * `draftLikelihood`'s `'unlikely'` band uses this same constant, so the two
+ * can never disagree about where "probably not drafted" begins.
+ */
+const FRINGE_PROBABILITY_FLOOR = 0.3
+
 function draftTier(centre: number, stock: number): DraftTier {
-  // Same floor `runDraft` uses to decide nobody calls at all — below it,
-  // calling this a round projection would be misleading.
-  if (draftProbability(stock) <= 0) return 'fringe'
+  if (draftProbability(stock) < FRINGE_PROBABILITY_FLOOR) return 'fringe'
   if (centre <= 14) return 'lottery'
   if (centre <= 30) return 'first_round'
   return 'second_round'
+}
+
+/**
+ * Bands for `DraftLikelihood`, read straight off `draftProbability`.
+ * `'unlikely'` is exactly `FRINGE_PROBABILITY_FLOOR`, so it always agrees
+ * with `tier`'s `'fringe'` cut. `'likely'` and `'strong'` split the
+ * remaining range so "better than even" and "about as sure as this
+ * projection gets" read as different things — `draftProbability` caps at
+ * `MAX_DRAFT_PROBABILITY` (0.85), so `'strong'` is reachable but never a
+ * guarantee, which matches what a projection should promise.
+ */
+const LIKELY_PROBABILITY_FLOOR = 0.55
+const STRONG_PROBABILITY_FLOOR = 0.7
+
+function draftLikelihood(probability: number): DraftLikelihood {
+  if (probability < FRINGE_PROBABILITY_FLOOR) return 'unlikely'
+  if (probability < LIKELY_PROBABILITY_FLOOR) return 'uncertain'
+  if (probability < STRONG_PROBABILITY_FLOOR) return 'likely'
+  return 'strong'
 }
 
 /**
@@ -203,6 +272,7 @@ export function draftOutlook(player: Player, country: Country, seasonsPlayed: nu
     couldDeclareEarly: !eligibleNow && couldDeclareEarlyFor(player),
     projectedRange: range,
     tier: draftTier(centre, stock),
+    likelihood: draftLikelihood(draftProbability(stock)),
     limiter: draftLimiter(player, country),
   }
 }

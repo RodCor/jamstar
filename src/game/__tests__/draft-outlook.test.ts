@@ -71,7 +71,7 @@ describe('draftOutlook', () => {
   it('projects exactly the range runDraft produces, across low, mid and high stock', () => {
     const fixtures = [
       makePlayer({ rating: 45, hype: 10 }), // fringe-band stock
-      makePlayer({ rating: 58, hype: 10 }), // second-round-band stock
+      makePlayer({ rating: 63, hype: 10 }), // second-round-band stock
       makePlayer({ rating: 75, hype: 20 }), // first-round-band stock
       makePlayer({ rating: 88, hype: 30 }), // lottery-band stock
     ]
@@ -95,15 +95,35 @@ describe('draftOutlook', () => {
     expect(strong!.projectedRange[0]).toBeLessThan(weak!.projectedRange[0])
   })
 
-  it('tiers by the range centre, falling back to fringe when the draft floor is not met', () => {
-    // fringe: stock <= 52, the same floor runDraft uses for a zero chance of being drafted.
+  it('tiers by the range centre, falling back to fringe when the draft odds are too low', () => {
+    // fringe: draftProbability well under the 0.30 floor (stock < 52 caps it at 0).
     expect(draftOutlook(makePlayer({ rating: 45, hype: 10 }), ES, 0)?.tier).toBe('fringe')
-    // second_round: comfortably drafted, centre well past 30.
-    expect(draftOutlook(makePlayer({ rating: 58, hype: 10 }), ES, 0)?.tier).toBe('second_round')
-    // first_round: centre in (14, 30].
+    // second_round: probability ~0.37, above the 0.30 floor and below the
+    // ~0.42 line where the centre itself crosses into first_round.
+    expect(draftOutlook(makePlayer({ rating: 63, hype: 10 }), ES, 0)?.tier).toBe('second_round')
+    // first_round: centre in (14, 30], probability comfortably above 0.30.
     expect(draftOutlook(makePlayer({ rating: 75, hype: 20 }), ES, 0)?.tier).toBe('first_round')
     // lottery: centre <= 14.
     expect(draftOutlook(makePlayer({ rating: 88, hype: 30 }), ES, 0)?.tier).toBe('lottery')
+  })
+
+  it('reports fringe and unlikely for a player whose centre lands in a drafted band but whose odds do not clear the floor', () => {
+    // This is the regression the fringe/likelihood floor exists for: rating
+    // 58 / hype 10 projects a centre of 36 — squarely a "drafted" band by
+    // position alone — but draftProbability there is ~0.21, well under the
+    // 0.30 floor. Verification found exactly this shape of case: a tier that
+    // read as a placement when the player was more likely than not to go
+    // undrafted entirely.
+    const outlook = draftOutlook(makePlayer({ rating: 58, hype: 10 }), ES, 0)
+    expect(outlook?.tier).toBe('fringe')
+    expect(outlook?.likelihood).toBe('unlikely')
+  })
+
+  it('grades likelihood off draftProbability, independent of tier', () => {
+    // second_round band (~0.37): better than the fringe floor, nowhere near a lock.
+    expect(draftOutlook(makePlayer({ rating: 63, hype: 10 }), ES, 0)?.likelihood).toBe('uncertain')
+    // lottery-band stock saturates draftProbability at its 0.85 ceiling.
+    expect(draftOutlook(makePlayer({ rating: 88, hype: 30 }), ES, 0)?.likelihood).toBe('strong')
   })
 
   it('names exposure as the limiter when rating is strong but hype is low', () => {
@@ -118,6 +138,17 @@ describe('draftOutlook', () => {
 
   it('reports no limiter when rating and hype both sit at their benchmarks', () => {
     const outlook = draftOutlook(makePlayer({ rating: 60, hype: 40 }), ES, 0)
+    expect(outlook?.limiter).toBeNull()
+  })
+
+  it('stays null on a modest gap that the old margin would have called — the deadband widening this guards', () => {
+    // rating 55 / hype 35 gives gainFromRatingBenchmark = (60-55)*0.86 = 4.3
+    // and gainFromHypeBenchmark = (40-35)*0.22 = 1.1, a gap of 3.2. Under the
+    // old margin of 1 that gap would have cleared the bar and called
+    // 'ability' — exactly the kind of modest, noise-sized gap that flickered
+    // across seasons in verification as hype alone moved a few points. Under
+    // the current margin of 5 it correctly reads as balanced.
+    const outlook = draftOutlook(makePlayer({ rating: 55, hype: 35 }), ES, 0)
     expect(outlook?.limiter).toBeNull()
   })
 
