@@ -77,7 +77,7 @@ export const INJURY_EVENTS: GameEvent[] = [
             0.68,
             outcome(
               'Catorce meses de trabajo silencioso. Volviste distinto, más lento pero más inteligente.',
-              'Fourteen months of quiet work. You came back different — slower, but smarter.',
+              'Fourteen months of quiet work. You came back different, slower but smarter.',
               'neutral',
               {
                 injury: injury('acl', 'Rotura de ligamento cruzado', 'ACL tear', 70, 18, {
@@ -213,8 +213,8 @@ export const INJURY_EVENTS: GameEvent[] = [
         label: loc('Retirarme ahora, con dignidad', 'Retire now, on my own terms'),
         resolve: () =>
           outcome(
-            'Elegiste el final en lugar de que te lo eligieran. Muy pocos lo consiguen.',
-            'You chose the ending instead of having it chosen for you. Very few manage that.',
+            'Elegiste el final en lugar de que te lo eligieran.',
+            'You chose the ending instead of having it chosen for you.',
             'neutral',
             { retire: true },
           ),

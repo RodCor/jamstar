@@ -730,7 +730,7 @@ export const ORIGIN_EVENTS: GameEvent[] = [
     body: (ctx) =>
       loc(
         `${ctx.team.name.es} te formó desde los doce y por eso tiene derecho a tu primera firma profesional: tres años, al mínimo del convenio, a la edad en que se decide todo. Si decís que no, ningún club francés te puede fichar y a los dieciocho te vas del país.`,
-        `${ctx.team.name.en} trained you from the age of twelve, and that gives them first call on your first professional signature: three years, at the collective minimum, at the age where everything gets decided. Say no and no French club may sign you — at eighteen you leave the country.`,
+        `${ctx.team.name.en} trained you from the age of twelve, and that gives them first call on your first professional signature: three years, at the collective minimum, at the age where everything gets decided. Say no and no French club may sign you. At eighteen you leave the country.`,
       ),
     choices: [
       {

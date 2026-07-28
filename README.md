@@ -54,7 +54,7 @@ siete.
 Con los estilos pasa lo mismo, y está escrito ahí antes de que confirmes. Atleta
 explosivo: *volás, sos viral y firmás contratos enormes, pero tu cuerpo paga la
 factura después de los 30.* Muralla: *ganás partidos sin que se note en la
-planilla; los entrenadores te aman, los votantes de MVP no.*
+planilla. Los entrenadores te aman, los votantes de MVP no.*
 
 ## La final se juega
 

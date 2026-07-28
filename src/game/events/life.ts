@@ -94,8 +94,8 @@ export const LIFE_EVENTS: GameEvent[] = [
         label: loc('Pagarla entera y poner mi nombre', 'Pay for it all and put my name on it'),
         resolve: () =>
           outcome(
-            'Cuatrocientos chicos juegan ahí todas las semanas. Es lo mejor que hiciste con la plata del básquet.',
-            'Four hundred kids play there every week. It is the best thing you ever did with basketball money.',
+            'Cuatrocientos chicos juegan ahí todas las semanas.',
+            'Four hundred kids play there every week.',
             'epic',
             { money: -500_000, attributes: { mental: 6 }, hidden: { morale: 20, hype: 10 } },
           ),
@@ -104,8 +104,8 @@ export const LIFE_EVENTS: GameEvent[] = [
         label: loc('Pagarla sin que se entere nadie', 'Pay for it and tell nobody'),
         resolve: () =>
           outcome(
-            'Se enteraron igual, tres años después, por un vecino. Pesó más así.',
-            'They found out anyway, three years later, from a neighbour. It landed harder that way.',
+            'Se enteraron igual, tres años después, por un vecino.',
+            'They found out anyway, three years later, from a neighbour.',
             'good',
             { money: -500_000, attributes: { mental: 5 }, hidden: { morale: 22, hype: 4 } },
           ),
@@ -315,8 +315,8 @@ export const LIFE_EVENTS: GameEvent[] = [
         label: loc('Enseñarle todo lo que sé', 'Teach them everything I know'),
         resolve: () =>
           outcome(
-            'Le acortaste tres años de aprendizaje. Te sacó el puesto antes, y aun así fue lo correcto.',
-            'You cut three years off their learning curve. They took your spot sooner, and it was still the right thing.',
+            'Le acortaste tres años de aprendizaje. Te sacó el puesto antes.',
+            'You cut three years off their learning curve. They took your spot sooner.',
             'good',
             { attributes: { mental: 10 }, hidden: { coachTrust: 14, morale: 8 } },
           ),
