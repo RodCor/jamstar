@@ -103,8 +103,8 @@ export const PRO_EVENTS: GameEvent[] = [
             ctx,
             0.5,
             outcome(
-              'Te dejaron ir a un lugar donde te querían.',
-              'They let you go somewhere you were wanted.',
+              'Te dejaron ir a un lugar donde te querían. A veces la solución es la puerta.',
+              'They let you go somewhere you were wanted. Sometimes the answer is the door.',
               'good',
               { hidden: { morale: 14, coachTrust: 10 } },
             ),
