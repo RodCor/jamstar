@@ -20,7 +20,7 @@ import { difficultyOf } from '@/data/leagues'
 import { getStyle } from '@/data/styles'
 import { overallRating } from './progression'
 
-/** Minutes per game by role — everything counting-stat flows from this. */
+/** Minutes per game by role. Every counting stat flows from this. */
 const MINUTES_BY_ROLE: Record<PlayerRole, [number, number]> = {
   star: [33, 38],
   starter: [27, 33],
@@ -219,7 +219,7 @@ export function simulateTeamRecord(
 /**
  * Playoff run, given how good the team turned out to be.
  *
- * Stops at the final and reports whether it was reached — winning it is decided
+ * Stops at the final and reports whether it was reached; winning it is decided
  * separately, by the player, in a minigame. Seasons with no eligible player
  * (youth, a lost season to injury) fall back to a roll.
  */
@@ -250,14 +250,14 @@ export function simulatePlayoffRun(
   return { result: 'finals', reachedFinal: true }
 }
 
-/** The final, rolled rather than played — used when the player cannot contest it. */
+/** The final, rolled rather than played, for when the player cannot contest it. */
 export function rollFinal(team: Team, rng: Rng): PlayoffResult {
   return rng.chance(clamp(0.36 + (team.strength - 74) / 300, 0.15, 0.6)) ? 'champion' : 'finals'
 }
 
 /**
- * How many games the player actually appears in, after injury risk. Physical
- * and wear are the two dials — which is the Highlight Athlete's whole bargain.
+ * How many games the player appears in, after injury risk. Physical and wear
+ * are the two dials, which is the Highlight Athlete's bargain.
  */
 export function simulateAvailability(
   player: Player,
@@ -302,7 +302,7 @@ export function computeSalary(league: League, role: PlayerRole, hype: number, rn
   return Math.round((floor + (ceiling - floor) * share) / 1000) * 1000
 }
 
-/** Wear added by a season — minutes played, amplified by style and age. */
+/** Wear added by a season: minutes played, amplified by style and age. */
 export function wearFromSeason(season: Pick<Season, 'gamesPlayed' | 'minutesPerGame'>, player: Player): number {
   const style = getStyle(player.styleId)
   const load = (season.gamesPlayed * season.minutesPerGame) / 2400

@@ -1,7 +1,7 @@
 /**
  * Play styles. Each is a stated gamble, in the spirit of F1 Glory's driving
  * styles ("more poles and wins, but more DNFs"). The tradeoff text is shown on
- * the creation screen — the player should be choosing knowingly.
+ * the creation screen, because the player should be choosing knowingly.
  */
 
 import type { PlayStyle } from '@/game/types'

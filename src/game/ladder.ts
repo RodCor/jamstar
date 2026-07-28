@@ -28,7 +28,7 @@ export interface Placement {
  * `breakout` and `development` behind it, on the theory that signing somewhere
  * meant you had stopped developing. Two things were wrong with that. The flag
  * was computed as `currentLeagueId !== 'youth'`, and the ladder moves everyone
- * out of the youth league at 17 — so `development` was unreachable, zero
+ * out of the youth league at 17, so `development` was unreachable: zero
  * seasons across forty measured careers, and `breakout` lasted exactly one. And
  * the premise itself does not survive contact: a nineteen-year-old in the ACB
  * is developing, whatever his registration says, and the cards written for that
@@ -110,7 +110,7 @@ function firstProPlacement(
     }
   }
 
-  // Everyone else debuts in their domestic first division — or its second tier
+  // Everyone else debuts in their domestic first division, or its second tier
   // if they are not ready.
   const domesticId = domesticLeagueFor(country)
   const readyForFirstTeam = rating > 48 || hype > 34
@@ -159,7 +159,7 @@ function attemptDraft(
   hype: number,
   rng: Rng,
 ): Placement | null {
-  // The bar is deliberately high — most careers never touch the NBA.
+  // The bar is deliberately high; most careers never touch the NBA.
   const stock = rating * 0.75 + hype * 0.3 + country.strength * 0.05
   const draftChance = clamp((stock - 74) / 24, 0, 0.8)
   if (!rng.chance(draftChance)) return null
@@ -213,8 +213,8 @@ function meritMove(
 
   const targetTier = tierForRating(rating, hype, player.age)
 
-  // Staying put is the common case; only move when the tier genuinely changed
-  // or the player is unhappy enough to force it.
+  // Staying put is the common case; only move when the tier changed or the
+  // player is unhappy enough to force it.
   if (targetTier === currentLeague.tier && !rng.chance(unrestChance(player, rating, currentTeam))) {
     return { teamId: currentTeam.id, leagueId: currentLeague.id, note: null }
   }
@@ -272,7 +272,7 @@ function tierForRating(rating: number, hype: number, age: number): 1 | 2 | 3 | 4
 function leaguesForPlayer(tier: number): League[] {
   const atTier = LEAGUES.filter((l) => l.tier === tier && l.id !== 'youth')
   if (tier === 4) {
-    // Don't send a European veteran to the NCAA — that route only runs one way.
+    // Don't send a European veteran to the NCAA; that route only runs one way.
     return atTier.filter((l) => l.id !== 'ncaa')
   }
   return atTier

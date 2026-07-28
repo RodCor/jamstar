@@ -1,8 +1,8 @@
 /**
  * The deck: assembly, filtering and weighted draw.
  *
- * A card is eligible if the stage matches, its `requires` gate passes, and — for
- * `once` cards — it has not fired before in this career.
+ * A card is eligible if the stage matches, its `requires` gate passes, and, for
+ * `once` cards, it has not fired before in this career.
  */
 
 import type { EventContext, GameEvent } from '../types'

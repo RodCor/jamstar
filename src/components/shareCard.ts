@@ -66,7 +66,7 @@ const COPY = {
  * Async because of one pixel of the card: the club badge.
  *
  * A real logo is a file that has to decode before `drawImage` will put anything
- * on the canvas — drawing it synchronously leaves a hole where the crest was.
+ * on the canvas, and drawing it synchronously leaves a hole where the crest was.
  * Everything else here is still drawn in one pass; only the badge waits.
  */
 export async function drawShareCard(
@@ -109,7 +109,7 @@ export async function drawShareCard(
 
   // Final club badge, with the jersey number beside it. The generated crest is
   // the fallback for a club with no logo file, and for one whose file fails to
-  // decode — a share card with a hole in it would be worse than a plain crest.
+  // decode; a share card with a hole in it would be worse than a plain crest.
   if (badge) {
     drawContained(ctx, badge, center - 96, 276, 152)
   } else if (data.lastTeam) {
@@ -232,7 +232,7 @@ export async function drawShareCard(
   ctx.fillText(`${c.seed}: ${data.seed}`, center, 1318)
 }
 
-/** Resolves to null rather than rejecting — a missing badge must not kill the card. */
+/** Resolves to null rather than rejecting: a missing badge must not kill the card. */
 function loadImage(src: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const image = new Image()

@@ -64,7 +64,7 @@ export const gate = {
   /**
    * Cards that only make sense if you grew up somewhere specific.
    *
-   * Takes several codes because basketball cultures do not stop at borders —
+   * Takes several codes because basketball cultures do not stop at borders:
    * the same street court exists either side of the Río de la Plata, and the
    * same academy pipeline runs through half of Europe. Listing them together
    * beats writing the same card twice with different flags on it.

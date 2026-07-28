@@ -157,7 +157,7 @@ export const es = {
   draftUndrafted: 'Nadie te eligió',
   draftUndraftedBody: 'Las 58 selecciones pasaron sin tu nombre. Hay otros caminos, y algunos terminan igual de arriba.',
 
-  // Draft outlook — the projection screen, before draft night itself
+  // Draft outlook: the projection screen, before draft night itself
   draftStripLabel: 'DRAFT',
   draftStripSoon: 'esta temporada',
   draftStripIn: 'en {n} temporada(s)',

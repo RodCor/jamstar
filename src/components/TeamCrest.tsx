@@ -12,7 +12,7 @@ import type { Team } from '@/game/types'
  * Uses a real logo file when one has been supplied (see `src/data/logos.ts`),
  * and otherwise draws a generated crest from the club's real colours. The
  * generated version is deterministic per team id, so a club always wears the
- * same badge, and it is inline SVG — no network request, which matters because
+ * same badge, and it is inline SVG, so no network request, which matters because
  * a strict CSP would block external images anyway.
  */
 export function TeamCrest({

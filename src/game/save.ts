@@ -1,5 +1,5 @@
 /**
- * Persistence. Everything lives in localStorage — no account, no backend, which
+ * Persistence. Everything lives in localStorage: no account, no backend, which
  * is what makes the game shareable in one link.
  */
 
@@ -29,7 +29,7 @@ function migrateFromOldKey(key: string): void {
     window.localStorage.setItem(key, old)
     window.localStorage.removeItem(oldKey)
   } catch {
-    // Storage disabled — nothing to migrate, nothing lost that wasn't already inaccessible.
+    // Storage disabled: nothing to migrate, nothing lost that wasn't already inaccessible.
   }
 }
 

@@ -19,7 +19,7 @@ export function NationalScreen({ state, onFinishFinal, onContinue }: Props) {
 
   const country = getCountry(state.player.countryCode)
 
-  // The final is still to be played — hand over to the minigame.
+  // The final is still to be played: hand over to the minigame.
   if (state.pendingMinigame) {
     return (
       <div className="space-y-4">

@@ -53,8 +53,8 @@ function season(over: Partial<Season> = {}): Season {
 
 /**
  * A save the way a pre-wave build would have written it: a real `GameState`
- * with a season attached, then the three fields this wave added actually
- * deleted (not set to `null`), so the object genuinely lacks them rather than
+ * with a season attached, then the three fields this wave added deleted
+ * outright rather than set to `null`, so the object lacks them instead of
  * having them present-but-empty.
  */
 function preWaveState(): GameState {
@@ -101,9 +101,9 @@ describe('save compatibility across the wave', () => {
       expect(loaded!.seasons[0].teamId).toBe('acb_bas')
       expect(loaded!.seasons[0].playoffResult).toBe('champion')
 
-      // Proves the fixture is actually old-shaped, not just old-valued — if a
-      // future refactor re-added these keys before writing, this would still
-      // pass without testing anything.
+      // Proves the fixture is old-shaped, not merely old-valued: if a future
+      // refactor re-added these keys before writing, this would still pass
+      // without testing anything.
       expect('pendingRenewalNote' in loaded!).toBe(false)
       expect('cupId' in loaded!.seasons[0]).toBe(false)
     })
@@ -121,7 +121,7 @@ describe('save compatibility across the wave', () => {
   })
 
   // The game used to be called Hoop Glory, and its localStorage keys carried
-  // that name. `hoop-glory:archive` is completed careers — the hall of fame —
+  // that name. `hoop-glory:archive` is completed careers, the hall of fame,
   // and it has outlived every SAVE_VERSION bump this project has shipped, so
   // the rename to `la-naranja:*` must not be the thing that finally loses it.
   describe('migration from hoop-glory:* keys', () => {

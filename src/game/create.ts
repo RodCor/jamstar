@@ -18,7 +18,7 @@ import { startOffseason } from './engine'
 
 /**
  * Creation age. `beginSeason` ages the player before simulating, so the first
- * season on the record is played at 14 — the age the career is advertised as
+ * season on the record is played at 14, the age the career is advertised as
  * starting from.
  */
 export const START_AGE = 13
@@ -139,7 +139,7 @@ export function createGame(choices: CreationChoices, seed: string, mode: GameMod
 
 /**
  * The daily challenge: a fixed archetype derived from the date, so every player
- * in the world gets the same country, number, position and style — and the only
+ * in the world gets the same country, number, position and style. The only
  * variable is how well they decide.
  */
 export function dailyChoices(seed: string, playerName: string): CreationChoices {

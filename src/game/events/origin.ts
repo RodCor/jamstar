@@ -6,8 +6,8 @@
  * codes at a time because the cultures overlap: the club on the corner is the
  * same institution on both banks of the Río de la Plata, and a cantera in
  * Málaga and one in Bologna ask a fifteen-year-old the same question. Where a
- * grouping turned out to be a convenience rather than a culture — Lithuania and
- * Germany do not share a Tuesday-night crowd — it was split instead of fudged.
+ * grouping turned out to be a convenience rather than a culture (Lithuania and
+ * Germany do not share a Tuesday-night crowd), it was split instead of fudged.
  *
  * Coverage is a hard requirement rather than a nice-to-have: every country gets
  * a pair of cards of its own at youth and a pair shared with the countries that
@@ -31,7 +31,7 @@
  * and `coachTrust`-poor at breakout (0.01 vs 1.38). `coachTrust` is how an
  * attribute advantage becomes minutes, so a uniform lift quietly drains the
  * early-`coachTrust` surplus the perk-agency invariant in `legacy.test.ts`
- * depends on — tripling the whole deck did exactly that and inverted it. Each
+ * depends on. Tripling the whole deck did exactly that and inverted it. Each
  * tier is therefore lifted by how well it pays the stages it appears in:
  * youth-only x6, youth+breakout x1.5 (breakout is the constraint),
  * breakout+development x2, development+prime x4. The ordering within the deck

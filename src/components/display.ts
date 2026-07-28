@@ -39,7 +39,7 @@ export const ATTRIBUTE_KEY: Record<AttributeKey, keyof Dictionary> = {
   mental: 'attrMental',
 }
 
-/** Scouting-language label per tier — shared by the header strip and the
+/** Scouting-language label per tier, shared by the header strip and the
  *  preseason panel so the two surfaces never describe the same range differently. */
 export const DRAFT_TIER_KEY: Record<DraftTier, keyof Dictionary> = {
   lottery: 'draftTierLottery',
@@ -48,7 +48,7 @@ export const DRAFT_TIER_KEY: Record<DraftTier, keyof Dictionary> = {
   fringe: 'draftTierFringe',
 }
 
-/** Short label for how confident a tier's placement is — shown alongside
+/** Short label for how confident a tier's placement is, shown alongside
  *  `DRAFT_TIER_KEY`, never instead of it, on both the header strip and the
  *  preseason panel. `tier` says where; this says how sure. */
 export const DRAFT_LIKELIHOOD_KEY: Record<DraftLikelihood, keyof Dictionary> = {
@@ -82,7 +82,7 @@ export function formatMoney(amount: number, locale: Locale): string {
   return locale === 'es' ? `${sign}${thousands} mil US$` : `${sign}$${thousands}k`
 }
 
-/** A percentage stored as 0-1, rendered as `.482` — how box scores show it. */
+/** A percentage stored as 0-1, rendered as `.482`, the way box scores show it. */
 export function formatPct(value: number): string {
   if (!Number.isFinite(value)) return '—'
   return value.toFixed(3).replace(/^0/, '')
@@ -103,7 +103,7 @@ function luminance(hex: string): number {
 /**
  * Pick whichever of a team's two colours stays readable on the dark UI.
  *
- * Team palettes are chosen for jerseys, not for dark backgrounds — Maccabi's
+ * Team palettes are chosen for jerseys, not for dark backgrounds: Maccabi's
  * navy on their own yellow is invisible here. Falling back to a light neutral
  * when both colours are dark keeps every club name legible.
  */

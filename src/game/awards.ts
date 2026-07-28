@@ -1,6 +1,6 @@
 /**
- * Awards. Deliberately stingy — an MVP should be rare enough that winning one is
- * the thing you tell people about.
+ * Awards. Deliberately stingy: an MVP should be rare enough that winning one
+ * is the thing you tell people about.
  */
 
 import type { AwardId, League, PlayerRole, PlayoffResult, Player, Season } from './types'
@@ -68,7 +68,7 @@ export function determineAwards(input: AwardInput): AwardId[] {
       awards.push('rebounding_title')
     }
 
-    // Rookie of the Year — first pro season only.
+    // Rookie of the Year, first pro season only.
     if (seasonsPlayed === 0 && stats.rating > 58 && rng.chance(clamp((stats.rating - 58) / 26, 0, 0.55))) {
       awards.push('roy')
     }

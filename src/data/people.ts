@@ -214,7 +214,7 @@ export const COACH_NAMES: string[] = [
   'Michael Malone', 'Chris Finch', 'Ime Udoka', 'Steve Kerr', 'Willie Green',
 ]
 
-/** Agent names — the voice behind every contract event. */
+/** Agent names: the voice behind every contract event. */
 export const AGENT_NAMES: string[] = [
   'Rich Paul', 'Bill Duffy', 'Misko Raznatovic', 'Giorgos Dimitropoulos', 'Claudio Villanueva',
   'Marc Cornstein', 'Andy Miller', 'Daniel Moreno', 'Federico Danesi', 'Obrad Fimić',

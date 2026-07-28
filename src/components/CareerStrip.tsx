@@ -64,9 +64,9 @@ export function CareerStrip({ state }: { state: GameState }) {
           )}
         </div>
 
-        {/* Own full-width row rather than sharing the name column — that
-            column is only ~180px wide once the crest and stat block take
-            their share, well under the ~320px this line can run to. */}
+        {/* Own full-width row rather than sharing the name column, which is
+            only ~180px wide once the crest and stat block take their share,
+            well under the ~320px this line can run to. */}
         {draftOutlook && !draftOutlook.detailed && (
           <p className="truncate text-[11px] font-semibold leading-tight text-flame-400">
             {t('draftStripLabel')} · {t('draftStripFarOff')}

@@ -66,8 +66,8 @@ function yearRng(state: GameState, purpose: string): Rng {
  *
  * Three routes out of here. A schoolkid is simply placed. A draft-eligible
  * prospect goes to draft night. Everyone else gets a shortlist of contracts and
- * signs one themselves — being told where you play was the least interesting
- * part of the year.
+ * signs one themselves, because being told where you play was the least
+ * interesting part of the year.
  */
 export function startOffseason(state: GameState): GameState {
   const next = structuredClone(state)
@@ -118,7 +118,7 @@ export function startOffseason(state: GameState): GameState {
           player,
           country,
           yearRng(next, 'offers'),
-          // What the club is actually deciding on: the year you just played.
+          // What the club is deciding on: the year you just played.
           next.seasons[next.seasons.length - 1] ?? null,
         )
 
@@ -130,7 +130,7 @@ export function startOffseason(state: GameState): GameState {
     // The offers screen is skipped entirely on this path, so a renewal note
     // set above would otherwise sit unread until the next offseason wipes it.
     // That is exactly the year a player was dropped by their club and no one
-    // else wanted them — the one year they most need to be told why. Route
+    // else wanted them, the one year they most need to be told why. Route
     // it through the placement note instead, which buildHeadlines always
     // folds into this season's results.
     if (next.pendingRenewalNote) {
@@ -172,7 +172,7 @@ export function acceptOffer(state: GameState, index: number): GameState {
   return openPreseason(next)
 }
 
-/** Leave draft night and report to whoever took you — or to plan B. */
+/** Leave draft night and report to whoever took you, or to plan B. */
 export function confirmDraft(state: GameState): GameState {
   const next = structuredClone(state)
   const result = next.pendingDraft
@@ -303,10 +303,10 @@ export function continueAfterEvent(state: GameState): GameState {
 /**
  * Run the season.
  *
- * If the player reaches a final they can actually contest — the domestic cup in
- * midwinter, the league final in June, or both — the season is parked as a draft
- * and the phase hands over to the minigames one at a time; otherwise it is
- * finalised straight away.
+ * If the player reaches a final they can contest (the domestic cup in
+ * midwinter, the league final in June, or both), the season is parked as a
+ * draft and the phase hands over to the minigames one at a time; otherwise it
+ * is finalised straight away.
  */
 function simulateSeason(state: GameState): GameState {
   const player = state.player
@@ -343,7 +343,7 @@ function simulateSeason(state: GameState): GameState {
   const onTheFloor = role !== 'injured' && gamesPlayed > 0
   const finals: MinigameChallenge[] = []
 
-  // The cup runs first — it is decided in February, months before the playoff.
+  // The cup runs first: it is decided in February, months before the playoff.
   const cup = cupForLeague(league.id)
   if (cup) {
     const run = runCup(cup, team, player, role, yearRng(state, 'cup'))

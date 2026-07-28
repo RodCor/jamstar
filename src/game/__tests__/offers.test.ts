@@ -114,7 +114,7 @@ describe('renewals', () => {
     for (let i = 0; i < 60; i++) {
       const slate = generateOffers(p, getCountry('ES'), new Rng(`note-${i}`), season({ rating: 44 }))
       const renewed = slate.offers.some((o) => o.isCurrentClub)
-      // The note and the renewal are exact opposites — never both, never neither.
+      // The note and the renewal are exact opposites: never both, never neither.
       expect(Boolean(slate.renewalDeclined)).toBe(!renewed)
       if (renewed) renewedSeen++
       else declinedSeen++
@@ -232,8 +232,8 @@ describe('NBA interest outside the draft', () => {
   it('does not hand a merely good arrival a franchise role and a maximum contract', () => {
     // The weakest NBA roster is still an NBA roster. Club strength is on one
     // scale across every league, so without a level adjustment the worst team in
-    // the NBA offered a modest player the ball and $52M. A genuinely elite
-    // arrival may still be offered a star role — that is not the bug.
+    // the NBA offered a modest player the ball and $52M. A truly elite arrival
+    // may still be offered a star role; that is not the bug.
     const p = borderline()
     let seen = 0
     for (let i = 0; i < 900 && seen < 25; i++) {
@@ -292,7 +292,7 @@ describe('free agency inside the NBA', () => {
       }
     }
     expect(total).toBeGreaterThan(0)
-    // Not "all" — a declining NBA player should still hear from Europe.
+    // Not "all": a declining NBA player should still hear from Europe.
     expect(nba / total).toBeGreaterThan(0.6)
   })
 

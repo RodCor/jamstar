@@ -1,5 +1,5 @@
 /**
- * Injuries. The one category that can end a career outright — which is what
+ * Injuries. The one category that can end a career outright, which is what
  * makes the Highlight Athlete's bargain mean something.
  */
 

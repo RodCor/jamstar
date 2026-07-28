@@ -30,8 +30,8 @@ const MAX_OFFERS = 4
  * Tier boundaries, from the top down.
  *
  * Set against `stockFor`, which sits a little above raw rating. The top bar is
- * deliberately near the ceiling of what a career reaches: the NBA is meant to
- * be entered through draft night, not strolled into at 31 as a free agent.
+ * set near the ceiling of what a career reaches: the NBA is meant to be
+ * entered through draft night, not strolled into at 31 as a free agent.
  */
 const TIER_THRESHOLDS = [86, 72, 56] as const
 
@@ -39,15 +39,15 @@ const TIER_THRESHOLDS = [86, 72, 56] as const
 export function stockFor(player: Player): number {
   const rating = overallRating(player)
   // Perks that improve your standing are worth a few points of perceived
-  // quality, not a multiplier on it — multiplying turned every developed player
-  // into a top-tier prospect and made the NBA meaningless.
+  // quality rather than a multiplier on it: multiplying turned every developed
+  // player into a top-tier prospect and made the NBA meaningless.
   const pullBonus = (effectsFor(player).contractPull - 1) * 15
   return rating + pullBonus + player.hidden.hype * 0.06 - Math.max(0, player.age - 33) * 2.2
 }
 
 /**
  * The tier a player of this quality belongs in. Same thresholds the old
- * auto-placement used, so the difficulty curve is unchanged — only who decides.
+ * auto-placement used, so the difficulty curve is unchanged; only who decides.
  */
 export function tierForPlayer(player: Player): 1 | 2 | 3 | 4 {
   const stock = stockFor(player)
@@ -79,7 +79,7 @@ function roleFor(player: Player, team: Team, rng: Rng, familiarity = 0): PlayerR
  * How much higher the bar for minutes sits in a stronger league.
  *
  * Club strength is on one 0-100 scale across every league, so a weak NBA roster
- * and a weak third-division roster read as the same number — and without this, a
+ * and a weak third-division roster read as the same number. Without this, a
  * modest player was offered a franchise role and a maximum contract by the worst
  * team in the NBA. Stepping up a level has to mean fighting for minutes again.
  * Calibrated at zero for the third tier, where the rest of the game is tuned.
@@ -92,8 +92,8 @@ function levelBar(leagueId: string): number {
  * Whether your club wants you back, and how badly.
  *
  * This used to be a flat coin weighted at 3-in-4, which meant a player coming
- * off the best season of their life could still find no way to stay — the club
- * simply never called, for no reason the player could see. A renewal should be
+ * off the best season of their life could still find no way to stay: the club
+ * never called, for no reason the player could see. A renewal should be
  * the most predictable thing on the table: play well and staying is your choice
  * to make, play badly and the club moves on.
  */
@@ -115,7 +115,7 @@ export function renewalOdds(player: Player, lastSeason: Season | null): number {
   // Missing most of the year makes a club hesitate over a player it otherwise
   // rates. Applied as a discount rather than a subtraction, because a great
   // season is good enough to pin the odds at the ceiling on its own, and there
-  // a penalty worth a fifth of the scale simply vanished — leaving the player
+  // a penalty worth a fifth of the scale simply vanished, leaving the player
   // most affected by injury as the one it never touched.
   const availability = lastSeason.gamesMissed > lastSeason.gamesPlayed ? 0.72 : 1
 
@@ -199,11 +199,10 @@ function pitchFor(
 /**
  * Which leagues would realistically call this player.
  *
- * Your own tier and the one below always call — there is always somewhere
- * willing to take you. The tier *above* only calls when you are genuinely
- * knocking on its door, otherwise free agency becomes an escalator where every
- * player is handed a promotion they did not earn and the NBA stops meaning
- * anything.
+ * Your own tier and the one below always call: there is always somewhere
+ * willing to take you. The tier *above* only calls when you are knocking on
+ * its door. Otherwise free agency becomes an escalator where every player is
+ * handed a promotion they did not earn and the NBA stops meaning anything.
  */
 function candidateLeagues(player: Player, country: Country, rng: Rng): League[] {
   const tier = tierForPlayer(player)
@@ -230,7 +229,7 @@ function candidateLeagues(player: Player, country: Country, rng: Rng): League[] 
     // agency becomes the reliable route to the best league in the world and
     // draft night stops mattering. A player already there is not climbing
     // anything by re-signing, and shutting them out produced the opposite
-    // absurdity — an NBA starter whose every option was in Europe.
+    // absurdity: an NBA starter whose every option was in Europe.
     if (league.tier === 1 && player.currentLeagueId !== 'nba') return false
     return wanted.has(league.tier)
   })
@@ -264,12 +263,12 @@ const VISIBILITY: Record<string, number> = {
 /**
  * An NBA club calling a player who never went through the draft.
  *
- * This happens constantly in the real sport — undrafted free agents, G League
- * call-ups, a EuroLeague star finally taking the offer at 27 — and without it
+ * This happens constantly in the real sport (undrafted free agents, G League
+ * call-ups, a EuroLeague star finally taking the offer at 27), and without it
  * the only door to the NBA is one night at 22, which makes every career that
  * missed it a closed story.
  *
- * The bar is deliberately high on two separate axes. You have to be good enough
+ * The bar is high on two separate axes. You have to be good enough
  * that an NBA roster spot is defensible, *and* you have to have been seen: a
  * quietly excellent season in a league nobody scouts does not get you a call.
  */
@@ -300,7 +299,7 @@ function nbaSuitor(player: Player, lastSeason: Season | null, rng: Rng): Team | 
   const odds = clamp(((stock - 74) / 34 + (seen - 55) / 240) * youth, 0, 0.22)
   if (!rng.chance(odds)) return null
 
-  // Who calls: the clubs whose level actually matches yours, so an NBA arrival
+  // Who calls: the clubs whose level matches yours, so an NBA arrival
   // is a two-way contract at a rebuilding club far more often than a starting
   // job in a contender's rotation.
   const rating = overallRating(player)
@@ -314,7 +313,7 @@ function nbaSuitor(player: Player, lastSeason: Season | null, rng: Rng): Team | 
  * `renewalOdds` already computes the three terms that sink the odds, so the
  * message can say which one did it rather than being generically sad. Checked
  * in order of what the player would most obviously recognise, and a pure
- * function of the season just played — no RNG, so a replayed seed narrates it
+ * function of the season just played: no RNG, so a replayed seed narrates it
  * identically.
  */
 function declineNote(player: Player, team: Team, lastSeason: Season | null): Localized {
@@ -359,7 +358,7 @@ export function generateOffers(
   player: Player,
   country: Country,
   rng: Rng,
-  /** Last season, which is what the club is actually deciding on. */
+  /** Last season, which is what the club is deciding on. */
   lastSeason: Season | null = null,
 ): OfferSlate {
   const leagues = candidateLeagues(player, country, rng)
@@ -437,7 +436,7 @@ export function generateOffers(
     offers.push(makeOffer(team))
   }
 
-  // Best first — but "best" is deliberately ambiguous, which is the point.
+  // Best first, for a deliberately ambiguous definition of "best".
   offers.sort((a, b) => {
     const tierDiff = getLeague(a.leagueId).tier - getLeague(b.leagueId).tier
     return tierDiff !== 0 ? tierDiff : b.salary - a.salary
@@ -482,7 +481,7 @@ export function generateFirstOffers(
   } else {
     const domestic = country.domesticLeagueIds[0] ?? 'aba'
     add(domestic, 2)
-    // A second-division club offering real minutes is a genuine alternative.
+    // A second-division club offering real minutes is a real alternative.
     const second = { acb: 'leb_oro', betclic: 'pro_b' }[domestic]
     if (second) add(second, 1)
     else add(domestic, 1)

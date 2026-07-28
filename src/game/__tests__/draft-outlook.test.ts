@@ -8,7 +8,7 @@ import type { Player } from '../types'
 
 /**
  * A player with every attribute set to the same value has `overallRating`
- * exactly equal to that value, regardless of position weights — a weighted
+ * exactly equal to that value, regardless of position weights: a weighted
  * mean of five identical numbers is that number. That makes stock (and every
  * band derived from it) exact and easy to reason about, instead of fighting
  * position weighting in every fixture.
@@ -43,7 +43,7 @@ function makePlayer(overrides: Partial<Player> & { rating?: number; hype?: numbe
   }
 }
 
-const ES = getCountry('ES') // strength 88 — a fixed, known offset in every fixture below.
+const ES = getCountry('ES') // strength 88, a fixed, known offset in every fixture below.
 
 describe('draftOutlook', () => {
   it('returns null once draft night has already happened', () => {
@@ -110,13 +110,13 @@ describe('draftOutlook', () => {
 
   it('reports fringe and a below-floor likelihood for a player whose centre lands in a drafted band but whose odds do not clear the floor', () => {
     // This is the regression the fringe/likelihood floor exists for: rating
-    // 58 / hype 10 projects a centre of 36 — squarely a "drafted" band by
-    // position alone — but draftProbability there is ~0.21, well under the
+    // 58 / hype 10 projects a centre of 36, squarely a "drafted" band by
+    // position alone, but draftProbability there is ~0.21, well under the
     // 0.30 floor. Verification found exactly this shape of case: a tier that
     // read as a placement when the player was more likely than not to go
     // undrafted entirely. 0.21 sits in the 'longshot' sub-band ([0.15, 0.30)):
     // still fringe on tier, but the empirical re-trace showed this exact slice
-    // drafted about 22% of the time — worth its own word, not lumped in with
+    // drafted about 22% of the time: worth its own word, not lumped in with
     // a near-zero read.
     const outlook = draftOutlook(makePlayer({ rating: 58, hype: 10 }), ES, 0)
     expect(outlook?.tier).toBe('fringe')
@@ -124,14 +124,14 @@ describe('draftOutlook', () => {
   })
 
   it('grades likelihood off draftProbability at real resolution, independent of tier', () => {
-    // remote: probability ~0.024 — essentially nothing to work with yet.
+    // remote: probability ~0.024, essentially nothing to work with yet.
     expect(draftOutlook(makePlayer({ rating: 53, hype: 8 }), ES, 0)?.likelihood).toBe('remote')
-    // unlikely: probability ~0.107 — a real gap below the fringe floor, but a
+    // unlikely: probability ~0.107, a real gap below the fringe floor but a
     // meaningfully better spot than 'remote'.
     expect(draftOutlook(makePlayer({ rating: 55, hype: 10 }), ES, 0)?.likelihood).toBe('unlikely')
     // uncertain: second_round band (~0.37), better than the fringe floor, nowhere near a lock.
     expect(draftOutlook(makePlayer({ rating: 63, hype: 10 }), ES, 0)?.likelihood).toBe('uncertain')
-    // likely: probability ~0.579 — better than even, short of a lock.
+    // likely: probability ~0.579, better than even, short of a lock.
     expect(draftOutlook(makePlayer({ rating: 68, hype: 15 }), ES, 0)?.likelihood).toBe('likely')
     // strong: lottery-band stock saturates draftProbability at its 0.85 ceiling.
     expect(draftOutlook(makePlayer({ rating: 88, hype: 30 }), ES, 0)?.likelihood).toBe('strong')
@@ -140,8 +140,8 @@ describe('draftOutlook', () => {
   it('never disagrees with tier: fringe iff likelihood is a below-floor band, across a full sweep of stock', () => {
     // The invariant the coordinator asked to keep explicit: 'longshot' is
     // capped at FRINGE_PROBABILITY_FLOOR itself, so this can't drift by
-    // someone editing one constant and not the other — but this test proves
-    // it holds in practice, not just by inspection of the source.
+    // someone editing one constant and not the other. This test proves it
+    // holds in practice rather than by inspection of the source.
     const BELOW_FLOOR = new Set(['remote', 'unlikely', 'longshot'])
     const AT_OR_ABOVE_FLOOR = new Set(['uncertain', 'likely', 'strong'])
     const ALL_BANDS = new Set([...BELOW_FLOOR, ...AT_OR_ABOVE_FLOOR])
@@ -168,8 +168,8 @@ describe('draftOutlook', () => {
     // A sweep that silently skipped most of the grid (every outlook null, say,
     // if the eligibility rules shifted) would still pass the loop above with
     // zero iterations. Guard against that going hollow: the grid must have
-    // actually exercised a real number of points and hit every one of the
-    // six bands, not just the two sides of the fringe line.
+    // exercised a real number of points and hit every one of the six bands,
+    // not only the two sides of the fringe line.
     expect(checked).toBeGreaterThan(300)
     expect(seen).toEqual(ALL_BANDS)
   })
@@ -193,8 +193,8 @@ describe('draftOutlook', () => {
     // rating 55 / hype 35 gives gainFromRatingBenchmark = (60-55)*0.86 = 4.3
     // and gainFromHypeBenchmark = (40-35)*0.22 = 1.1, a gap of 3.2. Under the
     // old margin of 1 that gap would have cleared the bar and called
-    // 'ability' — exactly the kind of modest, noise-sized gap that flickered
-    // across seasons in verification as hype alone moved a few points. Under
+    // 'ability': the kind of modest, noise-sized gap that flickered across
+    // seasons in verification as hype alone moved a few points. Under
     // the current margin of 5 it correctly reads as balanced.
     const outlook = draftOutlook(makePlayer({ rating: 55, hype: 35 }), ES, 0)
     expect(outlook?.limiter).toBeNull()
@@ -229,7 +229,7 @@ describe('draftOutlook', () => {
 
   it('is not detailed just below the stage boundary that moves a player out of youth, and is detailed from it onward', () => {
     // Find the boundary by asking `stageForAge` itself, not by hardcoding 17
-    // here — this is the same derivation `draft.ts` uses for
+    // here. This is the same derivation `draft.ts` uses for
     // `DETAILED_OUTLOOK_AGE`, so the test tracks the real boundary rather
     // than a copy of today's number.
     let breakoutAge = 0
@@ -260,7 +260,7 @@ describe('draftOutlook', () => {
 
     const later = draftOutlook(makePlayer({ age: breakoutAge, rating: 60, hype: 12 }), ES, 0)
     expect(later?.detailed).toBe(true)
-    // Same inputs bar age — the underlying projection is unaffected by `detailed`.
+    // Same inputs bar age: the underlying projection is unaffected by `detailed`.
     expect(later?.projectedRange).toEqual(early?.projectedRange)
     expect(later?.tier).toEqual(early?.tier)
     expect(later?.likelihood).toEqual(early?.likelihood)

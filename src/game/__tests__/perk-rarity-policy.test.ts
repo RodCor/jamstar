@@ -35,13 +35,13 @@ import type { GameState, PlayStyleId, Position } from '../types'
  * measurement instruments would let a change to one silently move another.
  *
  * The two cohorts below use identical seeds, positions, styles and countries
- * per matched index — `createGame` is called with the same seed string for
+ * per matched index: `createGame` is called with the same seed string for
  * career `i` in both cohorts, and the perk draw itself (`drawPerkChoices`,
  * called from `engine.ts` with `Rng(`${seed}::${year}::perks`)`) is seeded
  * off that same game seed, not off the policy's own `Rng` stream. So the
  * offered choices for a given career-year start out identical between the
- * greedy and timid runs. Only the *policy* — which of the three offered ids
- * gets taken — differs. Once the two runs take different perks, their
+ * greedy and timid runs. Only the *policy*, which of the three offered ids
+ * gets taken, differs. Once the two runs take different perks, their
  * owned-perk sets diverge, which changes future eligibility and standing,
  * which changes future offers: the careers diverge. That is expected and is
  * the point; the fixed part is the starting conditions, not the trajectory.
@@ -76,7 +76,7 @@ function lowestRarity(choices: string[]): string {
 }
 
 /**
- * Drive a career through every phase. Copied rather than imported/shared —
+ * Drive a career through every phase. Copied rather than imported/shared;
  * see the file header.
  */
 function drive(
@@ -154,8 +154,8 @@ function creationFor(index: number): CreationChoices {
 
 /**
  * One career. Every decision except the perk pick is resolved the same way
- * `career-distribution.test.ts` resolves it — uniformly at random from the
- * seeded stream — so the only deliberate variable between cohorts is which
+ * `career-distribution.test.ts` resolves it, uniformly at random from the
+ * seeded stream, so the only deliberate variable between cohorts is which
  * perk gets taken.
  */
 function playCareer(index: number, pickPerk: (choices: string[]) => string): GameState {
@@ -184,7 +184,7 @@ describe('perk rarity policy vs career outcome', () => {
     const timidMean = meanPeakRating(lowestRarity)
     const gapPct = ((greedyMean - timidMean) / timidMean) * 100
 
-    // Printed on every run, pass or fail: this is the actual finding, not just
+    // Printed on every run, pass or fail: the gap is the finding, not merely
     // a pass/fail signal.
     console.log(
       `\ngreedy vs timid perk policy (n=${COHORT_SIZE} careers each)\n`
@@ -200,9 +200,9 @@ describe('perk rarity policy vs career outcome', () => {
     )
     // Floor: `greedyMean > timidMean` alone is satisfied by any positive gap,
     // even one so small it means the tiers barely differ. The measured gap is
-    // 4.50%; 2% leaves real room while still catching a genuine collapse of
-    // the rarity tiers toward each other. If this fails, report the actual
-    // number — do not lower the floor to make it pass.
+    // 4.50%; 2% leaves real room while still catching a collapse of the
+    // rarity tiers toward each other. If this fails, report the measured
+    // number; do not lower the floor to make it pass.
     expect(gapPct, `gap ${gapPct.toFixed(2)}% should be at least 2%`).toBeGreaterThanOrEqual(2)
     // If this fails, rarity dominates every other decision in the game.
     expect(gapPct, `gap ${gapPct.toFixed(2)}% should stay under 25%`).toBeLessThan(25)

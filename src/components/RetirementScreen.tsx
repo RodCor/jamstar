@@ -45,7 +45,7 @@ export function RetirementScreen({ state, onPlayAgain }: Props) {
     for (const season of state.seasons) {
       for (const award of season.awards) {
         // `league_champion` and `cup_champion` are named per competition in the
-        // trophy cabinet above — counting them again here would both duplicate
+        // trophy cabinet above. Counting them again here would both duplicate
         // that cabinet and bring back the generic "Campeón" string it exists to
         // replace.
         if (award === 'league_champion' || award === 'cup_champion') continue

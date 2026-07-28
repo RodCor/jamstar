@@ -2,7 +2,7 @@
  * Prefixing for asset URLs Next does not rewrite itself.
  *
  * `basePath` in `next.config.ts` covers `_next/*`, metadata files and anything
- * routed through `next/link` or `next/image` — but a plain `<img src="/x.svg">`
+ * routed through `next/link` or `next/image`, but a plain `<img src="/x.svg">`
  * is left exactly as written. On a GitHub project page (served from
  * `/jamstar/`) that resolves to the domain root and 404s.
  *

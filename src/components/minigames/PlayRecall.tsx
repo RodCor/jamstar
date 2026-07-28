@@ -6,7 +6,7 @@ import type { MinigameTuning } from '@/game/minigame'
 /**
  * Run the set play: watch the coach draw it, then repeat it exactly.
  *
- * The thinker's ending. Nothing here rewards reflexes — it rewards paying
+ * The thinker's ending. Nothing here rewards reflexes; it rewards paying
  * attention, which is what a high-IQ build is supposed to be good at.
  */
 type Stage = 'showing' | 'input' | 'done'
@@ -44,7 +44,7 @@ export function PlayRecall({
     settled.current = false
 
     // Deterministic per (seed, round) so a replay of the same career shows the
-    // same play — without pulling from the simulation's stream.
+    // same play, without pulling from the simulation's stream.
     const steps: number[] = []
     let cursor = seed * 7 + round * 31 + 3
     for (let i = 0; i < tuning.recallSteps; i++) {

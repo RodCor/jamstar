@@ -37,7 +37,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
           window.localStorage.removeItem(OLD_STORAGE_KEY)
         }
       } catch {
-        // Storage disabled — nothing to migrate, nothing lost that wasn't
+        // Storage disabled: nothing to migrate, nothing lost that wasn't
         // already inaccessible.
       }
     }
@@ -60,7 +60,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     try {
       window.localStorage.setItem(STORAGE_KEY, next)
     } catch {
-      // Private browsing with storage disabled — the toggle still works for
+      // Private browsing with storage disabled: the toggle still works for
       // this session, it just will not be remembered.
     }
   }, [])

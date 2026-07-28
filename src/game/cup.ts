@@ -4,8 +4,8 @@
  * A knockout played in the middle of the season, on a bracket short enough that
  * a mid-table club can win the whole thing. That is the point of it: the league
  * rewards being the best over eight months, and the cup rewards being the best
- * for three nights — so a career at an unfashionable club still has something to
- * chase, and a great career has one more trophy it can fail to win.
+ * for three nights, so a career at an unfashionable club still has something
+ * to chase and a great career has one more trophy it can fail to win.
  *
  * Reaching the final is simulated here; winning it is handed to the player as a
  * minigame, exactly like the league final.
@@ -24,7 +24,7 @@ export { cupForLeague }
  *
  * Deliberately more volatile than the league playoff: rounds are single games,
  * so the favourite goes out more often than they should. A strong club still
- * gets there more than a weak one — just not reliably.
+ * gets there more than a weak one, just not reliably.
  */
 export function runCup(
   cup: Cup,
@@ -39,7 +39,7 @@ export function runCup(
 
   // Three single-game rounds to reach the final, each better than a coin flip
   // for a decent club. A cup final should be a more familiar sight than a league
-  // final — the whole appeal is that it is the reachable trophy.
+  // final: the appeal is that it is the reachable trophy.
   const survive = () => rng.chance(clamp(0.68 + edge, 0.14, 0.88))
 
   if (!survive()) return base(cup, 'early')
@@ -57,7 +57,7 @@ function base(cup: Cup, outcome: CupRun['outcome']): CupRun {
 }
 
 /**
- * The final, rolled rather than played — used when the player was injured or is
+ * The final, rolled rather than played, for when the player was injured or is
  * too far down the rotation to be the one deciding it.
  */
 export function rollCupFinal(team: Team, cup: Cup, rng: Rng): boolean {
@@ -88,7 +88,7 @@ export function cupHeadline(run: CupRun, league: League): LocalizedHeadline | nu
         }
   }
 
-  // Going out early only rates a mention where the cup actually matters.
+  // Going out early only rates a mention where the cup matters.
   if (run.outcome === 'semifinal' && league.tier <= 3) {
     return {
       text: {

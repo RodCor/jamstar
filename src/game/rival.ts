@@ -3,7 +3,7 @@
  *
  * Picked at creation from the real-star pool, position-matched, then simulated
  * in parallel on a forked RNG stream so their career never perturbs yours. The
- * point isn't balance — it's having someone specific to be measured against for
+ * point isn't balance; it's having someone specific to be measured against for
  * twenty years.
  */
 
@@ -91,7 +91,7 @@ export function advanceRival(
 
   const star = REAL_STARS.find((s) => s.name === rival.name)
   const ceiling = star?.ceiling ?? 82
-  // Rivals share the player's age — they came up together.
+  // Rivals share the player's age: they came up together.
   const age = playerAge
 
   if (age < 18) {
@@ -102,7 +102,7 @@ export function advanceRival(
   /*
    * The rival tracks *the player*, not a fixed elite ceiling.
    *
-   * Previously they climbed toward their real-life ceiling — up to 99 — while a
+   * Previously they climbed toward their real-life ceiling, up to 99, while a
    * player peaks nearer 75, so by the mid-twenties the rivalry was over and the
    * head-to-head panel was just a scoreboard of someone else's career. Scaling
    * to the player's own season keeps it a race for twenty years, with the

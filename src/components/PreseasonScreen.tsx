@@ -12,7 +12,7 @@ const MAX_EFFECT_CHIPS = 3
 
 /**
  * Tier chrome for the rarity badge and the card itself. Visual weight climbs
- * with the tier — gold/legend tint the whole card, and Top 1% borrows the
+ * with the tier: gold/legend tint the whole card, and Top 1% borrows the
  * flame-gradient idiom `AwardReveal` uses for its headline award, so the
  * rarest perk in the pool reads as an event rather than a label swap.
  */
