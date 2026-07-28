@@ -21,16 +21,22 @@ flag. A player from the United States goes High School → NCAA → Draft → NB
 Argentine goes cantera → Liga Nacional → Europe → NBA. A Serbian goes academy →
 ABA → EuroLeague → NBA. Twenty-one countries, each with its own route.
 
-**Every attribute is a trade-off.** *Atletismo/Athleticism* buys explosion and
-highlight plays but raises injury risk and falls off a cliff after 30.
-*IQ* buys better event outcomes and a longer tail. *Físico/Strength* buys rebounds
-and durability at the cost of quickness. Same for the six play styles — the
-creation screen states each gamble plainly rather than hiding it.
+**Every attribute is a trade-off.** *Físico/Physical* buys explosion, rebounding
+and durability but owns the steepest decline of the five and the injuries that
+come with it after 30. *Mentalidad/Mental* is the one attribute still climbing
+in your late 30s. *Anotación/Scoring* ages the best of the rest; *Generación/
+Playmaking* and *Defensa/Defense* round the five out, weighted differently by
+position. Same for the six play styles — the creation screen states each
+gamble plainly rather than hiding it.
 
-**Growth points are your main lever.** Every preseason you allocate points across
-your attributes. Returns diminish steeply, so specialising is a genuinely
-different build from spreading points evenly — and both beat leaving them unspent
-(anything you skip gets allocated for you, but without focus).
+**Development is layered, not allocated.** Every attribute grows and fades on its
+own age curve — teenagers improve fast, most things peak around 26-30, and the
+decline afterward depends on what you built (physical falls off a cliff; mental
+keeps rising). How your season actually went adds to that: a breakout year
+genuinely changes your trajectory, a lost one barely moves you. On top of both,
+one perk is added each preseason from three on offer, so the build diverges by
+what you passed on as much as by what you took — and skipping the choice still
+takes one for you rather than costing a year.
 
 **Decisions with consequences.** Around fifty event cards across every career
 stage — injuries and rehab choices, contract offers, the lucrative-but-career-
@@ -181,11 +187,13 @@ share one finalisation routine so they can never drift apart.
 ### Balance
 
 Calibrated across hundreds of simulated careers so the population looks like real
-basketball. A player who never touches the preseason screen reaches the NBA about
-10% of the time and mostly retires a solid pro; a player who allocates
-deliberately reaches it around 30% and produces real stars. Achievements are
-weighted by the tier they were earned at — a title in the LEB Oro counts, but it
-is not an NBA ring, and the legacy score says so.
+basketball. A player who takes whatever perk comes up first and loses every final
+they reach still becomes a legend or GOAT in under a quarter of careers, and
+reaches the NBA less than two-thirds of the time. Picking perks that actually
+suit your position instead measurably raises both the average legacy score and
+how often a career clears Hall-of-Fame tier. Achievements are weighted by the
+tier they were earned at — a title in the LEB Oro counts, but it is not an NBA
+ring, and the legacy score says so.
 
 ---
 
@@ -294,7 +302,7 @@ and the whole subsystem is skipped for it.
 npm test
 ```
 
-47 tests covering the things that actually break:
+98 tests covering the things that actually break:
 
 - **Determinism** — same seed produces a byte-identical career; different seeds
   do not; `fork()` streams are independent and reproducible.
@@ -307,9 +315,9 @@ npm test
 - **Translation completeness** — the two dictionaries have identical key sets,
   matching `{placeholder}` tokens, no empty strings, and no untranslated prose;
   every event title and choice carries both languages.
-- **Balance invariants** — deliberate growth-point spending measurably beats
-  leaving it to the engine; elite outcomes stay rare for casual play; the legacy
-  score scales with the level played at; the Hall of Fame flag can never
+- **Balance invariants** — picking perks that suit your position measurably
+  beats leaving them to the engine; elite outcomes stay rare for casual play; the
+  legacy score scales with the level played at; the Hall of Fame flag can never
   contradict the legacy tier.
 - **Playable finals** — a career where every final is won collects more titles
   than the same seeds losing every final; losing a contested final can never

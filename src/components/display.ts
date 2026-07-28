@@ -2,6 +2,7 @@
 
 import type { Dictionary } from '@/i18n/dictionary'
 import type { AttributeKey, Locale, PlayerRole, PlayoffResult, Position } from '@/game/types'
+import type { DraftLikelihood, DraftTier } from '@/game/draft'
 
 export const POSITION_KEY: Record<Position, keyof Dictionary> = {
   PG: 'posPG',
@@ -36,6 +37,27 @@ export const ATTRIBUTE_KEY: Record<AttributeKey, keyof Dictionary> = {
   defense: 'attrDefense',
   physical: 'attrPhysical',
   mental: 'attrMental',
+}
+
+/** Scouting-language label per tier — shared by the header strip and the
+ *  preseason panel so the two surfaces never describe the same range differently. */
+export const DRAFT_TIER_KEY: Record<DraftTier, keyof Dictionary> = {
+  lottery: 'draftTierLottery',
+  first_round: 'draftTierFirstRound',
+  second_round: 'draftTierSecondRound',
+  fringe: 'draftTierFringe',
+}
+
+/** Short label for how confident a tier's placement is — shown alongside
+ *  `DRAFT_TIER_KEY`, never instead of it, on both the header strip and the
+ *  preseason panel. `tier` says where; this says how sure. */
+export const DRAFT_LIKELIHOOD_KEY: Record<DraftLikelihood, keyof Dictionary> = {
+  strong: 'draftLikelihoodStrong',
+  likely: 'draftLikelihoodLikely',
+  uncertain: 'draftLikelihoodUncertain',
+  longshot: 'draftLikelihoodLongshot',
+  unlikely: 'draftLikelihoodUnlikely',
+  remote: 'draftLikelihoodRemote',
 }
 
 export const ATTRIBUTE_HELP_KEY: Record<AttributeKey, keyof Dictionary> = {
